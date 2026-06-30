@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply antialiased text-slate-800 bg-slate-50 font-sans;
+    overflow-y: auto;
+  }
+}
+
+/* Simple keyframe fade-in transition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Slide-In animation keyframes for mobile menu drawer */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Slim premium webkit scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 25, 30, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 25, 30, 0.45);
+}
+
+.shadow-premium {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.035) !important;
+}
+
+/* ==========================================================================
+   Batanes State College Theme Color Overrides (Maroon & Gold)
+   ========================================================================== */
+@layer utilities {
+  /* Primary Maroon (#7c191e) overrides */
+  .bg-\[\#1e4620\] {
+    background-color: #7c191e !important;
+  }
+  .text-\[\#1e4620\] {
+    color: #7c191e !important;
+  }
+  .border-\[\#1e4620\] {
+    border-color: #7c191e !important;
+  }
+  .fill-\[\#1e4620\] {
+    fill: #7c191e !important;
+  }
+  .stroke-\[\#1e4620\] {
+    stroke: #7c191e !important;
+  }
+  .hover\:text-\[\#1e4620\]:hover {
+    color: #7c191e !important;
+  }
+  .hover\:bg-\[\#1e4620\]\/10:hover {
+    background-color: rgba(124, 25, 30, 0.1) !important;
+  }
+  .bg-\[\#1e4620\]\/5 {
+    background-color: rgba(124, 25, 30, 0.05) !important;
+  }
+  .border-\[\#1e4620\]\/15 {
+    border-color: rgba(124, 25, 30, 0.15) !important;
+  }
+
+  /* Sidebar Dark Maroon (#581014) overrides */
+  .bg-\[\#123d16\] {
+    background-color: #581014 !important;
+  }
+  .border-\[\#0d2e10\] {
+    border-color: #3b0a0d !important;
+  }
+
+  /* Hover Action Overrides */
+  .hover\:bg-\[\#132c14\]:hover {
+    background-color: #4a0d10 !important;
+  }
+  .hover\:bg-emerald-950:hover {
+    background-color: #4a0d10 !important;
+  }
+
+  /* Emerald -> Amber/Gold overrides for BSC theme coherence */
+  .bg-emerald-600 {
+    background-color: #cca43b !important; /* Soft Gold */
+  }
+  .text-emerald-200 {
+    color: #fde68a !important; /* Amber-200 / Gold Tint */
+  }
+  .text-emerald-100\/75 {
+    color: rgba(253, 230, 138, 0.75) !important;
+  }
+  .bg-emerald-50\/40 {
+    background-color: rgba(253, 243, 199, 0.4) !important;
+  }
+  .border-emerald-110 {
+    border-color: rgba(253, 230, 138, 0.5) !important;
+  }
+  .bg-emerald-100 {
+    background-color: #fef3c7 !important; /* Amber-100 */
+  }
+  .text-emerald-800 {
+    color: #92400e !important; /* Amber-800 */
+  }
+  .border-emerald-200 {
+    border-color: #fde68a !important;
+  }
+  .bg-emerald-50 {
+    background-color: #fffbeb !important; /* Amber-50 */
+  }
+  .text-emerald-600 {
+    color: #d97706 !important;
+  }
+  .text-emerald-950 {
+    color: #451a03 !important;
+  }
+  
+  /* Additional toast background */
+  #save-success-toast {
+    background-color: #7c191e !important;
+    border-color: #fde68a !important;
+  }
+}
+
+/* ==========================================
+   Task 6: SVG Donut Chart Mount Animations
+   ========================================== */
+@keyframes svg-draw {
+  from {
+    stroke-dashoffset: 251.2;
+  }
+}
+
+.donut-chart-segment {
+  transform-origin: center;
+  transition: stroke-width 0.2s ease, opacity 0.2s ease;
+  animation: svg-draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ==========================================
+   Task 7: Print-Ready Stylesheets
+   ========================================== */
+@media print {
+  body, #root {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  header, nav, sidebar, footer, button, select, input, textarea, .no-print, [role="navigation"] {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .bg-white, .bg-slate-50, .bg-slate-100, .bg-\[\#1e4620\]\/5 {
+    background: #ffffff !important;
+    border-color: #cccccc !important;
+  }
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  th, td {
+    border: 1px solid #999999 !important;
+    padding: 6px !important;
+    color: #000000 !important;
+  }
+  .shadow-xs, .shadow-sm, .shadow-md, .shadow-2xs, .shadow-3xs {
+    box-shadow: none !important;
+  }
+}
+
+/* ==========================================
+   Task 12: Dark Theme Overrides
+   ========================================== */
+.dark body {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .bg-white {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600, .dark .text-slate-650 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500, .dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.dark .border-slate-100, .dark .border-slate-200, .dark .border-slate-50 {
+  border-color: #334155 !important;
+}
+
+.dark .bg-slate-50 {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50\/50, .dark .bg-slate-100, .dark .bg-slate-105 {
+  background-color: #334155 !important;
+}
+
+.dark input, .dark select, .dark textarea {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+.dark .bg-emerald-50, .dark .bg-\[\#1e4620\]\/5 {
+  background-color: rgba(124, 25, 30, 0.15) !important;
+}
+
+.dark .shadow-xs, .dark .shadow-sm, .dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Print-Resume-Only styling media overrides */
+@media print {
+  body.print-resume-only {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  body.print-resume-only header, 
+  body.print-resume-only sidebar, 
+  body.print-resume-only aside,
+  body.print-resume-only nav, 
+  body.print-resume-only button, 
+  body.print-resume-only select, 
+  body.print-resume-only input, 
+  body.print-resume-only textarea, 
+  body.print-resume-only [role="navigation"],
+  body.print-resume-only .no-print-resume,
+  body.print-resume-only footer,
+  body.print-resume-only #save-success-toast,
+  body.print-resume-only #feedback-success-toast,
+  body.print-resume-only div.bg-\[\#1e4620\].h-1 {
+    display: none !important;
+  }
+  body.print-resume-only main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  body.print-resume-only .resume-container {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+}
+
+/* Custom range slider with light gold outline thumb */
+input[type="range"].custom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e2e8f0; /* bg-slate-200 */
+}
+
+input[type="range"].custom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #7c191e; /* Maroon */
+  border: 2px solid #fde68a; /* Light Gold Outline */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(124, 25, 30, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease;
+}
+
+input[type="range"].custom-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #7c191e; /* Maroon */
+  border: 2px solid #fde68a; /* Light Gold Outline */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(124, 25, 30, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease;
+}
+
+input[type="range"].custom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: #962227; /* Slightly lighter maroon on hover */
+}
+
+input[type="range"].custom-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  background: #962227; /* Slightly lighter maroon on hover */
+}
+

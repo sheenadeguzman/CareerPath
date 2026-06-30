@@ -1,0 +1,197 @@
+/**
+ * @file db.js
+ * @description MySQL connection pool configuration at automated schema migrations.
+ */
+
+import mysql from 'mysql2/promise';
+import bcrypt from 'bcryptjs';
+
+// I-initialize ang MySQL Connection Pool
+export const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'bsc_careerpath',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+
+/**
+ * Patakbuhin ang database migrations at i-validate ang connection.
+ */
+export async function initializeDatabase() {
+  try {
+    const [rows] = await pool.query('SELECT COUNT(*) as count FROM users');
+    console.log(`Successfully connected to MySQL database. User count: ${rows[0].count}`);
+
+    // MIGRATION 0: Siguraduhing MEDIUMTEXT ang avatar column para sa Base64 image files
+    try {
+      await pool.query('ALTER TABLE users MODIFY COLUMN avatar MEDIUMTEXT');
+      console.log('Database Migration: Modified users.avatar column to MEDIUMTEXT if not already.');
+    } catch (e) {}
+
+    // MIGRATION 1: Siguraduhing may columns ang feedbacks table
+    try {
+      await pool.query('ALTER TABLE feedbacks ADD COLUMN alumni_student_id VARCHAR(50) DEFAULT NULL');
+      console.log('Database Migration: Added alumni_student_id column to feedbacks table if not exists.');
+    } catch (e) {}
+    try {
+      await pool.query('ALTER TABLE feedbacks ADD COLUMN alumni_name VARCHAR(100) DEFAULT NULL');
+      console.log('Database Migration: Added alumni_name column to feedbacks table if not exists.');
+    } catch (e) {}
+    try {
+      await pool.query('ALTER TABLE feedbacks ADD COLUMN company_name VARCHAR(100) DEFAULT NULL');
+      console.log('Database Migration: Added company_name column to feedbacks table if not exists.');
+    } catch (e) {}
+
+    // MIGRATION 2: Siguraduhing mabilis tumakbo ang database queries sa pamamagitan ng pag-index sa alumni_profiles
+    try {
+      await pool.query('ALTER TABLE alumni_profiles ADD INDEX idx_program (program)');
+      console.log('Database Migration: Added index idx_program on alumni_profiles table if not exists.');
+    } catch (e) {}
+    try {
+      await pool.query('ALTER TABLE alumni_profiles ADD INDEX idx_employment_status (employment_status)');
+      console.log('Database Migration: Added index idx_employment_status on alumni_profiles table if not exists.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN location_region VARCHAR(100) DEFAULT 'Local (Batanes)'");
+      console.log('Database Migration: Added location_region column to alumni_profiles table if not exists.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN career_history TEXT DEFAULT NULL");
+      console.log('Database Migration: Added career_history column to alumni_profiles table if not exists.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN reasons_pursuing_program VARCHAR(255) DEFAULT NULL");
+      console.log('Database Migration: Added reasons_pursuing_program column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN find_first_job VARCHAR(255) DEFAULT NULL");
+      console.log('Database Migration: Added find_first_job column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN reasons_accepting_job VARCHAR(255) DEFAULT NULL");
+      console.log('Database Migration: Added reasons_accepting_job column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN useful_skills TEXT DEFAULT NULL");
+      console.log('Database Migration: Added useful_skills column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN reasons_unemployment VARCHAR(255) DEFAULT NULL");
+      console.log('Database Migration: Added reasons_unemployment column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN middle_name VARCHAR(50) DEFAULT NULL");
+      console.log('Database Migration: Added middle_name column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN suffix VARCHAR(10) DEFAULT NULL");
+      console.log('Database Migration: Added suffix column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN year_enrolled INT DEFAULT NULL");
+      console.log('Database Migration: Added year_enrolled column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN alumni_association_status ENUM('Active Member', 'Inactive Member', 'Officer', 'Non-Member') DEFAULT 'Non-Member'");
+      console.log('Database Migration: Added alumni_association_status column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN is_board_passer ENUM('Yes', 'No', 'N/A') DEFAULT 'N/A'");
+      console.log('Database Migration: Added is_board_passer column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN licensure_exam_date VARCHAR(50) DEFAULT NULL");
+      console.log('Database Migration: Added licensure_exam_date column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN license_no VARCHAR(50) DEFAULT NULL");
+      console.log('Database Migration: Added license_no column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN job_industry VARCHAR(100) DEFAULT NULL");
+      console.log('Database Migration: Added job_industry column to alumni_profiles.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN first_job_related_to_course ENUM('Yes', 'No', 'Partially') DEFAULT 'No'");
+      console.log('Database Migration: Added first_job_related_to_course column to alumni_profiles.');
+    } catch (e) {}
+
+    // MIGRATION: Siguraduhing may tamang assigned academic program/department ang bawat Department Chairperson account at Alumni profiles.
+    try {
+      // 1. I-update ang mga chairperson users sa kanilang kaukulang opisyal na Department names
+      await pool.query("UPDATE users SET program = 'Information and Communication Technology Department' WHERE user_id = 'chair_it'");
+      await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'chair_hm'");
+      await pool.query("UPDATE users SET program = 'Teacher Education Department' WHERE user_id = 'chair_educ'");
+      await pool.query("UPDATE users SET program = 'Agriculture Department' WHERE user_id = 'chair_agri'");
+      await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'chair_tourism'");
+      await pool.query("UPDATE users SET program = 'Industrial Technology Department' WHERE user_id = 'chair_tech'");
+
+      // 2. I-update ang mga alumni profiles mula sa lumang maikling BS labels papunta sa mga opisyal na kurso ng BSC
+      await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Science in Information Technology' WHERE program = 'BS Information Technology'");
+      await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Science in Hospitality Management' WHERE program = 'BS Hospitality Management'");
+      await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Elementary Education' WHERE program = 'BS Elementary Education'");
+      await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Science in Agriculture' WHERE program = 'BS Agriculture'");
+      await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Science in Tourism Management' WHERE program = 'BS Tourism Management'");
+      await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Science in Industrial Technology' WHERE program = 'BS Industrial Technology'");
+
+      console.log('Database Migration: Successfully updated and verified official program and department fields for all users.');
+    } catch (err) {
+      console.error('Database Migration Error: Failed to assign chairperson department or alumni program coordinates:', err);
+    }
+
+    // MIGRATION 2.5: Siguraduhing may is_initial_password_needed = 1 ang admin kung default pa ang password nito
+    try {
+      const [adminRows] = await pool.query("SELECT password FROM users WHERE user_id = 'admin'");
+      if (adminRows.length > 0) {
+        const adminPassword = adminRows[0].password;
+        // Check if it is plaintext 'admin123' or matches the hashed value of 'admin123'
+        const isDefault = adminPassword === 'admin123' || await bcrypt.compare('admin123', adminPassword);
+        if (isDefault) {
+          await pool.query("UPDATE users SET is_initial_password_needed = 1 WHERE user_id = 'admin'");
+          console.log("Database Migration: Admin account is using the default password. Prompt enabled.");
+        } else {
+          await pool.query("UPDATE users SET is_initial_password_needed = 0 WHERE user_id = 'admin'");
+          console.log("Database Migration: Admin has configured a secure password. Prompt disabled.");
+        }
+      }
+    } catch (err) {
+      console.error('Database Migration Error: Failed to update admin is_initial_password_needed flag:', err);
+    }
+
+    // MIGRATION 2.6: Linisin ang mga system activity logs na napunta sa feedbacks table
+    try {
+      const [result] = await pool.query("DELETE FROM feedbacks WHERE message LIKE '[LOG EVENT]%'");
+      if (result.affectedRows > 0) {
+        console.log(`Database Migration: Purged ${result.affectedRows} activity log records from feedbacks table.`);
+      }
+    } catch (err) {
+      console.error('Database Migration Error: Failed to purge activity logs from feedbacks table:', err);
+    }
+
+
+    // MIGRATION 3: Awtomatikong i-hash ang plain-text user passwords para sa seguridad ng database
+    try {
+      const [usersToMigrate] = await pool.query('SELECT id, password FROM users');
+      let migratedCount = 0;
+      for (const u of usersToMigrate) {
+        const isHashed = u.password.startsWith('$2a$') || u.password.startsWith('$2b$') || u.password.startsWith('$2y$');
+        if (!isHashed) {
+          const hashedPassword = await bcrypt.hash(u.password, 10);
+          await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, u.id]);
+          migratedCount++;
+        }
+      }
+      if (migratedCount > 0) {
+        console.log(`Database Migration: Secured and hashed ${migratedCount} plaintext user password records.`);
+      }
+    } catch (err) {
+      console.error('Database Migration Error: Failed to secure plaintext passwords:', err);
+    }
+  } catch (err) {
+    console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err.message);
+  }
+}
