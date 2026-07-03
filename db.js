@@ -158,11 +158,45 @@ export async function initializeDatabase() {
     try {
       // 1. I-update ang mga chairperson users sa kanilang kaukulang opisyal na Department names
       await pool.query("UPDATE users SET program = 'Information and Communication Technology Department' WHERE user_id = 'chair_it'");
-      await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'chair_hm'");
       await pool.query("UPDATE users SET program = 'Teacher Education Department' WHERE user_id = 'chair_educ'");
       await pool.query("UPDATE users SET program = 'Agriculture Department' WHERE user_id = 'chair_agri'");
-      await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'chair_tourism'");
       await pool.query("UPDATE users SET program = 'Industrial Technology Department' WHERE user_id = 'chair_tech'");
+
+      // Clean up old chairpersons and migrate to combined HTM chairperson
+      try {
+        const [oldChairs] = await pool.query("SELECT id FROM users WHERE user_id IN ('chair_hm', 'chair_tourism')");
+        if (oldChairs.length > 0) {
+          await pool.query("DELETE FROM users WHERE user_id IN ('chair_hm', 'chair_tourism')");
+          console.log("Database Migration: Deleted legacy chair_hm and chair_tourism accounts.");
+        }
+      } catch (err) {}
+
+      try {
+        const [htmCheck] = await pool.query("SELECT id FROM users WHERE user_id = 'chair_htm'");
+        if (htmCheck.length === 0) {
+          const hashedPassword = await bcrypt.hash('chair123', 10);
+          await pool.query(
+            `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, program, avatar) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              'bsc-chair-htm',
+              'chair_htm',
+              hashedPassword,
+              'Prof. Angela Castro',
+              'chair.htm@bsc.edu.ph',
+              'Department Chairperson',
+              1,
+              'Hospitality and Tourism Management Department',
+              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120'
+            ]
+          );
+          console.log("Database Migration: Seeded combined Hospitality and Tourism Management Chairperson (chair_htm)");
+        } else {
+          await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'chair_htm'");
+        }
+      } catch (err) {
+        console.error("Database Migration Error: Failed to seed chair_htm account:", err);
+      }
 
       // 2. I-update ang mga alumni profiles mula sa lumang maikling BS labels papunta sa mga opisyal na kurso ng BSC
       await pool.query("UPDATE alumni_profiles SET program = 'Bachelor of Science in Information Technology' WHERE program = 'BS Information Technology'");

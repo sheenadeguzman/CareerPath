@@ -56,10 +56,10 @@ export const INITIAL_USERS = [
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=120'
   },
   {
-    id: 'bsc-chair-hm',
-    userId: 'chair_hm',
+   id: 'bsc-chair-htm',
+    userId: 'chair_htm',
     name: 'Prof. Angela Castro',
-    email: 'chair.hm@bsc.edu.ph',
+    email: 'chair.htm@bsc.edu.ph',
     role: 'Department Chairperson',
     isInitialPasswordNeeded: true,
     program: 'Hospitality and Tourism Management Department',
@@ -85,16 +85,7 @@ export const INITIAL_USERS = [
     program: 'Agriculture Department',
     avatar: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?auto=format&fit=crop&q=80&w=120'
   },
-  {
-    id: 'bsc-chair-tourism',
-    userId: 'chair_tourism',
-    name: 'Prof. Claire Cruz',
-    email: 'chair.tourism@bsc.edu.ph',
-    role: 'Department Chairperson',
-    isInitialPasswordNeeded: true,
-    program: 'Hospitality and Tourism Management Department',
-    avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=120'
-  },
+
   {
     id: 'bsc-chair-tech',
     userId: 'chair_tech',
