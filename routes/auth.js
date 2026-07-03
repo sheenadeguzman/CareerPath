@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import { pool } from '../db.js';
 import { mapUserFromDB } from '../mappers.js';
 import { transporter } from './mailer.js';
+import { authenticateToken } from './middleware.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'bsc_careerpath_super_secret_key';
@@ -223,6 +224,56 @@ router.post('/change-password', async (req, res) => {
     res.json({ success: true, token, user: updatedUser });
   } catch (err) {
     console.error('Change password error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/delete-user
+ * Endpoint para burahin ang isang user sa system. Super Admin lamang ang may pahintulot.
+ */
+router.post('/delete-user', authenticateToken, async (req, res) => {
+  try {
+    const { userId, activeUserId } = req.body;
+
+    let activeUser = null;
+    if (activeUserId) {
+      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
+      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    }
+
+    if (!activeUser || activeUser.role !== 'Super Admin') {
+      return res.status(403).json({ error: 'Permission denied: Only Super Administrators can delete system users.' });
+    }
+
+    if (userId === activeUser.id) {
+      return res.status(400).json({ error: 'Cannot delete your own account.' });
+    }
+
+    // Burahin ang user (dahil may CASCADE delete relationship, mabubura rin ang profile nito kung mayroon)
+    await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+
+    const newLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      userId: activeUser.id,
+      userEmail: activeUser.email,
+      userName: activeUser.name,
+      userRole: activeUser.role,
+      action: 'Deleted System User',
+      module: 'User Management / Settings',
+      details: `Deleted user account: ID '${userId}'`
+    };
+
+    await pool.query(
+      'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
+    );
+
+    const [usersRows] = await pool.query('SELECT * FROM users');
+    res.json({ success: true, users: usersRows.map(mapUserFromDB) });
+  } catch (err) {
+    console.error('Delete user error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

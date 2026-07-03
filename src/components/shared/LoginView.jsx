@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, BookOpen, Users, Briefcase, Eye, EyeOff, Lock, RefreshCw, Key, Mail } from 'lucide-react';
+import { Shield, BookOpen, Users, Briefcase, Eye, EyeOff, Lock, RefreshCw, Key, Mail, ShieldAlert } from 'lucide-react';
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   // Step 1: Role Selection panel (Administrator, Department Chairperson, Alumni, Employer)
@@ -34,7 +34,10 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     setSelectedRole(role);
     setErrorMessage('');
     // Awtomatikong nilalagyan ang mga field ng username para sa madaling pag-test, ngunit iniiwang blanko ang password
-    if (role === 'Administrator') {
+    if (role === 'Super Admin') {
+      setUserIdInput('superadmin');
+      setPasswordInput('');
+    } else if (role === 'Administrator') {
       setUserIdInput('admin');
       setPasswordInput('');
     } else if (role === 'Department Chairperson') {
@@ -396,6 +399,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                 <p className="text-xs text-slate-500 mt-1">
                   {/* NOTE: Binago natin ito para maging dynamic depende sa role ng user. Dati kasi, laging 'administrative credentials' ang nakalagay kahit Alumni o Employer ang nag-login gamit ang temporary password. */}
                   Hi <span className="font-semibold text-slate-800">{passwordResetUser.name}</span>, you are logging in using {
+                    passwordResetUser.role === 'Super Admin' ? 'super admin credentials' :
                     passwordResetUser.role === 'Administrator' ? 'administrative credentials' :
                     passwordResetUser.role === 'Department Chairperson' ? 'chairperson credentials' :
                     passwordResetUser.role === 'Alumni' ? 'temporary alumni credentials' :
@@ -509,6 +513,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     /[0-9]/.test(newPassword) &&
                     /[^A-Za-z0-9]/.test(newPassword) &&
                     newPassword !== passwordInput &&
+                    newPassword !== 'super123' &&
                     newPassword !== 'admin123' &&
                     newPassword !== 'chair123' &&
                     newPassword !== 'alumni123' &&
@@ -533,6 +538,22 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
               </div>
 
               <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
+                 <button
+                  id="role-btn-super-admin"
+                  onClick={() => handleRoleSelect('Super Admin')}
+                  className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 sm:p-2.5 bg-[#7c191e]/10 text-[#7c191e] rounded-xl group-hover:bg-[#7c191e] group-hover:text-white transition-all duration-300 shrink-0">
+                      <ShieldAlert className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+                    </div>
+                    <div>
+                      <span className="block text-xs sm:text-sm font-extrabold text-slate-800 tracking-wide">Super Administrator</span>
+                      <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium leading-tight mt-0.5">System-wide admin management and user credentials control</span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-extrabold text-[#7c191e] opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 mr-1 sm:mr-2">&rarr;</span>
+                </button>
                 <button
                   id="role-btn-admin"
                   onClick={() => handleRoleSelect('Administrator')}

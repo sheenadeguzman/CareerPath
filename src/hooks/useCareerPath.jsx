@@ -23,7 +23,8 @@ import {
   deleteAlumni,
   sendBatchReminders,
   inviteUserByEmail,
-  toggleNotificationRead
+  toggleNotificationRead,
+  deleteUser
 } from '../services/api';
 
 export function useCareerPath() {
@@ -279,6 +280,17 @@ export function useCareerPath() {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    try {
+      const db = await deleteUser(userId, activeUser?.id, getAuthHeaders());
+      setUsers(db.users || []);
+      showSuccessToast('User account deleted successfully.');
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      alert(err.message || 'Failed to delete user.');
+    }
+  };
+
   const handleTriggerSingleEmailNudge = async (studentId) => {
     await handleSendBatchReminders([studentId]);
     alert('Email Reminder safely dispatched from Batanes State College!');
@@ -353,7 +365,7 @@ export function useCareerPath() {
     if (!activeUser) return [];
     
     const role = activeUser.role;
-    if (role === 'Administrator') {
+      if (role === 'Administrator' || role === 'Super Admin') {
       return notifications;
     }
     
@@ -418,7 +430,7 @@ export function useCareerPath() {
   // PAG-GENERATE NG MGA NAVIGATION ITEMS
   // =========================================================================
 
-  const isAdminOrChair = activeUser?.role === 'Administrator' || activeUser?.role === 'Department Chairperson';
+    const isAdminOrChair = activeUser?.role === 'Super Admin' || activeUser?.role === 'Administrator' || activeUser?.role === 'Department Chairperson';
 
   const navigationItems = isAdminOrChair
     ? [
@@ -434,7 +446,7 @@ export function useCareerPath() {
         { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
         { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
         { id: 'Activity Log', name: 'Activity Logs', icon: <Activity className="w-4 h-4" /> },
-        ...(activeUser.role === 'Administrator' ? [{ id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }] : [])
+       ...((activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') ? [{ id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }] : [])
       ]
     : activeUser?.role === 'Alumni'
     ? [
@@ -490,6 +502,7 @@ export function useCareerPath() {
     handleBulkImport,
     handleSendBatchReminders,
     handleInviteUserByEmail,
+    handleDeleteUser,
     handleTriggerSingleEmailNudge,
     handleMarkNotifyRead,
     handleTabChange,

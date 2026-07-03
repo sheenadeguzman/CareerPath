@@ -75,6 +75,7 @@ export default function App() {
     handleBulkImport,
     handleSendBatchReminders,
     handleInviteUserByEmail,
+    handleDeleteUser,
     handleTriggerSingleEmailNudge,
     handleMarkNotifyRead,
     handleTabChange,
@@ -285,12 +286,14 @@ export default function App() {
 
             {/* Settings: Security settings, batch reminders, at account invitations */}
             {/* NOTE: Nilagyan natin ng role-check para tanging Administrator lamang ang pwedeng mag-render ng SettingsView. */}
-            {currentTab === 'Settings' && activeUser?.role === 'Administrator' && (
+            {currentTab === 'Settings' && (activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin') && (
               <SettingsView
                 alumniList={alumniList}
                 activeUser={activeUser}
+                users={users}
                 onSendReminders={handleSendBatchReminders}
                 onInviteUserByEmail={handleInviteUserByEmail}
+                onDeleteUser={handleDeleteUser}
               />
             )}
 

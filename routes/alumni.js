@@ -214,8 +214,8 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
       if (users.length > 0) activeUser = mapUserFromDB(users[0]);
     }
 
-    if (!activeUser || (activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
-      return res.status(403).json({ error: 'Permission denied: Only Administrators and Department Chairpersons can delete profiles.' });
+      if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators, Super Admins, and Department Chairpersons can delete profiles.' });
     }
 
     const [alumniRows] = await pool.query('SELECT * FROM alumni_profiles WHERE student_id = ?', [studentId]);

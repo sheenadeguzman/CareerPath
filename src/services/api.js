@@ -153,3 +153,15 @@ export async function toggleNotificationRead(id, read, headers) {
   });
   return handleResponse(response);
 }
+
+/**
+ * Delete system user.
+ */
+export async function deleteUser(userId, activeUserId, headers) {
+  const response = await fetch('/api/delete-user', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ userId, activeUserId })
+  });
+  return handleResponse(response);
+}

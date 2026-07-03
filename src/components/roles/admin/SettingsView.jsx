@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Check, AlertTriangle, Send, ShieldAlert, PlusCircle, UserPlus, RefreshCw, SendToBack, BellDot } from 'lucide-react';
+import { Mail, Check, AlertTriangle, Send, ShieldAlert, PlusCircle, UserPlus, RefreshCw, SendToBack, BellDot, Trash2, Search } from 'lucide-react';
 
 /**
  * SettingsView Component
@@ -8,9 +8,11 @@ import { Mail, Check, AlertTriangle, Send, ShieldAlert, PlusCircle, UserPlus, Re
  */
 export default function SettingsView({ 
   alumniList, 
-  activeUser, 
+  activeUser,
+  users = [], 
   onSendReminders, 
-  onInviteUserByEmail 
+  onInviteUserByEmail,
+  onDeleteUser
 }) {
   
   // Mga istatistika para sa profile completeness ng mga alumni
@@ -34,7 +36,27 @@ export default function SettingsView({
 
   // State variables para sa form ng bagong imbitasyon
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('Alumni');
+  const [inviteRole, setInviteRole] = useState(activeUser?.role === 'Super Admin' ? 'Super Admin' : 'Alumni');
+
+  // Super Admin Users Directory search query state
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredUsers = (users || []).filter(user => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      (user.name || '').toLowerCase().includes(query) ||
+      (user.email || '').toLowerCase().includes(query) ||
+      (user.role || '').toLowerCase().includes(query) ||
+      (user.userId || '').toLowerCase().includes(query)
+    );
+  });
+
+  const handleDeleteUserClick = (user) => {
+    if (confirm(`WARNING: Are you absolutely sure you want to permanently delete the user account "${user.name}" (${user.userId})?\n\nThis will completely purge their credentials and associated portal access!`)) {
+      onDeleteUser(user.id);
+    }
+  };
 
   /**
    * handleBatchDispatch
@@ -236,6 +258,12 @@ export default function SettingsView({
                 onChange={(e) => setInviteRole(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-md p-2.5"
               >
+                 {activeUser?.role === 'Super Admin' && (
+                  <>
+                    <option value="Super Admin">Super Administrator (SYSTEM OVERSEER)</option>
+                    <option value="Administrator">Administrator (PORTAL MANAGER)</option>
+                  </>
+                )}
                 <option value="Alumni">Graduate Alumnus (TRACER TYPE)</option>
                 <option value="Department Chairperson">Department Chairperson (IT / Hospitality / BSA)</option>
                 <option value="Employer">Partner Employer (Hiring Manager)</option>
@@ -254,6 +282,112 @@ export default function SettingsView({
 
       </div>
 
+    {/* System Users Directory Section - Visible only to Super Admin */}
+      {activeUser?.role === 'Super Admin' && (
+        <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-150">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-[#1e4620] uppercase tracking-wider block">System Users Directory (Super Admin Only)</span>
+              <p className="text-xs text-slate-500 font-semibold">
+                Manage all registered accounts, view credentials status, or delete administrators, alumni, and partner credentials.
+              </p>
+            </div>
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="w-3.5 h-3.5 text-slate-400" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, email, or role..."
+                className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-[#1e4620] focus:bg-white text-slate-800"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-slate-100">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
+                  <th className="p-3">User ID</th>
+                  <th className="p-3">Name</th>
+                  <th className="p-3">Email Address</th>
+                  <th className="p-3">System Role</th>
+                  <th className="p-3">Verification Info</th>
+                  <th className="p-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-6 text-center text-slate-400 font-bold">
+                      No system users found matching search coordinates.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-slate-50/50 transition">
+                      <td className="p-3 font-mono font-bold text-[#7c191e]">{user.userId}</td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'}
+                            alt={user.name}
+                            className="w-6 h-6 rounded-full object-cover border border-slate-100"
+                            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'; }}
+                          />
+                          <span>{user.name}</span>
+                        </div>
+                      </td>
+                      <td className="p-3 text-slate-500">{user.email || 'N/A'}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide ${
+                          user.role === 'Super Admin' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
+                          user.role === 'Administrator' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          user.role === 'Department Chairperson' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                          user.role === 'Employer' ? 'bg-sky-50 text-sky-700 border border-sky-200' :
+                          'bg-emerald-50 text-[#1e4620] border border-emerald-200'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        {user.isInitialPasswordNeeded ? (
+                          <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-amber-100 flex items-center gap-1 w-max">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            Default Credentials
+                          </span>
+                        ) : (
+                          <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-100 flex items-center gap-1 w-max">
+                            <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            Private Password Set
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleDeleteUserClick(user)}
+                          disabled={user.id === activeUser.id}
+                          className={`p-1.5 rounded-lg border transition ${
+                            user.id === activeUser.id
+                              ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                              : 'bg-red-50 hover:bg-red-100 border-red-200 text-red-700 cursor-pointer'
+                          }`}
+                          title={user.id === activeUser.id ? 'Cannot delete your own account' : 'Permanently delete user'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

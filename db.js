@@ -32,6 +32,40 @@ export async function initializeDatabase() {
       console.log('Database Migration: Modified users.avatar column to MEDIUMTEXT if not already.');
     } catch (e) {}
 
+     // MIGRATION: Update users.role to support 'Super Admin'
+    try {
+      await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('Super Admin', 'Administrator', 'Department Chairperson', 'Alumni', 'Employer') NOT NULL");
+      console.log("Database Migration: Updated users.role column to support Super Admin role.");
+    } catch (e) {
+      console.error("Database Migration Error: Failed to alter users.role ENUM:", e);
+    }
+
+    // MIGRATION: Seed default Super Admin user if not exists
+    try {
+      const [superCheck] = await pool.query("SELECT id FROM users WHERE user_id = 'superadmin'");
+      if (superCheck.length === 0) {
+        const hashedPassword = await bcrypt.hash('super123', 10);
+        await pool.query(
+          `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            'bsc-super-admin',
+            'superadmin',
+            hashedPassword,
+            'Super Administrator',
+            'superadmin@bsc.edu.ph',
+            'Super Admin',
+            1,
+            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=120'
+          ]
+        );
+        console.log("Database Migration: Seeded default Super Admin user (UserID: superadmin / Pass: super123)");
+      }
+    } catch (e) {
+      console.error("Database Migration Error: Failed to seed Super Admin user:", e);
+    }
+
+
     // MIGRATION 1: Siguraduhing may columns ang feedbacks table
     try {
       await pool.query('ALTER TABLE feedbacks ADD COLUMN alumni_student_id VARCHAR(50) DEFAULT NULL');
