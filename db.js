@@ -259,6 +259,38 @@ export async function initializeDatabase() {
     } catch (err) {
       console.error('Database Migration Error: Failed to secure plaintext passwords:', err);
     }
+    
+    // MIGRATION: Add standard created_at and updated_at columns to all tables if missing
+    const tablesToMigrate = [
+      { name: 'users', addCreated: false, addUpdated: true },
+      { name: 'alumni_profiles', addCreated: true, addUpdated: true },
+      { name: 'employers', addCreated: false, addUpdated: true },
+      { name: 'job_postings', addCreated: false, addUpdated: true },
+      { name: 'surveys', addCreated: false, addUpdated: true },
+      { name: 'feedbacks', addCreated: true, addUpdated: true },
+      { name: 'activity_logs', addCreated: true, addUpdated: true },
+      { name: 'survey_responses', addCreated: true, addUpdated: true },
+      { name: 'notifications', addCreated: true, addUpdated: true }
+    ];
+
+    for (const table of tablesToMigrate) {
+      if (table.addCreated) {
+        try {
+          await pool.query(`ALTER TABLE ${table.name} ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+          console.log(`Database Migration: Added created_at column to ${table.name} table.`);
+        } catch (e) {
+          // Ignore if column already exists or query fails
+        }
+      }
+      if (table.addUpdated) {
+        try {
+          await pool.query(`ALTER TABLE ${table.name} ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`);
+          console.log(`Database Migration: Added updated_at column to ${table.name} table.`);
+        } catch (e) {
+          // Ignore if column already exists or query fails
+        }
+      }
+    }
   } catch (err) {
     console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err.message);
   }
