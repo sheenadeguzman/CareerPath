@@ -452,6 +452,7 @@ export function useCareerPath() {
     ? [
         { id: 'Dashboard', name: 'Dashboard', icon: <Layers className="w-4 h-4" /> },
         { id: 'My Profile', name: 'My Profile', icon: <GraduationCap className="w-4 h-4" /> },
+        { id: 'Employment', name: 'Alumni Map & Directory', icon: <PieChart className="w-4 h-4" /> },
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },

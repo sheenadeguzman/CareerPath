@@ -110,6 +110,12 @@ export default function ReportsView({ alumniList, activeUser }) {
   const nationalPct = total > 0 ? Math.round((nationalCount / total) * 100) : 0;
   const internationalPct = total > 0 ? Math.round((internationalCount / total) * 100) : 0;
 
+  const accredEmployedCount = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
+  const accredEmploymentRate = total > 0 ? Math.round((accredEmployedCount / total) * 100) : 0;
+  const alignedCount = filteredAlumni.filter(a => a.isRegistered && ['Yes', 'Partially'].includes(a.jobRelatedToCourse)).length;
+  const alignmentIndex = total > 0 ? Math.round((alignedCount / total) * 100) : 0;
+  const immediateOrUnder6m = filteredAlumni.filter(a => a.isRegistered && ['Immediate', '1 to 6 months'].includes(a.timeToFirstJob)).length;
+  const placementUnder6MonthsRate = total > 0 ? Math.round((immediateOrUnder6m / total) * 100) : 0;
   // Initialize and update the map layer
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -921,6 +927,65 @@ export default function ReportsView({ alumniList, activeUser }) {
           </div>
         </div>
 
+      </div>
+
+ {/* ANNEX A: CHED / ALCU-COA GRADUATE PLACEMENT ACCREDITATION SUMMARY */}
+      <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">ANNEX A: CHED / ALCU-COA Accreditation Summary</h3>
+          <span className="text-[9.5px] bg-[#cca43b] text-slate-900 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Accreditation Annex</span>
+        </div>
+        <div className="p-5">
+          <p className="text-[11px] text-slate-500 mb-4 font-semibold leading-relaxed font-sans">
+            The following table summarizes institutional performance quality indicators required for official accreditation reviews (including CHED graduate placement audits and ALCU-COA compliance checks).
+          </p>
+          <div className="overflow-x-auto w-full border border-slate-200 rounded-lg">
+            <table className="w-full text-left text-xs font-medium text-slate-705 divide-y divide-slate-200">
+              <thead className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th className="p-3 pl-5 border-r border-slate-200">Compliance Quality Indicator</th>
+                  <th className="p-3 border-r border-slate-200 text-center">Value / Metric</th>
+                  <th className="p-3">Audit Benchmark Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 font-sans">
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Total Graduate Cohort Size (N)</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-slate-800">{total} grads</td>
+                  <td className="p-3 text-slate-500 font-semibold">Overall census data tracked in portal</td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Active Registration &amp; Response Rate</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-slate-800">{regRate}%</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${regRate >= 75 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                      {regRate >= 75 ? 'High Compliance' : 'Substandard - Requires follow-up'}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Graduate Employment Rate</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-emerald-700">{accredEmploymentRate}%</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${accredEmploymentRate >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-805'}`}>
+                      {accredEmploymentRate >= 70 ? 'Satisfactory Placement' : 'Action Plan Required'}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Degree-to-Career Alignment Index</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-slate-800">{alignmentIndex}%</td>
+                  <td className="p-3 text-slate-500 font-semibold">Percent of employed graduates in related fields</td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Employment within 6 Months</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-indigo-700">{placementUnder6MonthsRate}%</td>
+                  <td className="p-3 text-slate-500 font-semibold">Immediate transition metrics upon graduation</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
 
