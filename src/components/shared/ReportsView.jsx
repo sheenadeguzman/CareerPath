@@ -477,7 +477,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         <div>
           <div className="flex items-center gap-1.5">
             <span className="p-1 bg-[#1e4620]/10 text-[#1e4620] rounded text-[9px] font-extrabold uppercase tracking-widest">
-              CHED &amp; ALCU-COA Standard Analytics
+              CHED &amp; AACCUP Quality Analytics
             </span>
             {isChairperson && (
               <span className="p-1 bg-amber-100 text-amber-900 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
@@ -932,12 +932,12 @@ export default function ReportsView({ alumniList, activeUser }) {
  {/* ANNEX A: CHED / ALCU-COA GRADUATE PLACEMENT ACCREDITATION SUMMARY */}
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">ANNEX A: CHED / ALCU-COA Accreditation Summary</h3>
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">ANNEX A: CHED / AACCUP Accreditation Summary</h3>
           <span className="text-[9.5px] bg-[#cca43b] text-slate-900 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Accreditation Annex</span>
         </div>
         <div className="p-5">
           <p className="text-[11px] text-slate-500 mb-4 font-semibold leading-relaxed font-sans">
-            The following table summarizes institutional performance quality indicators required for official accreditation reviews (including CHED graduate placement audits and ALCU-COA compliance checks).
+            The following table summarizes institutional performance quality indicators required for official accreditation reviews (including CHED graduate placement audits and AACCUP compliance checks).
           </p>
           <div className="overflow-x-auto w-full border border-slate-200 rounded-lg">
             <table className="w-full text-left text-xs font-medium text-slate-705 divide-y divide-slate-200">
