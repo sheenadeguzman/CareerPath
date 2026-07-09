@@ -30,7 +30,8 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
 
   // Tinitiyak kung ang logged-in user ay Department Chairperson para i-restrict ang scope sa program nila
   const isChairperson = activeUser?.role === 'Department Chairperson';
-  const chairProgram = activeUser?.program || '';
+const isAdminOrChair = activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin' || activeUser?.role === 'Department Chairperson';
+
 
   // Awtomatikong nililimitahan ang program kung chairperson ang naka-login
   const effectiveProgram = isChairperson ? chairProgram : selectedProgram;
