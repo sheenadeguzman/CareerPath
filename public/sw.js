@@ -10,7 +10,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         return cache.addAll(urlsToCache);
-              })
+      })
   );
 });
 
@@ -24,11 +24,16 @@ self.addEventListener('activate', event => {
           }
         })
       );
-      })
+    })
   );
 });
 
 self.addEventListener('fetch', event => {
+  // Skip API requests and non-GET requests (POST, PUT, DELETE, etc.)
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+    return;
+  }
+
   // Use Network-First strategy for navigation requests (HTML pages)
   if (event.request.mode === 'navigate' || event.request.url.endsWith('/') || event.request.url.endsWith('index.html')) {
     event.respondWith(
@@ -52,7 +57,14 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            }
+            return networkResponse;
+          });
       })
   );
 });
