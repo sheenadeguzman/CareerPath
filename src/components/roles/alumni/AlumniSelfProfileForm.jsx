@@ -185,7 +185,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     } else {
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-      script.integrity = 'sha512-GsLlZN/3F2ErC5IfS5Q/cxXXpHaXB5RYHNkD3GrOk8OI+mHyR9WjQ8AQcms9cgGpIiAHjM8A1tKMEwGZGgC5vw==';
+      script.integrity = 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==';
       script.crossOrigin = 'anonymous';
       script.referrerPolicy = 'no-referrer';
       script.onload = runHtml2Pdf;

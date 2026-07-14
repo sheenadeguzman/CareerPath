@@ -47,8 +47,8 @@ export function useCareerPath() {
     return sessionStorage.getItem('careerpath_token') || null;
   });
 
-  const getAuthHeaders = () => {
-    const activeToken = token || sessionStorage.getItem('careerpath_token');
+ const getAuthHeaders = (tokenOverride) => {
+    const activeToken = tokenOverride || token || sessionStorage.getItem('careerpath_token');
     return {
       'Content-Type': 'application/json',
       ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
@@ -162,7 +162,7 @@ export function useCareerPath() {
     sessionStorage.removeItem('careerpath_token');
   };
 
-  const appendActivity = async (action, module, details, userOverride) => {
+    const appendActivity = async (action, module, details, userOverride, tokenOverride) => {
     const actor = userOverride || activeUser;
     if (!actor) return;
 
@@ -173,7 +173,7 @@ export function useCareerPath() {
         message: `[LOG EVENT] ${details} (Module: ${module})`,
         rating: 5,
         submittedBy: actor.name
-      }, actor.id, getAuthHeaders());
+      }, actor.id, getAuthHeaders(tokenOverride));
       fetchData();
     } catch (err) {
       console.error('Failed to append log:', err);

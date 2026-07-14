@@ -101,7 +101,8 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
         'User Secured Portal Entrance',
         'Authentication',
         `Logged in successfully as ${authenticatedUser.name} (${authenticatedUser.role})`,
-        authenticatedUser
+          authenticatedUser,
+        result.token
       );
       onLoginSuccess(authenticatedUser, result.token);
 
@@ -159,7 +160,8 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
           'Updated Initial Password',
           'Security Check',
           `Successfully replaced temporal credentials for account ${updatedUser.name}.`,
-          updatedUser
+          updatedUser,
+          result.token
         );
         onLoginSuccess(updatedUser, result.token);
       }, 1800);
