@@ -731,7 +731,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       {/* Geographical Tracer Map (Geo-Tracer) */}
       {/* Geographical Placement & Network Reach (Geo-Tracer) */}
       <div className="bg-white border border-slate-100 rounded-xl shadow-xs p-6 text-slate-800 space-y-6 transition-all duration-300">
-        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+       <div data-html2canvas-ignore="true" className="bg-white border border-slate-100 rounded-xl shadow-xs p-6 text-slate-800 space-y-6 transition-all duration-300">
           <div>
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               <Compass className="w-4.5 h-4.5 text-[#7c191e] animate-spin-slow" /> Graduate Placement &amp; Network Reach Index
