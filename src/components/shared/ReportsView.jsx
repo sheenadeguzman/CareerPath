@@ -439,35 +439,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   // Flag para malaman kung ang kasalukuyang session ay naka-lock sa partikular na Department Chairperson
   const isChairperson = activeUser?.role === 'Department Chairperson';
 
-  /**
-   * Nag-do-download ng Reports dashboard bilang PDF gamit ang html2pdf.js library na kinuha mula sa CDN.
-   */
-  const handleDownloadReportPDF = () => {
-    const runHtml2Pdf = () => {
-      const element = document.querySelector('.reports-container');
-      const opt = {
-        margin:       0.2,
-        // NOTE: Nilagyan natin ng fallback check (activeUser?.program || 'Department') para hindi mag-crash kapag null ang program ng Chairperson.
-        filename:     `BSC_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 1.5, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
-      };
-      window.html2pdf().set(opt).from(element).save();
-    };
 
-    if (window.html2pdf) {
-      runHtml2Pdf();
-    } else {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-      script.integrity = 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==';
-      script.crossOrigin = 'anonymous';
-      script.referrerPolicy = 'no-referrer';
-      script.onload = runHtml2Pdf;
-      document.body.appendChild(script);
-    }
-  };
 
   return (
     <div className="space-y-6 font-sans pb-10 reports-container">
@@ -490,12 +462,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
         
         <div className="flex gap-2 shrink-0 no-print" data-html2canvas-ignore="true">
-          <button
-            onClick={handleDownloadReportPDF}
-            className="px-4 py-2 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-          >
-            <Download className="w-4 h-4" /> Download
-          </button>
+          
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
