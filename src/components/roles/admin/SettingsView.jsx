@@ -11,115 +11,6 @@ const MOCK_AVATARS = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120'
 ];
 
-// Dictionary translations supporting English, Tagalog, and Ivatán (the local Batanes dialect)
-const TRANSLATIONS = {
-  English: {
-    settings: 'Settings',
-    searchPlaceholder: 'Search for a setting...',
-    account: 'Account',
-    notifications: 'Notifications',
-    privacySecurity: 'Privacy & Security',
-    helpSupport: 'Help and Support',
-    about: 'About',
-    noSettingsFound: 'No matching settings found.',
-    saveChanges: 'Save Changes',
-    saveAlerts: 'Save Alerts',
-    saveSecurity: 'Save Security',
-    fullName: 'Full Name',
-    emailAddress: 'Email Address',
-    phoneNumber: 'Phone Number',
-    preferredLanguage: 'Preferred Language',
-    systemRole: 'System Role',
-    textScaling: 'Text Scaling / Font Size',
-    emailAlerts: 'Email Alerts',
-    jobVacancies: 'Job Matching Updates',
-    surveyInvites: 'Tracer Surveys',
-    digestFrequency: 'Digest Summary Schedule',
-    currentPassword: 'Current Account Password',
-    newPassword: 'New Password',
-    confirmPassword: 'Confirm New Password',
-    recoveryQuestion: 'Recovery Question Selection',
-    recoveryAnswer: 'Answer Verification Key',
-    deactivate: 'Deactivate Account Registry',
-    dangerZone: 'Danger Zone',
-    helpdeskTitle: 'BSC System Directory Links',
-    ticketSubject: 'Ticket Subject Summary',
-    ticketDescription: 'Description message details',
-    submitTicket: 'Submit Ticket',
-    aboutTitle: 'BSC CareerPath Tracer Portal'
-  },
-  Tagalog: {
-    settings: 'Mga Setting',
-    searchPlaceholder: 'Maghanap ng setting...',
-    account: 'Akawnt',
-    notifications: 'Mga Abiso',
-    privacySecurity: 'Pribasya at Seguridad',
-    helpSupport: 'Tulong at Suporta',
-    about: 'Tungkol sa Portal',
-    noSettingsFound: 'Walang nahanap na tugmang setting.',
-    saveChanges: 'I-save ang mga Pagbabago',
-    saveAlerts: 'I-save ang mga Abiso',
-    saveSecurity: 'I-save ang Seguridad',
-    fullName: 'Buong Pangalan',
-    emailAddress: 'Email Address',
-    phoneNumber: 'Numero ng Telepono',
-    preferredLanguage: 'Gustong Wika',
-    systemRole: 'Tungkulin sa System',
-    textScaling: 'Laki ng Text / Font Size',
-    emailAlerts: 'Mga Alerto sa Email',
-    jobVacancies: 'Mga Update sa Trabaho',
-    surveyInvites: 'Mga Survey sa Tracer',
-    digestFrequency: 'Iskedyul ng Buod ng Abiso',
-    currentPassword: 'Kasalukuyang Password ng Akawnt',
-    newPassword: 'Bagong Password',
-    confirmPassword: 'Kumpirmahin ang Bagong Password',
-    recoveryQuestion: 'Pagpili ng Tanong sa Pagbawi',
-    recoveryAnswer: 'Sagot para sa Pagbawi',
-    deactivate: 'I-deactivate ang Akawnt',
-    dangerZone: 'Panganib na Zone',
-    helpdeskTitle: 'Mga Link ng BSC System Directory',
-    ticketSubject: 'Buod ng Paksa ng Ticket',
-    ticketDescription: 'Mga detalye ng mensahe ng ticket',
-    submitTicket: 'Ipadala ang Ticket',
-    aboutTitle: 'Tracer Portal ng BSC CareerPath'
-  },
-  Ivatan: {
-    settings: 'Siting',
-    searchPlaceholder: 'Manita sitsiting...',
-    account: 'Akawnt',
-    notifications: 'Pangabiso',
-    privacySecurity: 'Karitruan kan Seguridad',
-    helpSupport: 'Tadung kan Suporta',
-    about: 'Mapanmo du Portal',
-    noSettingsFound: 'Ara u sitsiting a kavano.',
-    saveChanges: 'Ipachilay u chinaynaw',
-    saveAlerts: 'Ipachilay u pangabiso',
-    saveSecurity: 'Ipachilay u seguridad',
-    fullName: 'Raray a Ngaran',
-    emailAddress: 'Email Address',
-    phoneNumber: 'Numero du Telepono',
-    preferredLanguage: 'Piliyen a Chirin',
-    systemRole: 'Trabaho du System',
-    textScaling: 'Raya kan Letra / Font Size',
-    emailAlerts: 'Pangabiso du Email',
-    jobVacancies: 'Pangabiso du Trabaho',
-    surveyInvites: 'Surbeys du Tracer',
-    digestFrequency: 'Ora kan pangabiso digest',
-    currentPassword: 'Paswad du Akawnt sichang',
-    newPassword: 'Vayu a Paswad',
-    confirmPassword: 'I-turi u vayu a paswad',
-    recoveryQuestion: 'Turi u pachtutuhan a saludsod',
-    recoveryAnswer: 'Turi u vatah a pachtutuhan',
-    deactivate: 'Ipantak u akawnt sichang',
-    dangerZone: 'Raya a Makatalo',
-    helpdeskTitle: 'Ngarang du BSC System Directory',
-    ticketSubject: 'Subject du ticket suporta',
-    ticketDescription: 'Katutuhan u pakasisyatan du ticket',
-    submitTicket: 'Ipa-naw u Ticket',
-    aboutTitle: 'CareerPath Tracer Portal du BSC'
-  }
-};
-
 export default function SettingsView({ activeUser, setActiveUser }) {
   // Navigation stack state
   const [currentView, setCurrentView] = useState('main');
@@ -135,20 +26,12 @@ export default function SettingsView({ activeUser, setActiveUser }) {
   // Help & Support Ticket State
   const [supportTicket, setSupportTicket] = useState({ subject: '', message: '' });
 
-  // Current Active Language dynamically updates layouts
-  const [activeLanguage, setActiveLanguage] = useState(() => {
-    return localStorage.getItem('careerpath_language') || 'English';
-  });
-
-  const text = TRANSLATIONS[activeLanguage] || TRANSLATIONS.English;
-
   // Initial State Load from LocalStorage (Universal Settings Persistence)
   const [profileForm, setProfileForm] = useState(() => {
     return {
       name: localStorage.getItem('careerpath_name') || activeUser?.name || 'Juan Dela Cruz',
       email: localStorage.getItem('careerpath_email') || activeUser?.email || 'user@bsc.edu.ph',
       phone: localStorage.getItem('careerpath_phone') || '+63 912 345 6789',
-      language: localStorage.getItem('careerpath_language') || 'English',
       timezone: 'Asia/Manila (GMT+8)',
       avatar: localStorage.getItem('careerpath_avatar') || activeUser?.avatar || MOCK_AVATARS[0],
       fontSize: localStorage.getItem('careerpath_font_size') || 'Normal'
@@ -215,12 +98,8 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     localStorage.setItem('careerpath_name', profileForm.name);
     localStorage.setItem('careerpath_email', profileForm.email);
     localStorage.setItem('careerpath_phone', profileForm.phone);
-    localStorage.setItem('careerpath_language', profileForm.language);
     localStorage.setItem('careerpath_avatar', profileForm.avatar);
     localStorage.setItem('careerpath_font_size', profileForm.fontSize);
-
-    // Apply active global language transition instantly
-    setActiveLanguage(profileForm.language);
 
     // Call state setter update to modify layouts across Header and Sidebars
     if (setActiveUser && activeUser) {
@@ -297,13 +176,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     }
   };
 
-  // Search filter list definitions (Appearance removed)
+  // Search filter list definitions (Appearance and language removed)
   const menuItems = [
-    { id: 'account', label: text.account, icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact ivatan language font size' },
-    { id: 'notifications', label: text.notifications, icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
-    { id: 'security', label: text.privacySecurity, icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock sessions questions delete recovery safety' },
-    { id: 'help', label: text.helpSupport, icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
-    { id: 'about', label: text.about, icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
+    { id: 'account', label: 'Account', icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact font size' },
+    { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
+    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock sessions questions delete recovery safety' },
+    { id: 'help', label: 'Help and Support', icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
+    { id: 'about', label: 'About', icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
   ];
 
   const filteredMenuItems = menuItems.filter(item => {
@@ -331,7 +210,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
         <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
           {/* Header Title block */}
           <div className="p-6 text-center border-b border-slate-50 relative dark:border-slate-800">
-            <h2 className="text-lg font-extrabold tracking-tight dark:text-white">{text.settings}</h2>
+            <h2 className="text-lg font-extrabold tracking-tight dark:text-white">Settings</h2>
           </div>
 
           {/* Settings Search bar */}
@@ -344,7 +223,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={text.searchPlaceholder}
+                placeholder="Search for a setting..."
                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-1 focus:ring-slate-900 focus:border-slate-350 text-slate-800 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:focus:ring-white"
               />
             </div>
@@ -354,7 +233,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
           <div className="divide-y divide-slate-50 dark:divide-slate-800">
             {filteredMenuItems.length === 0 ? (
               <div className="p-8 text-center text-slate-400 font-bold text-xs">
-                {text.noSettingsFound}
+                No matching settings found.
               </div>
             ) : (
               filteredMenuItems.map((item) => (
@@ -383,7 +262,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.account}</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Account</h3>
           </div>
 
           <div className="p-6 space-y-5">
@@ -394,7 +273,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 <button
                   type="button"
                   onClick={() => setShowAvatarSelector(!showAvatarSelector)}
-                  className="absolute bottom-0 right-0 p-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-full border-2 border-white shadow-sm cursor-pointer transition dark:border-slate-900"
+                  className="absolute bottom-0 right-0 p-1.5 bg-slate-850 hover:bg-slate-900 text-white rounded-full border-2 border-white shadow-sm cursor-pointer transition dark:border-slate-900"
                 >
                   <Camera className="w-3.5 h-3.5" />
                 </button>
@@ -420,9 +299,9 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             {/* Inputs list */}
-            <div className="space-y-4 text-xs font-semibold text-slate-655 dark:text-slate-355">
+            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-355">
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">{text.fullName}</label>
+                <label className="text-slate-455 block font-bold">Full Name</label>
                 <input
                   type="text"
                   required
@@ -433,7 +312,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">{text.emailAddress}</label>
+                <label className="text-slate-455 block font-bold">Email Address</label>
                 <input
                   type="email"
                   required
@@ -444,7 +323,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">{text.phoneNumber}</label>
+                <label className="text-slate-455 block font-bold">Phone Number</label>
                 <input
                   type="text"
                   required
@@ -454,37 +333,22 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">{text.preferredLanguage}</label>
-                  <select
-                    value={profileForm.language}
-                    onChange={(e) => setProfileForm({...profileForm, language: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  >
-                    <option value="English">English</option>
-                    <option value="Tagalog">Filipino / Tagalog</option>
-                    <option value="Ivatan">Ivatán (Batanes)</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">{text.textScaling}</label>
-                  <select
-                    value={profileForm.fontSize}
-                    onChange={(e) => setProfileForm({...profileForm, fontSize: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  >
-                    <option value="Small">Small (Compact)</option>
-                    <option value="Normal">Normal (Default)</option>
-                    <option value="Large">Large</option>
-                    <option value="Extra Large">Extra Large (High Visibility)</option>
-                  </select>
-                </div>
+              <div className="space-y-1">
+                <label className="text-slate-455 block font-bold">Text Scaling / Font Size</label>
+                <select
+                  value={profileForm.fontSize}
+                  onChange={(e) => setProfileForm({...profileForm, fontSize: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                >
+                  <option value="Small">Small (Compact)</option>
+                  <option value="Normal">Normal (Default)</option>
+                  <option value="Large">Large</option>
+                  <option value="Extra Large">Extra Large (High Visibility)</option>
+                </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">{text.systemRole}</label>
+                <label className="text-slate-455 block font-bold">System Role</label>
                 <input
                   type="text"
                   disabled
@@ -497,7 +361,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> {text.saveChanges}
+              <Save className="w-3.5 h-3.5" /> Save Changes
             </button>
           </div>
         </form>
@@ -510,7 +374,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.notifications}</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Notifications</h3>
           </div>
 
           <div className="p-6 space-y-4">
@@ -518,7 +382,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">{text.emailAlerts}</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">Email Alerts</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive immediate SMTP emails regarding credential assignments or announcements.</span>
                 </div>
                 <input
@@ -531,7 +395,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">{text.jobVacancies}</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">Job Matching Updates</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Get notified instantly when partner employers post vacancies matching your core skills.</span>
                 </div>
                 <input
@@ -544,20 +408,20 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">{text.surveyInvites}</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">Tracer Surveys</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive alert cues when new tracer studies or feedback surveys are deployed.</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={notifyPrefs.surveyInvites}
                   onChange={(e) => setNotifyPrefs({...notifyPrefs, surveyInvites: e.target.checked})}
-                  className="w-4.5 h-4.5 rounded text-slate-900 border-slate-350 focus:ring-slate-900 cursor-pointer"
+                  className="w-4.5 h-4.5 rounded text-slate-900 border-slate-355 focus:ring-slate-900 cursor-pointer"
                 />
               </div>
 
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center dark:bg-slate-800/40 dark:border-slate-800">
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">{text.digestFrequency}</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">Digest Summary Schedule</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Choose how often notifications are compiled and sent.</span>
                 </div>
                 <select
@@ -577,7 +441,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> {text.saveAlerts}
+              <Save className="w-3.5 h-3.5" /> Save Alerts
             </button>
           </div>
         </form>
@@ -590,7 +454,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.privacySecurity}</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Privacy &amp; Security</h3>
           </div>
 
           <div className="p-6 space-y-6">
@@ -598,7 +462,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             {/* Password edit inputs */}
             <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-300">
               <div className="space-y-1 relative">
-                <label className="text-slate-455 block font-bold">{text.currentPassword}</label>
+                <label className="text-slate-455 block font-bold">Current Account Password</label>
                 <div className="relative">
                   <input
                     type={showOldPass ? 'text' : 'password'}
@@ -619,7 +483,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1 relative">
-                  <label className="text-slate-455 block font-bold">{text.newPassword}</label>
+                  <label className="text-slate-455 block font-bold">New Password</label>
                   <div className="relative">
                     <input
                       type={showNewPass ? 'text' : 'password'}
@@ -647,7 +511,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                           'text-emerald-755 bg-emerald-50'
                         }`}>{strength.label}</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-slate-105 rounded-full overflow-hidden">
                         <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score + 1) * 20}%` }}></div>
                       </div>
                     </div>
@@ -655,7 +519,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">{text.confirmPassword}</label>
+                  <label className="text-slate-455 block font-bold">Confirm New Password</label>
                   <input
                     type="password"
                     value={passwordForm.confirmPassword}
@@ -671,7 +535,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-350">{text.recoveryQuestion}</label>
+                  <label className="text-slate-455 block font-bold dark:text-slate-350">Recovery Question Selection</label>
                   <select
                     value={passwordForm.securityQuestion}
                     onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
@@ -685,7 +549,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-350">{text.recoveryAnswer}</label>
+                  <label className="text-slate-455 block font-bold dark:text-slate-355">Answer Verification Key</label>
                   <input
                     type="text"
                     value={passwordForm.securityAnswer}
@@ -698,9 +562,9 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             {/* Danger Zone */}
-            <div className="p-4 bg-rose-50/40 border border-rose-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 text-xs dark:bg-rose-950/10 dark:border-rose-900">
+            <div className="p-4 bg-rose-50/40 border border-rose-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 text-xs dark:bg-rose-955/10 dark:border-rose-900">
               <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-800 block dark:text-rose-200">{text.deactivate}</span>
+                <span className="font-extrabold text-slate-800 block dark:text-rose-200">Deactivate Account Registry</span>
                 <span className="text-[10px] text-slate-400 leading-relaxed block dark:text-slate-400">Deactivate dashboard credentials. Restorations require administrative verify.</span>
               </div>
               <button
@@ -716,7 +580,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> {text.saveSecurity}
+              <Save className="w-3.5 h-3.5" /> Save Security
             </button>
           </div>
         </form>
@@ -729,13 +593,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.helpSupport}</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Help and Support</h3>
           </div>
 
           <div className="p-6 space-y-5 text-xs">
             {/* Support info details */}
             <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 text-slate-600 font-semibold leading-relaxed dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-350">
-              <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">{text.helpdeskTitle}</span>
+              <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">BSC System Directory Links</span>
               <p>For tracer corrections, password resets, or official student evaluations, contact the IT Bureau.</p>
               <div className="pt-2 text-[10px] font-bold text-slate-500 space-y-1 font-mono dark:text-slate-400">
                 <p>Website: <a href="https://bsc.edu.ph" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">www.bsc.edu.ph</a></p>
@@ -745,11 +609,11 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             {/* Quick Ticket form */}
-            <div className="space-y-4 font-semibold text-slate-650 dark:text-slate-300">
+            <div className="space-y-4 font-semibold text-slate-655 dark:text-slate-300">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Send Quick Support Ticket</span>
               
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">{text.ticketSubject}</label>
+                <label className="text-slate-455 block font-bold">Ticket Subject Summary</label>
                 <input
                   type="text"
                   required
@@ -761,7 +625,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">{text.ticketDescription}</label>
+                <label className="text-slate-455 block font-bold">Description message details</label>
                 <textarea
                   rows={4}
                   required
@@ -775,8 +639,8 @@ export default function SettingsView({ activeUser, setActiveUser }) {
           </div>
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Mail className="w-3.5 h-3.5" /> {text.submitTicket}
+            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
+              <Mail className="w-3.5 h-3.5" /> Submit Ticket
             </button>
           </div>
         </form>
@@ -789,7 +653,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.about}</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">About</h3>
           </div>
 
           <div className="p-8 space-y-5 text-slate-600 font-semibold text-xs dark:text-slate-355">
@@ -798,7 +662,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             <div className="space-y-1">
-              <h4 className="font-extrabold text-slate-800 text-sm dark:text-white">{text.aboutTitle}</h4>
+              <h4 className="font-extrabold text-slate-800 text-sm dark:text-white">BSC CareerPath Tracer Portal</h4>
               <p className="text-[10px] text-slate-400 font-bold font-mono">Version 2.4.0 (Stable Release)</p>
             </div>
 
