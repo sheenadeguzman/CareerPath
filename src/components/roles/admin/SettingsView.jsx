@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ChevronRight, User, Bell, Lock, HelpCircle, Info, 
-  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff, Palette, Layout
+  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff
 } from 'lucide-react';
 
 const MOCK_AVATARS = [
@@ -54,14 +54,6 @@ export default function SettingsView({ activeUser, setActiveUser }) {
       jobVacancies: localStorage.getItem('careerpath_notify_jobs') !== 'false',
       surveyInvites: localStorage.getItem('careerpath_notify_surveys') !== 'false',
       digestFrequency: localStorage.getItem('careerpath_notify_digest') || 'Daily'
-    };
-  });
-
-  const [appearanceForm, setAppearanceForm] = useState(() => {
-    return {
-      theme: localStorage.getItem('careerpath_dark_mode') === 'true' ? 'Dark' : 'Light',
-      accent: localStorage.getItem('careerpath_color_accent') || 'BSC Crimson',
-      compact: localStorage.getItem('careerpath_compact_sidebar') === 'true'
     };
   });
 
@@ -167,26 +159,6 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     }, 1000);
   };
 
-  const handleAppearanceSubmit = (e) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    const isDark = appearanceForm.theme === 'Dark';
-    localStorage.setItem('careerpath_dark_mode', isDark ? 'true' : 'false');
-    document.documentElement.classList.toggle('dark', isDark);
-
-    localStorage.setItem('careerpath_color_accent', appearanceForm.accent);
-    localStorage.setItem('careerpath_compact_sidebar', appearanceForm.compact ? 'true' : 'false');
-
-    setTimeout(() => {
-      setIsSaving(false);
-      setShowStatus('Appearance preferences saved successfully!');
-      setTimeout(() => setShowStatus(''), 4500);
-      setCurrentView('main');
-      window.location.reload(); // Reload immediately to apply and synchronize the theme classes
-    }, 1000);
-  };
-
   const handleSupportSubmit = (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -214,11 +186,10 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     }
   };
 
-  // Search filter list definitions
+  // Search filter list definitions (Appearance removed)
   const menuItems = [
     { id: 'account', label: 'Account', icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact font size' },
     { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
-    { id: 'appearance', label: 'Appearance', icon: <Palette className="w-5 h-5 text-slate-500" />, keywords: 'dark light theme interface colors style mode' },
     { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock settings questions delete recovery safety reset defaults' },
     { id: 'help', label: 'Help and Support', icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
     { id: 'about', label: 'About', icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
@@ -516,7 +487,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                   type="button"
                   onClick={() => setNotifyPrefs({ ...notifyPrefs, emailAlerts: !notifyPrefs.emailAlerts })}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    notifyPrefs.emailAlerts ? 'bg-[#1e4620]' : 'bg-slate-350'
+                    notifyPrefs.emailAlerts ? 'bg-[#1e4620]' : 'bg-slate-355'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -540,7 +511,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                   type="button"
                   onClick={() => setNotifyPrefs({ ...notifyPrefs, jobVacancies: !notifyPrefs.jobVacancies })}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    notifyPrefs.jobVacancies ? 'bg-[#1e4620]' : 'bg-slate-350'
+                    notifyPrefs.jobVacancies ? 'bg-[#1e4620]' : 'bg-slate-355'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -564,7 +535,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                   type="button"
                   onClick={() => setNotifyPrefs({ ...notifyPrefs, surveyInvites: !notifyPrefs.surveyInvites })}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    notifyPrefs.surveyInvites ? 'bg-[#1e4620]' : 'bg-slate-350'
+                    notifyPrefs.surveyInvites ? 'bg-[#1e4620]' : 'bg-slate-355'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -618,8 +589,6 @@ export default function SettingsView({ activeUser, setActiveUser }) {
         </form>
       )}
 
-      
-
       {/* VIEW: Privacy & Security */}
       {currentView === 'security' && (
         <form 
@@ -642,7 +611,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             {/* Password edit inputs */}
             <div className="space-y-4 text-xs font-semibold">
               <div className="space-y-1 relative">
-                <label className="text-slate-400 block font-bold">Current Account Password</label>
+                <label className="text-slate-455 block font-bold">Current Account Password</label>
                 <div className="relative">
                   <input
                     type={showOldPass ? 'text' : 'password'}
@@ -668,7 +637,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1 relative">
-                  <label className="text-slate-400 block font-bold">New Password</label>
+                  <label className="text-slate-455 block font-bold">New Password</label>
                   <div className="relative">
                     <input
                       type={showNewPass ? 'text' : 'password'}
@@ -684,7 +653,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                     <button
                       type="button"
                       onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-655 cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-405 hover:text-slate-655 cursor-pointer"
                     >
                       {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -709,7 +678,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-400 block font-bold">Confirm New Password</label>
+                  <label className="text-slate-455 block font-bold">Confirm New Password</label>
                   <input
                     type="password"
                     value={passwordForm.confirmPassword}
@@ -736,7 +705,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-slate-400 block font-bold">Recovery Question Selection</label>
+                  <label className="text-slate-455 block font-bold">Recovery Question Selection</label>
                   <select
                     value={passwordForm.securityQuestion}
                     onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
@@ -859,7 +828,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-400 block font-bold">Description message details</label>
+                <label className="text-slate-455 block font-bold">Description message details</label>
                 <textarea
                   rows={4}
                   required
