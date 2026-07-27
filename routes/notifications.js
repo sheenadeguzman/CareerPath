@@ -29,7 +29,9 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     const cleanEmail = email.trim();
     const parts = cleanEmail.split('@');
     const nameSeed = parts[0];
-    const customUserId = role === 'Alumni' ? `BSC-2026-${Math.floor(100 + Math.random() * 900)}` : nameSeed;
+    const customUserId = role === 'Alumni' 
+      ? `BSC-2026-${Math.floor(100 + Math.random() * 900)}` 
+      : (role === 'Employer' ? cleanEmail : nameSeed);
 
     const newUser = {
       id: `bsc-invited-${Date.now()}`,
