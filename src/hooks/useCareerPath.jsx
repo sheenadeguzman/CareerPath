@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Layers, GraduationCap, PieChart, Building, Briefcase, CheckSquare,
   FileSpreadsheet, MessageSquare, BarChart3, Activity, Settings, Bell,
-  Upload, Download
+  Upload, Download, Mail
 } from 'lucide-react';
 import { DEPARTMENT_TO_PROGRAMS } from '../bscData';
 import {
@@ -47,7 +47,7 @@ export function useCareerPath() {
     return sessionStorage.getItem('careerpath_token') || null;
   });
 
- const getAuthHeaders = (tokenOverride) => {
+  const getAuthHeaders = (tokenOverride) => {
     const activeToken = tokenOverride || token || sessionStorage.getItem('careerpath_token');
     return {
       'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ export function useCareerPath() {
     sessionStorage.removeItem('careerpath_token');
   };
 
-    const appendActivity = async (action, module, details, userOverride, tokenOverride) => {
+  const appendActivity = async (action, module, details, userOverride, tokenOverride) => {
     const actor = userOverride || activeUser;
     if (!actor) return;
 
@@ -365,7 +365,7 @@ export function useCareerPath() {
     if (!activeUser) return [];
     
     const role = activeUser.role;
-      if (role === 'Administrator' || role === 'Super Admin') {
+    if (role === 'Administrator' || role === 'Super Admin') {
       return notifications;
     }
     
@@ -430,7 +430,7 @@ export function useCareerPath() {
   // PAG-GENERATE NG MGA NAVIGATION ITEMS
   // =========================================================================
 
-    const isAdminOrChair = activeUser?.role === 'Super Admin' || activeUser?.role === 'Administrator' || activeUser?.role === 'Department Chairperson';
+  const isAdminOrChair = activeUser?.role === 'Super Admin' || activeUser?.role === 'Administrator' || activeUser?.role === 'Department Chairperson';
 
   const navigationItems = isAdminOrChair
     ? [
@@ -446,7 +446,12 @@ export function useCareerPath() {
         { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
         { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
         { id: 'Activity Log', name: 'Activity Logs', icon: <Activity className="w-4 h-4" /> },
-       ...((activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') ? [{ id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }] : [])
+        ...((activeUser.role === 'Administrator' || activeUser.role === 'Super Admin')
+          ? [
+              { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> },
+              { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
+            ]
+          : [])
       ]
     : activeUser?.role === 'Alumni'
     ? [
