@@ -65,6 +65,9 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     };
   });
 
+  // Check if dark mode is active in localStorage
+  const isSystemDark = localStorage.getItem('careerpath_dark_mode') === 'true';
+
   // Apply Font Size Scaling on mount and updates
   useEffect(() => {
     const size = profileForm.fontSize;
@@ -216,7 +219,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     { id: 'account', label: 'Account', icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact font size' },
     { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
     { id: 'appearance', label: 'Appearance', icon: <Palette className="w-5 h-5 text-slate-500" />, keywords: 'dark light theme interface colors style mode' },
-    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock sessions questions delete recovery safety reset defaults' },
+    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock settings questions delete recovery safety reset defaults' },
     { id: 'help', label: 'Help and Support', icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
     { id: 'about', label: 'About', icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
   ];
@@ -226,6 +229,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     if (!q) return true;
     return item.label.toLowerCase().includes(q) || item.keywords.includes(q);
   });
+
+  // Base inline styles to guarantee white background in light mode
+  const containerStyle = {
+    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+    borderColor: isSystemDark ? '#334155' : '#f1f5f9',
+    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+  };
 
   return (
     <div className="max-w-xl mx-auto font-sans text-slate-800 transition-colors duration-300">
@@ -243,14 +253,26 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* Main Settings List View */}
       {currentView === 'main' && (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
+        <div 
+          className="rounded-3xl border shadow-md overflow-hidden transition-colors duration-300"
+          style={containerStyle}
+        >
           {/* Header Title block */}
-          <div className="p-6 text-center border-b border-slate-50 relative dark:border-slate-800">
-            <h2 className="text-lg font-extrabold tracking-tight dark:text-white">Settings</h2>
+          <div 
+            className="p-6 text-center border-b relative"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
+            <h2 className="text-lg font-extrabold tracking-tight">Settings</h2>
           </div>
 
           {/* Settings Search bar */}
-          <div className="p-4 bg-slate-50/50 border-b border-slate-100 dark:bg-slate-955/20 dark:border-slate-800">
+          <div 
+            className="p-4 border-b"
+            style={{ 
+              backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+              borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+            }}
+          >
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Search className="w-4 h-4 text-slate-400" />
@@ -260,13 +282,18 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for a setting..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-1 focus:ring-slate-900 focus:border-slate-350 text-slate-800 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:focus:ring-white"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-1 focus:ring-slate-900 focus:border-slate-350 text-slate-800 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                  borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                  color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                }}
               />
             </div>
           </div>
 
           {/* List items block */}
-          <div className="divide-y divide-slate-50 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredMenuItems.length === 0 ? (
               <div className="p-8 text-center text-slate-400 font-bold text-xs">
                 No matching settings found.
@@ -278,10 +305,16 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                   type="button"
                   onClick={() => setCurrentView(item.id)}
                   className="w-full flex items-center justify-between p-4.5 hover:bg-slate-50/70 transition cursor-pointer select-none text-left dark:hover:bg-slate-800/40"
+                  style={{ color: isSystemDark ? '#e2e8f0' : '#334155' }}
                 >
                   <div className="flex items-center gap-3.5">
-                    <span className="p-2 bg-slate-100 rounded-xl text-slate-700 dark:bg-slate-800 dark:text-slate-300">{item.icon}</span>
-                    <span className="text-xs font-extrabold text-slate-700 tracking-wide dark:text-slate-250">{item.label}</span>
+                    <span 
+                      className="p-2 rounded-xl"
+                      style={{ backgroundColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+                    >
+                      {item.icon}
+                    </span>
+                    <span className="text-xs font-extrabold tracking-wide">{item.label}</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-350" />
                 </button>
@@ -293,12 +326,19 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* VIEW: Account details */}
       {currentView === 'account' && (
-        <form onSubmit={handleProfileSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
+        <form 
+          onSubmit={handleProfileSubmit} 
+          className="rounded-3xl border shadow-md overflow-hidden transition-colors duration-300"
+          style={containerStyle}
+        >
+          <div 
+            className="p-5 border-b flex items-center gap-3"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+              <ArrowLeft className="w-5 h-5" style={{ color: isSystemDark ? '#ffffff' : '#000000' }} />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Account</h3>
+            <h3 className="text-sm font-extrabold">Account</h3>
           </div>
 
           <div className="p-6 space-y-5">
@@ -316,7 +356,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </div>
 
               {showAvatarSelector && (
-                <div className="absolute top-20 left-0 right-0 mx-auto w-44 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-10 grid grid-cols-2 gap-1.5 animate-fade-in dark:bg-slate-800 dark:border-slate-700">
+                <div 
+                  className="absolute top-20 left-0 right-0 mx-auto w-44 rounded-2xl shadow-xl border p-2 z-10 grid grid-cols-2 gap-1.5 animate-fade-in"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0'
+                  }}
+                >
                   {MOCK_AVATARS.map((av, idx) => (
                     <button
                       key={idx}
@@ -325,7 +371,8 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                         setProfileForm(prev => ({ ...prev, avatar: av }));
                         setShowAvatarSelector(false);
                       }}
-                      className="border border-slate-100 rounded-xl overflow-hidden hover:border-slate-400 transition cursor-pointer focus:outline-none dark:border-slate-700"
+                      className="border rounded-xl overflow-hidden hover:border-slate-400 transition cursor-pointer focus:outline-none"
+                      style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
                     >
                       <img src={av} alt="avatar option" className="w-full h-11 object-cover" />
                     </button>
@@ -335,46 +382,66 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             {/* Inputs list */}
-            <div className="space-y-4 text-xs font-semibold text-slate-655 dark:text-slate-355">
+            <div className="space-y-4 text-xs font-semibold">
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Full Name</label>
+                <label className="text-slate-400 block font-bold">Full Name</label>
                 <input
                   type="text"
                   required
                   value={profileForm.name}
                   onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-white"
+                  className="w-full border rounded-xl p-2.5 font-bold transition"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Email Address</label>
+                <label className="text-slate-400 block font-bold">Email Address</label>
                 <input
                   type="email"
                   required
                   value={profileForm.email}
                   onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-white"
+                  className="w-full border rounded-xl p-2.5 font-bold transition"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Phone Number</label>
+                <label className="text-slate-400 block font-bold">Phone Number</label>
                 <input
                   type="text"
                   required
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-white"
+                  className="w-full border rounded-xl p-2.5 font-bold transition"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Text Scaling / Font Size</label>
+                <label className="text-slate-400 block font-bold">Text Scaling / Font Size</label>
                 <select
                   value={profileForm.fontSize}
                   onChange={(e) => setProfileForm({...profileForm, fontSize: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  className="w-full border rounded-xl p-2.5 font-bold"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 >
                   <option value="Small">Small (Compact)</option>
                   <option value="Normal">Normal (Default)</option>
@@ -384,18 +451,29 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">System Role</label>
+                <label className="text-slate-400 block font-bold">System Role</label>
                 <input
                   type="text"
                   disabled
                   value={activeUser?.role || 'Guest'}
-                  className="w-full bg-slate-105 border border-slate-200 rounded-xl p-2.5 text-slate-450 font-bold cursor-not-allowed select-none dark:bg-slate-955/40 dark:border-slate-750"
+                  className="w-full border rounded-xl p-2.5 font-bold cursor-not-allowed select-none"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#111827' : '#e2e8f0',
+                    borderColor: isSystemDark ? '#334155' : '#cbd5e1',
+                    color: isSystemDark ? '#94a3b8' : '#64748b'
+                  }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-955/20 dark:border-slate-800">
+          <div 
+            className="p-4 border-t flex justify-end"
+            style={{ 
+              backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+              borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+            }}
+          >
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Save className="w-3.5 h-3.5" /> Save Changes
             </button>
@@ -405,27 +483,40 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* VIEW: Notifications */}
       {currentView === 'notifications' && (
-        <form onSubmit={handleNotificationsSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
+        <form 
+          onSubmit={handleNotificationsSubmit} 
+          className="rounded-3xl border shadow-md overflow-hidden transition-colors duration-300"
+          style={containerStyle}
+        >
+          <div 
+            className="p-5 border-b flex items-center gap-3"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+              <ArrowLeft className="w-5 h-5" style={{ color: isSystemDark ? '#ffffff' : '#000000' }} />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Notifications</h3>
+            <h3 className="text-sm font-extrabold">Notifications</h3>
           </div>
 
           <div className="p-6 space-y-4">
-            <div className="space-y-3.5 text-xs font-semibold text-slate-700 dark:text-slate-350">
+            <div className="space-y-3.5 text-xs font-semibold">
               
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
+              <div 
+                className="flex items-center justify-between p-4 rounded-2xl border"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                  borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+                }}
+              >
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Email Alerts</span>
+                  <span className="block font-bold">Email Alerts</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive immediate SMTP emails regarding credential assignments or announcements.</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setNotifyPrefs({ ...notifyPrefs, emailAlerts: !notifyPrefs.emailAlerts })}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    notifyPrefs.emailAlerts ? 'bg-[#1e4620]' : 'bg-slate-300'
+                    notifyPrefs.emailAlerts ? 'bg-[#1e4620]' : 'bg-slate-350'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -434,16 +525,22 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
+              <div 
+                className="flex items-center justify-between p-4 rounded-2xl border"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                  borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+                }}
+              >
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Job Matching Updates</span>
+                  <span className="block font-bold">Job Matching Updates</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Get notified instantly when partner employers post vacancies matching your core skills.</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setNotifyPrefs({ ...notifyPrefs, jobVacancies: !notifyPrefs.jobVacancies })}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    notifyPrefs.jobVacancies ? 'bg-[#1e4620]' : 'bg-slate-300'
+                    notifyPrefs.jobVacancies ? 'bg-[#1e4620]' : 'bg-slate-350'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -452,16 +549,22 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
+              <div 
+                className="flex items-center justify-between p-4 rounded-2xl border"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                  borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+                }}
+              >
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Tracer Surveys</span>
+                  <span className="block font-bold">Tracer Surveys</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive alert cues when new tracer studies or feedback surveys are deployed.</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setNotifyPrefs({ ...notifyPrefs, surveyInvites: !notifyPrefs.surveyInvites })}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    notifyPrefs.surveyInvites ? 'bg-[#1e4620]' : 'bg-slate-300'
+                    notifyPrefs.surveyInvites ? 'bg-[#1e4620]' : 'bg-slate-350'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -470,15 +573,26 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </button>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center dark:bg-slate-800/40 dark:border-slate-800">
+              <div 
+                className="p-4 rounded-2xl border flex justify-between items-center"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                  borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+                }}
+              >
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">Digest Summary Schedule</span>
+                  <span className="block font-bold">Digest Summary Schedule</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Choose how often notifications are compiled and sent.</span>
                 </div>
                 <select
                   value={notifyPrefs.digestFrequency}
                   onChange={(e) => setNotifyPrefs({...notifyPrefs, digestFrequency: e.target.value})}
                   className="bg-white border border-slate-200 rounded-xl p-2 font-bold text-slate-700 text-xs focus:ring-1 focus:ring-slate-900 cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 >
                   <option value="Instant">Instant</option>
                   <option value="Daily">Daily Summary</option>
@@ -490,7 +604,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
           </div>
 
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-955/20 dark:border-slate-800">
+          <div 
+            className="p-4 border-t flex justify-end"
+            style={{ 
+              backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+              borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+            }}
+          >
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Save className="w-3.5 h-3.5" /> Save Alerts
             </button>
@@ -500,21 +620,33 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* VIEW: Appearance */}
       {currentView === 'appearance' && (
-        <form onSubmit={handleAppearanceSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
+        <form 
+          onSubmit={handleAppearanceSubmit} 
+          className="rounded-3xl border shadow-md overflow-hidden transition-colors duration-300"
+          style={containerStyle}
+        >
+          <div 
+            className="p-5 border-b flex items-center gap-3"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+              <ArrowLeft className="w-5 h-5" style={{ color: isSystemDark ? '#ffffff' : '#000000' }} />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Appearance</h3>
+            <h3 className="text-sm font-extrabold">Appearance</h3>
           </div>
 
-          <div className="p-6 space-y-5 text-xs font-semibold text-slate-655 dark:text-slate-300">
+          <div className="p-6 space-y-5 text-xs font-semibold">
             <div className="space-y-1">
-              <label className="text-slate-455 block font-bold">Theme Mode</label>
+              <label className="text-slate-400 block font-bold">Theme Mode</label>
               <select
                 value={appearanceForm.theme}
                 onChange={(e) => setAppearanceForm({...appearanceForm, theme: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                className="w-full border rounded-xl p-2.5 font-bold focus:ring-1 focus:ring-slate-900"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                  borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                  color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                }}
               >
                 <option value="Light">Light Mode (White Background)</option>
                 <option value="Dark">Dark Mode (Dark Slate Background)</option>
@@ -522,11 +654,16 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-455 block font-bold">Accent Theme Color</label>
+              <label className="text-slate-400 block font-bold">Accent Theme Color</label>
               <select
                 value={appearanceForm.accent}
                 onChange={(e) => setAppearanceForm({...appearanceForm, accent: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                className="w-full border rounded-xl p-2.5 font-bold focus:ring-1 focus:ring-slate-900"
+                style={{ 
+                  backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                  borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                  color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                }}
               >
                 <option value="BSC Crimson">BSC Crimson (Default)</option>
                 <option value="BSC Forest Green">BSC Forest Green</option>
@@ -535,16 +672,22 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               </select>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
+            <div 
+              className="flex items-center justify-between p-4 rounded-2xl border"
+              style={{ 
+                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+              }}
+            >
               <div>
-                <span className="block font-bold text-slate-855 dark:text-white">Compact Sidebar Layout</span>
+                <span className="block font-bold">Compact Sidebar Layout</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5">Use simple icon badges only on desktop screens.</span>
               </div>
               <button
                 type="button"
                 onClick={() => setAppearanceForm({ ...appearanceForm, compact: !appearanceForm.compact })}
                 className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                  appearanceForm.compact ? 'bg-[#1e4620]' : 'bg-slate-300'
+                  appearanceForm.compact ? 'bg-[#1e4620]' : 'bg-slate-350'
                 }`}
               >
                 <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
@@ -554,7 +697,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
           </div>
 
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
+          <div 
+            className="p-4 border-t flex justify-end"
+            style={{ 
+              backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+              borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+            }}
+          >
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Save className="w-3.5 h-3.5" /> Save Theme
             </button>
@@ -564,27 +713,39 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* VIEW: Privacy & Security */}
       {currentView === 'security' && (
-        <form onSubmit={handleSecuritySubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
+        <form 
+          onSubmit={handleSecuritySubmit} 
+          className="rounded-3xl border shadow-md overflow-hidden transition-colors duration-300"
+          style={containerStyle}
+        >
+          <div 
+            className="p-5 border-b flex items-center gap-3"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+              <ArrowLeft className="w-5 h-5" style={{ color: isSystemDark ? '#ffffff' : '#000000' }} />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Privacy &amp; Security</h3>
+            <h3 className="text-sm font-extrabold">Privacy &amp; Security</h3>
           </div>
 
           <div className="p-6 space-y-6">
             
             {/* Password edit inputs */}
-            <div className="space-y-4 text-xs font-semibold text-slate-655 dark:text-slate-350">
+            <div className="space-y-4 text-xs font-semibold">
               <div className="space-y-1 relative">
-                <label className="text-slate-455 block font-bold">Current Account Password</label>
+                <label className="text-slate-400 block font-bold">Current Account Password</label>
                 <div className="relative">
                   <input
                     type={showOldPass ? 'text' : 'password'}
                     required
                     value={passwordForm.oldPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    className="w-full border rounded-xl p-2.5 font-bold transition"
+                    style={{ 
+                      backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                    }}
                   />
                   <button
                     type="button"
@@ -598,18 +759,23 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1 relative">
-                  <label className="text-slate-455 block font-bold">New Password</label>
+                  <label className="text-slate-400 block font-bold">New Password</label>
                   <div className="relative">
                     <input
                       type={showNewPass ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                      className="w-full border rounded-xl p-2.5 font-bold transition"
+                      style={{ 
+                        backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                        borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                        color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                      }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-605 cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-655 cursor-pointer"
                     >
                       {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -626,7 +792,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                           'text-emerald-755 bg-emerald-50'
                         }`}>{strength.label}</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-105 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score + 1) * 20}%` }}></div>
                       </div>
                     </div>
@@ -634,27 +800,43 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Confirm New Password</label>
+                  <label className="text-slate-400 block font-bold">Confirm New Password</label>
                   <input
                     type="password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    className="w-full border rounded-xl p-2.5 font-bold transition"
+                    style={{ 
+                      backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                    }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Recovery security question */}
-            <div className="p-4.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-3.5 text-xs font-semibold text-slate-700 dark:bg-slate-800/40 dark:border-slate-800">
+            <div 
+              className="p-4.5 border rounded-2xl space-y-3.5 text-xs font-semibold"
+              style={{ 
+                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+              }}
+            >
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-350">Recovery Question Selection</label>
+                  <label className="text-slate-400 block font-bold">Recovery Question Selection</label>
                   <select
                     value={passwordForm.securityQuestion}
                     onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    className="w-full border rounded-xl p-2 font-bold"
+                    style={{ 
+                      backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                    }}
                   >
                     <option value="school">What elementary school did you attend?</option>
                     <option value="pet">What was the name of your first childhood pet?</option>
@@ -664,13 +846,18 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-355">Answer Verification Key</label>
+                  <label className="text-slate-400 block font-bold">Answer Verification Key</label>
                   <input
                     type="text"
                     value={passwordForm.securityAnswer}
                     onChange={(e) => setPasswordForm({...passwordForm, securityAnswer: e.target.value})}
                     placeholder="Type recovery key response..."
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    className="w-full border rounded-xl p-2.5 font-bold focus:ring-1 focus:ring-slate-900"
+                    style={{ 
+                      backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                    }}
                   />
                 </div>
               </div>
@@ -693,7 +880,13 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
           </div>
 
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
+          <div 
+            className="p-4 border-t flex justify-end"
+            style={{ 
+              backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+              borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+            }}
+          >
             <button type="submit" className="px-5 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Save className="w-3.5 h-3.5" /> Save Security
             </button>
@@ -703,16 +896,30 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* VIEW: Help & Support */}
       {currentView === 'help' && (
-        <form onSubmit={handleSupportSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
+        <form 
+          onSubmit={handleSupportSubmit} 
+          className="rounded-3xl border shadow-md overflow-hidden transition-colors duration-300"
+          style={containerStyle}
+        >
+          <div 
+            className="p-5 border-b flex items-center gap-3"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+              <ArrowLeft className="w-5 h-5" style={{ color: isSystemDark ? '#ffffff' : '#000000' }} />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Help and Support</h3>
+            <h3 className="text-sm font-extrabold">Help and Support</h3>
           </div>
 
           <div className="p-6 space-y-5 text-xs">
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 text-slate-600 font-semibold leading-relaxed dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-350">
+            <div 
+              className="p-4 border rounded-2xl space-y-2 leading-relaxed"
+              style={{ 
+                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                borderColor: isSystemDark ? '#334155' : '#f1f5f9',
+                color: isSystemDark ? '#cbd5e1' : '#475569' 
+              }}
+            >
               <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">BSC System Directory Links</span>
               <p>For tracer corrections, password resets, or official student evaluations, contact the IT Bureau.</p>
               <div className="pt-2 text-[10px] font-bold text-slate-500 space-y-1 font-mono dark:text-slate-400">
@@ -726,32 +933,48 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Send Quick Support Ticket</span>
               
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Ticket Subject Summary</label>
+                <label className="text-slate-400 block font-bold">Ticket Subject Summary</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Tracer completion bar error"
                   value={supportTicket.subject}
                   onChange={(e) => setSupportTicket({...supportTicket, subject: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  className="w-full border rounded-xl p-2.5 font-bold"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Description message details</label>
+                <label className="text-slate-400 block font-bold">Description message details</label>
                 <textarea
                   rows={4}
                   required
                   placeholder="Explain the issues encountered in details..."
                   value={supportTicket.message}
                   onChange={(e) => setSupportTicket({...supportTicket, message: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:ring-1 focus:ring-slate-900 focus:bg-white leading-relaxed dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  className="w-full border rounded-xl p-2.5 leading-relaxed"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-955/20 dark:border-slate-800">
+          <div 
+            className="p-4 border-t flex justify-end"
+            style={{ 
+              backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+              borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
+            }}
+          >
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Mail className="w-3.5 h-3.5" /> Submit Ticket
             </button>
@@ -761,15 +984,21 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
       {/* VIEW: About */}
       {currentView === 'about' && (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden text-center dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
+        <div 
+          className="rounded-3xl border shadow-md overflow-hidden text-center transition-colors duration-300"
+          style={containerStyle}
+        >
+          <div 
+            className="p-5 border-b flex items-center gap-3"
+            style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+          >
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+              <ArrowLeft className="w-5 h-5" style={{ color: isSystemDark ? '#ffffff' : '#000000' }} />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">About</h3>
+            <h3 className="text-sm font-extrabold">About</h3>
           </div>
 
-          <div className="p-8 space-y-5 text-slate-600 font-semibold text-xs dark:text-slate-355">
+          <div className="p-8 space-y-5 text-slate-600 font-semibold text-xs">
             <div className="w-16 h-16 rounded-3xl bg-slate-900 flex items-center justify-center font-bold text-white text-xl mx-auto shadow-md dark:bg-slate-800">
               BSC
             </div>
@@ -779,11 +1008,14 @@ export default function SettingsView({ activeUser, setActiveUser }) {
               <p className="text-[10px] text-slate-400 font-bold font-mono">Version 2.4.0 (Stable Release)</p>
             </div>
 
-            <p className="max-w-xs mx-auto leading-relaxed text-slate-500 font-medium dark:text-slate-400">
+            <p className="max-w-xs mx-auto leading-relaxed text-slate-500 font-medium">
               This system facilitates post-graduate tracking, curricular analytics, and job placement assistance under CHED directives for Batanes State College.
             </p>
 
-            <div className="pt-4 border-t border-slate-50 text-[10px] text-slate-400 font-bold space-y-0.5 dark:border-slate-800">
+            <div 
+              className="pt-4 border-t text-[10px] text-slate-400 font-bold space-y-0.5"
+              style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
+            >
               <p>Batanes State College &copy; 2026</p>
               <p>Basco, Batanes, Philippines</p>
             </div>
