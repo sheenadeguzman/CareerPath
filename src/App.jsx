@@ -5,8 +5,81 @@
  * Header, Sidebar, MobileMenu, at tinatakda kung anong functional sub-view ang ipapakita base sa active tab.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
+
+function applyAccentTheme(themeName) {
+  let css = '';
+  
+  if (themeName === 'BSC Forest Green') {
+    css = `
+      .bg-\\[\\#1e4620\\] { background-color: #1e4620 !important; }
+      .text-\\[\\#1e4620\\] { color: #1e4620 !important; }
+      .border-\\[\\#1e4620\\] { border-color: #1e4620 !important; }
+      .fill-\\[\\#1e4620\\] { fill: #1e4620 !important; }
+      .stroke-\\[\\#1e4620\\] { stroke: #1e4620 !important; }
+      .hover\\:text-\\[\\#1e4620\\]:hover { color: #1e4620 !important; }
+      .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(30, 70, 32, 0.1) !important; }
+      .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(30, 70, 32, 0.05) !important; }
+      .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(30, 70, 32, 0.15) !important; }
+      .bg-\\[\\#123d16\\] { background-color: #123d16 !important; }
+      aside { background-image: linear-gradient(to bottom, #123d16, #0c2b0f) !important; border-right-color: #0c2b0f !important; }
+      .border-\\[\\#0d2e10\\] { border-color: #0c2b0f !important; }
+    `;
+  } else if (themeName === 'Ocean Teal') {
+    css = `
+      .bg-\\[\\#1e4620\\] { background-color: #0d9488 !important; }
+      .text-\\[\\#1e4620\\] { color: #0d9488 !important; }
+      .border-\\[\\#1e4620\\] { border-color: #0d9488 !important; }
+      .fill-\\[\\#1e4620\\] { fill: #0d9488 !important; }
+      .stroke-\\[\\#1e4620\\] { stroke: #0d9488 !important; }
+      .hover\\:text-\\[\\#1e4620\\]:hover { color: #0d9488 !important; }
+      .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(13, 148, 136, 0.1) !important; }
+      .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(13, 148, 136, 0.05) !important; }
+      .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(13, 148, 136, 0.15) !important; }
+      .bg-\\[\\#123d16\\] { background-color: #115e59 !important; }
+      aside { background-image: linear-gradient(to bottom, #115e59, #134e4a) !important; border-right-color: #134e4a !important; }
+      .border-\\[\\#0d2e10\\] { border-color: #134e4a !important; }
+    `;
+  } else if (themeName === 'Slate Steel') {
+    css = `
+      .bg-\\[\\#1e4620\\] { background-color: #475569 !important; }
+      .text-\\[\\#1e4620\\] { color: #475569 !important; }
+      .border-\\[\\#1e4620\\] { border-color: #475569 !important; }
+      .fill-\\[\\#1e4620\\] { fill: #475569 !important; }
+      .stroke-\\[\\#1e4620\\] { stroke: #475569 !important; }
+      .hover\\:text-\\[\\#1e4620\\]:hover { color: #475569 !important; }
+      .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(71, 85, 105, 0.1) !important; }
+      .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(71, 85, 105, 0.05) !important; }
+      .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(71, 85, 105, 0.15) !important; }
+      .bg-\\[\\#123d16\\] { background-color: #334155 !important; }
+      aside { background-image: linear-gradient(to bottom, #334155, #1e293b) !important; border-right-color: #1e293b !important; }
+      .border-\\[\\#0d2e10\\] { border-color: #1e293b !important; }
+    `;
+  }
+
+  // Compact Sidebar check in css injection
+  const compact = localStorage.getItem('careerpath_compact_sidebar') === 'true';
+  if (compact) {
+    css += `
+      @media (min-width: 768px) {
+        body.compact-sidebar aside { width: 4.5rem !important; }
+        body.compact-sidebar aside nav button { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+        body.compact-sidebar aside nav button span { display: none !important; }
+        body.compact-sidebar aside nav button svg { width: 1.25rem !important; height: 1.25rem !important; margin: 0 auto !important; }
+        body.compact-sidebar aside div { display: none !important; }
+      }
+    `;
+  }
+
+  let styleTag = document.getElementById('dynamic-accent-theme');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'dynamic-accent-theme';
+    document.head.appendChild(styleTag);
+  }
+  styleTag.innerHTML = css;
+}
 
 // =========================================================================
 // MGA FEATURE VIEW COMPONENT
@@ -45,6 +118,7 @@ export default function App() {
   // Kuhanin ang application states, data listings, at state mutators mula sa ating custom hook
   const {
     activeUser,
+    setActiveUser,
     currentTab,
     setCurrentTab,
     mobileMenuOpen,
@@ -82,6 +156,34 @@ export default function App() {
     handleTabChange,
     appendActivity
   } = useCareerPath();
+
+  // Apply saved global appearance settings on mount & activeUser changes
+  useEffect(() => {
+    if (!activeUser) return;
+    
+    // 1. Apply Dark Mode
+    const isDark = localStorage.getItem('careerpath_dark_mode') === 'true';
+    document.documentElement.classList.toggle('dark', isDark);
+
+    // 2. Apply Font Size Scaling
+    const size = localStorage.getItem('careerpath_font_size') || 'Normal';
+    if (size === 'Small') {
+      document.documentElement.style.fontSize = '14px';
+    } else if (size === 'Large') {
+      document.documentElement.style.fontSize = '18px';
+    } else if (size === 'Extra Large') {
+      document.documentElement.style.fontSize = '20px';
+    } else {
+      document.documentElement.style.fontSize = '16px';
+    }
+
+    // 3. Apply Accent Theme & Compact Sidebar
+    const compact = localStorage.getItem('careerpath_compact_sidebar') === 'true';
+    document.body.classList.toggle('compact-sidebar', compact);
+
+    const colorAccent = localStorage.getItem('careerpath_color_accent') || 'BSC Crimson';
+    applyAccentTheme(colorAccent);
+  }, [activeUser]);
 
   // Magpakita ng full-screen loading spinner habang ina-initialize at sini-sync ang data mula sa database
   if (isLoading) {
@@ -301,6 +403,7 @@ export default function App() {
             {currentTab === 'Settings' && (
               <SettingsView
                 activeUser={activeUser}
+                setActiveUser={setActiveUser}
               />
             )}
 

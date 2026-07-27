@@ -12,7 +12,207 @@ const MOCK_AVATARS = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120'
 ];
 
-export default function SettingsView({ activeUser }) {
+// Dictionary translations supporting English, Tagalog, and Ivatán (the local Batanes dialect)
+const TRANSLATIONS = {
+  English: {
+    settings: 'Settings',
+    searchPlaceholder: 'Search for a setting...',
+    account: 'Account',
+    notifications: 'Notifications',
+    appearance: 'Appearance',
+    privacySecurity: 'Privacy & Security',
+    helpSupport: 'Help and Support',
+    about: 'About',
+    noSettingsFound: 'No matching settings found.',
+    saveChanges: 'Save Changes',
+    saveAlerts: 'Save Alerts',
+    saveTheme: 'Save Theme',
+    saveSecurity: 'Save Security',
+    fullName: 'Full Name',
+    emailAddress: 'Email Address',
+    phoneNumber: 'Phone Number',
+    preferredLanguage: 'Preferred Language',
+    systemRole: 'System Role',
+    textScaling: 'Text Scaling / Font Size',
+    emailAlerts: 'Email Alerts',
+    jobVacancies: 'Job Matching Updates',
+    surveyInvites: 'Tracer Surveys',
+    digestFrequency: 'Digest Summary Schedule',
+    darkMode: 'Dark Mode Interface',
+    highContrast: 'High Contrast Layout',
+    compactSidebar: 'Compact Sidebar Menu',
+    colorTheme: 'System Color Accent Theme',
+    currentPassword: 'Current Account Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm New Password',
+    recoveryQuestion: 'Recovery Question Selection',
+    recoveryAnswer: 'Answer Verification Key',
+    deactivate: 'Deactivate Account Registry',
+    dangerZone: 'Danger Zone',
+    helpdeskTitle: 'BSC System Directory Links',
+    ticketSubject: 'Ticket Subject Summary',
+    ticketDescription: 'Description message details',
+    submitTicket: 'Submit Ticket',
+    aboutTitle: 'BSC CareerPath Tracer Portal'
+  },
+  Tagalog: {
+    settings: 'Mga Setting',
+    searchPlaceholder: 'Maghanap ng setting...',
+    account: 'Akawnt',
+    notifications: 'Mga Abiso',
+    appearance: 'Anyo at Hitsura',
+    privacySecurity: 'Pribasya at Seguridad',
+    helpSupport: 'Tulong at Suporta',
+    about: 'Tungkol sa Portal',
+    noSettingsFound: 'Walang nahanap na tugmang setting.',
+    saveChanges: 'I-save ang mga Pagbabago',
+    saveAlerts: 'I-save ang mga Abiso',
+    saveTheme: 'I-save ang Anyo',
+    saveSecurity: 'I-save ang Seguridad',
+    fullName: 'Buong Pangalan',
+    emailAddress: 'Email Address',
+    phoneNumber: 'Numero ng Telepono',
+    preferredLanguage: 'Gustong Wika',
+    systemRole: 'Tungkulin sa System',
+    textScaling: 'Laki ng Text / Font Size',
+    emailAlerts: 'Mga Alerto sa Email',
+    jobVacancies: 'Mga Update sa Trabaho',
+    surveyInvites: 'Mga Survey sa Tracer',
+    digestFrequency: 'Iskedyul ng Buod ng Abiso',
+    darkMode: 'Interface ng Dark Mode',
+    highContrast: 'High Contrast na Layout',
+    compactSidebar: 'Maliit na Sidebar Menu',
+    colorTheme: 'Tema ng Kulay ng System',
+    currentPassword: 'Kasalukuyang Password ng Akawnt',
+    newPassword: 'Bagong Password',
+    confirmPassword: 'Kumpirmahin ang Bagong Password',
+    recoveryQuestion: 'Pagpili ng Tanong sa Pagbawi',
+    recoveryAnswer: 'Sagot para sa Pagbawi',
+    deactivate: 'I-deactivate ang Akawnt',
+    dangerZone: 'Panganib na Zone',
+    helpdeskTitle: 'Mga Link ng BSC System Directory',
+    ticketSubject: 'Buod ng Paksa ng Ticket',
+    ticketDescription: 'Mga detalye ng mensahe ng ticket',
+    submitTicket: 'Ipadala ang Ticket',
+    aboutTitle: 'Tracer Portal ng BSC CareerPath'
+  },
+  Ivatan: {
+    settings: 'Siting',
+    searchPlaceholder: 'Manita sitsiting...',
+    account: 'Akawnt',
+    notifications: 'Pangabiso',
+    appearance: 'Mavyavya kan Hitsura',
+    privacySecurity: 'Karitruan kan Seguridad',
+    helpSupport: 'Tadung kan Suporta',
+    about: 'Mapanmo du Portal',
+    noSettingsFound: 'Ara u sitsiting a kavano.',
+    saveChanges: 'Ipachilay u chinaynaw',
+    saveAlerts: 'Ipachilay u pangabiso',
+    saveTheme: 'Ipachilay u mavyavya',
+    saveSecurity: 'Ipachilay u seguridad',
+    fullName: 'Raray a Ngaran',
+    emailAddress: 'Email Address',
+    phoneNumber: 'Numero du Telepono',
+    preferredLanguage: 'Piliyen a Chirin',
+    systemRole: 'Trabaho du System',
+    textScaling: 'Raya kan Letra / Font Size',
+    emailAlerts: 'Pangabiso du Email',
+    jobVacancies: 'Pangabiso du Trabaho',
+    surveyInvites: 'Surbeys du Tracer',
+    digestFrequency: 'Ora kan pangabiso digest',
+    darkMode: 'Mavyavya a Dark Mode',
+    highContrast: 'High Contrast a Layout',
+    compactSidebar: 'De-kupa a Sidebar Menu',
+    colorTheme: 'Tema du Kulan a System',
+    currentPassword: 'Paswad du Akawnt sichang',
+    newPassword: 'Vayu a Paswad',
+    confirmPassword: 'I-turi u vayu a paswad',
+    recoveryQuestion: 'Turi u pachtutuhan a saludsod',
+    recoveryAnswer: 'Turi u vatah a pachtutuhan',
+    deactivate: 'Ipantak u akawnt sichang',
+    dangerZone: 'Raya a Makatalo',
+    helpdeskTitle: 'Ngarang du BSC System Directory',
+    ticketSubject: 'Subject du ticket suporta',
+    ticketDescription: 'Katutuhan u pakasisyatan du ticket',
+    submitTicket: 'Ipa-naw u Ticket',
+    aboutTitle: 'CareerPath Tracer Portal du BSC'
+  }
+};
+
+function injectColors(themeName) {
+  let css = '';
+  
+  if (themeName === 'BSC Forest Green') {
+    css = `
+      .bg-\\[\\#1e4620\\] { background-color: #1e4620 !important; }
+      .text-\\[\\#1e4620\\] { color: #1e4620 !important; }
+      .border-\\[\\#1e4620\\] { border-color: #1e4620 !important; }
+      .fill-\\[\\#1e4620\\] { fill: #1e4620 !important; }
+      .stroke-\\[\\#1e4620\\] { stroke: #1e4620 !important; }
+      .hover\\:text-\\[\\#1e4620\\]:hover { color: #1e4620 !important; }
+      .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(30, 70, 32, 0.1) !important; }
+      .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(30, 70, 32, 0.05) !important; }
+      .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(30, 70, 32, 0.15) !important; }
+      .bg-\\[\\#123d16\\] { background-color: #123d16 !important; }
+      aside { background-image: linear-gradient(to bottom, #123d16, #0c2b0f) !important; border-right-color: #0c2b0f !important; }
+      .border-\\[\\#0d2e10\\] { border-color: #0c2b0f !important; }
+    `;
+  } else if (themeName === 'Ocean Teal') {
+    css = `
+      .bg-\\[\\#1e4620\\] { background-color: #0d9488 !important; }
+      .text-\\[\\#1e4620\\] { color: #0d9488 !important; }
+      .border-\\[\\#1e4620\\] { border-color: #0d9488 !important; }
+      .fill-\\[\\#1e4620\\] { fill: #0d9488 !important; }
+      .stroke-\\[\\#1e4620\\] { stroke: #0d9488 !important; }
+      .hover\\:text-\\[\\#1e4620\\]:hover { color: #0d9488 !important; }
+      .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(13, 148, 136, 0.1) !important; }
+      .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(13, 148, 136, 0.05) !important; }
+      .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(13, 148, 136, 0.15) !important; }
+      .bg-\\[\\#123d16\\] { background-color: #115e59 !important; }
+      aside { background-image: linear-gradient(to bottom, #115e59, #134e4a) !important; border-right-color: #134e4a !important; }
+      .border-\\[\\#0d2e10\\] { border-color: #134e4a !important; }
+    `;
+  } else if (themeName === 'Slate Steel') {
+    css = `
+      .bg-\\[\\#1e4620\\] { background-color: #475569 !important; }
+      .text-\\[\\#1e4620\\] { color: #475569 !important; }
+      .border-\\[\\#1e4620\\] { border-color: #475569 !important; }
+      .fill-\\[\\#1e4620\\] { fill: #475569 !important; }
+      .stroke-\\[\\#1e4620\\] { stroke: #475569 !important; }
+      .hover\\:text-\\[\\#1e4620\\]:hover { color: #475569 !important; }
+      .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(71, 85, 105, 0.1) !important; }
+      .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(71, 85, 105, 0.05) !important; }
+      .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(71, 85, 105, 0.15) !important; }
+      .bg-\\[\\#123d16\\] { background-color: #334155 !important; }
+      aside { background-image: linear-gradient(to bottom, #334155, #1e293b) !important; border-right-color: #1e293b !important; }
+      .border-\\[\\#0d2e10\\] { border-color: #1e293b !important; }
+    `;
+  }
+
+  // Compact Sidebar CSS inject rule
+  const compact = localStorage.getItem('careerpath_compact_sidebar') === 'true';
+  if (compact) {
+    css += `
+      @media (min-width: 768px) {
+        body.compact-sidebar aside { width: 4.5rem !important; }
+        body.compact-sidebar aside nav button { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+        body.compact-sidebar aside nav button span { display: none !important; }
+        body.compact-sidebar aside nav button svg { width: 1.25rem !important; height: 1.25rem !important; margin: 0 auto !important; }
+        body.compact-sidebar aside div { display: none !important; }
+      }
+    `;
+  }
+
+  let styleTag = document.getElementById('dynamic-accent-theme');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'dynamic-accent-theme';
+    document.head.appendChild(styleTag);
+  }
+  styleTag.innerHTML = css;
+}
+
+export default function SettingsView({ activeUser, setActiveUser }) {
   // Navigation stack state
   const [currentView, setCurrentView] = useState('main');
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +226,13 @@ export default function SettingsView({ activeUser }) {
 
   // Help & Support Ticket State
   const [supportTicket, setSupportTicket] = useState({ subject: '', message: '' });
+
+  // Current Active Language dynamically updates layouts
+  const [activeLanguage, setActiveLanguage] = useState(() => {
+    return localStorage.getItem('careerpath_language') || 'English';
+  });
+
+  const text = TRANSLATIONS[activeLanguage] || TRANSLATIONS.English;
 
   // 1. Initial State Load from LocalStorage (Universal Settings Persistence)
   const [profileForm, setProfileForm] = useState(() => {
@@ -68,137 +275,6 @@ export default function SettingsView({ activeUser }) {
     };
   });
 
-  // 2. React side effect applying settings directly on HTML elements dynamically
-  useEffect(() => {
-    // A. Apply Dark Mode
-    document.documentElement.classList.toggle('dark', themePrefs.darkMode);
-    localStorage.setItem('careerpath_dark_mode', themePrefs.darkMode);
-
-    // B. Apply High Contrast Mode (Inverts background brightness or changes colors)
-    document.body.classList.toggle('high-contrast', themePrefs.highContrast);
-    localStorage.setItem('careerpath_high_contrast', themePrefs.highContrast);
-
-    // C. Apply Compact Sidebar
-    document.body.classList.toggle('compact-sidebar', themePrefs.compactSidebar);
-    localStorage.setItem('careerpath_compact_sidebar', themePrefs.compactSidebar);
-
-    // D. Apply Dynamic Style Overrides for Colors & Compact Sidebar
-    let styleTag = document.getElementById('dynamic-accent-theme');
-    if (!styleTag) {
-      styleTag = document.createElement('style');
-      styleTag.id = 'dynamic-accent-theme';
-      document.head.appendChild(styleTag);
-    }
-
-    let css = '';
-
-    // Theme Overrides
-    if (themePrefs.colorAccent === 'BSC Forest Green') {
-      css += `
-        .bg-\\[\\#1e4620\\] { background-color: #1e4620 !important; }
-        .text-\\[\\#1e4620\\] { color: #1e4620 !important; }
-        .border-\\[\\#1e4620\\] { border-color: #1e4620 !important; }
-        .fill-\\[\\#1e4620\\] { fill: #1e4620 !important; }
-        .stroke-\\[\\#1e4620\\] { stroke: #1e4620 !important; }
-        .hover\\:text-\\[\\#1e4620\\]:hover { color: #1e4620 !important; }
-        .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(30, 70, 32, 0.1) !important; }
-        .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(30, 70, 32, 0.05) !important; }
-        .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(30, 70, 32, 0.15) !important; }
-        .bg-\\[\\#123d16\\] { background-color: #123d16 !important; }
-        aside { background-image: linear-gradient(to bottom, #123d16, #0c2b0f) !important; border-right-color: #0c2b0f !important; }
-        .border-\\[\\#0d2e10\\] { border-color: #0c2b0f !important; }
-      `;
-    } else if (themePrefs.colorAccent === 'Ocean Teal') {
-      css += `
-        .bg-\\[\\#1e4620\\] { background-color: #0d9488 !important; }
-        .text-\\[\\#1e4620\\] { color: #0d9488 !important; }
-        .border-\\[\\#1e4620\\] { border-color: #0d9488 !important; }
-        .fill-\\[\\#1e4620\\] { fill: #0d9488 !important; }
-        .stroke-\\[\\#1e4620\\] { stroke: #0d9488 !important; }
-        .hover\\:text-\\[\\#1e4620\\]:hover { color: #0d9488 !important; }
-        .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(13, 148, 136, 0.1) !important; }
-        .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(13, 148, 136, 0.05) !important; }
-        .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(13, 148, 136, 0.15) !important; }
-        .bg-\\[\\#123d16\\] { background-color: #115e59 !important; }
-        aside { background-image: linear-gradient(to bottom, #115e59, #134e4a) !important; border-right-color: #134e4a !important; }
-        .border-\\[\\#0d2e10\\] { border-color: #134e4a !important; }
-      `;
-    } else if (themePrefs.colorAccent === 'Slate Steel') {
-      css += `
-        .bg-\\[\\#1e4620\\] { background-color: #475569 !important; }
-        .text-\\[\\#1e4620\\] { color: #475569 !important; }
-        .border-\\[\\#1e4620\\] { border-color: #475569 !important; }
-        .fill-\\[\\#1e4620\\] { fill: #475569 !important; }
-        .stroke-\\[\\#1e4620\\] { stroke: #475569 !important; }
-        .hover\\:text-\\[\\#1e4620\\]:hover { color: #475569 !important; }
-        .hover\\:bg-\\[\\#1e4620\\]\\/10:hover { background-color: rgba(71, 85, 105, 0.1) !important; }
-        .bg-\\[\\#1e4620\\]\\/5 { background-color: rgba(71, 85, 105, 0.05) !important; }
-        .border-\\[\\#1e4620\\]\\/15 { border-color: rgba(71, 85, 105, 0.15) !important; }
-        .bg-\\[\\#123d16\\] { background-color: #334155 !important; }
-        aside { background-image: linear-gradient(to bottom, #334155, #1e293b) !important; border-right-color: #1e293b !important; }
-        .border-\\[\\#0d2e10\\] { border-color: #1e293b !important; }
-      `;
-    }
-
-    // High Contrast CSS inject
-    if (themePrefs.highContrast) {
-      css += `
-        body.high-contrast { background-color: #000000 !important; color: #ffffff !important; }
-        body.high-contrast .bg-white { background-color: #121212 !important; border-color: #333333 !important; }
-        body.high-contrast text-slate-800, body.high-contrast text-slate-700, body.high-contrast text-slate-600 { color: #ffffff !important; }
-      `;
-    }
-
-    // Compact Sidebar CSS inject
-    if (themePrefs.compactSidebar) {
-      css += `
-        @media (min-width: 768px) {
-          body.compact-sidebar aside { width: 4.5rem !important; }
-          body.compact-sidebar aside nav button { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
-          body.compact-sidebar aside nav button span { display: none !important; }
-          body.compact-sidebar aside nav button svg { width: 1.25rem !important; height: 1.25rem !important; margin: 0 auto !important; }
-          body.compact-sidebar aside div { display: none !important; }
-        }
-      `;
-    }
-
-    styleTag.innerHTML = css;
-    localStorage.setItem('careerpath_color_accent', themePrefs.colorAccent);
-
-  }, [themePrefs]);
-
-  // E. Apply Font Size Scaling on mount and update
-  useEffect(() => {
-    const size = profileForm.fontSize;
-    localStorage.setItem('careerpath_font_size', size);
-    
-    if (size === 'Small') {
-      document.documentElement.style.fontSize = '14px';
-    } else if (size === 'Large') {
-      document.documentElement.style.fontSize = '18px';
-    } else if (size === 'Extra Large') {
-      document.documentElement.style.fontSize = '20px';
-    } else {
-      document.documentElement.style.fontSize = '16px'; // Normal
-    }
-  }, [profileForm.fontSize]);
-
-  // Menu items list
-  const menuItems = [
-    { id: 'account', label: 'Account', icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact ivatan language font size' },
-    { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
-    { id: 'appearance', label: 'Appearance', icon: <Eye className="w-5 h-5 text-slate-500" />, keywords: 'theme dark mode high contrast colors compact layout' },
-    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock sessions 2fa questions delete recovery safety' },
-    { id: 'help', label: 'Help and Support', icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
-    { id: 'about', label: 'About', icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
-  ];
-
-  const filteredMenuItems = menuItems.filter(item => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return item.label.toLowerCase().includes(q) || item.keywords.includes(q);
-  });
-
   // Password strength calculator
   const getPasswordStrength = (pass) => {
     if (!pass) return { score: 0, label: 'None', color: 'bg-slate-200' };
@@ -220,11 +296,39 @@ export default function SettingsView({ activeUser }) {
     e.preventDefault();
     setIsSaving(true);
 
+    // Save profile attributes to localStorage
     localStorage.setItem('careerpath_name', profileForm.name);
     localStorage.setItem('careerpath_email', profileForm.email);
     localStorage.setItem('careerpath_phone', profileForm.phone);
     localStorage.setItem('careerpath_language', profileForm.language);
     localStorage.setItem('careerpath_avatar', profileForm.avatar);
+    localStorage.setItem('careerpath_font_size', profileForm.fontSize);
+
+    // Apply active global language transition instantly
+    setActiveLanguage(profileForm.language);
+
+    // Apply root font scaling instantly
+    if (profileForm.fontSize === 'Small') {
+      document.documentElement.style.fontSize = '14px';
+    } else if (profileForm.fontSize === 'Large') {
+      document.documentElement.style.fontSize = '18px';
+    } else if (profileForm.fontSize === 'Extra Large') {
+      document.documentElement.style.fontSize = '20px';
+    } else {
+      document.documentElement.style.fontSize = '16px';
+    }
+
+    // Call state setter update to modify layouts across Header and Sidebars
+    if (setActiveUser && activeUser) {
+      const updatedUser = { 
+        ...activeUser, 
+        name: profileForm.name, 
+        email: profileForm.email, 
+        avatar: profileForm.avatar 
+      };
+      setActiveUser(updatedUser);
+      sessionStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
+    }
 
     setTimeout(() => {
       setIsSaving(false);
@@ -271,9 +375,23 @@ export default function SettingsView({ activeUser }) {
     }, 1000);
   };
 
+  // ONLY APPLY VISUAL CHANGES (Dark mode, high contrast, compact sidebar, theme colors) when Save Theme is clicked
   const handleAppearanceSubmit = (e) => {
     e.preventDefault();
     setIsSaving(true);
+
+    // Save preferences to localStorage
+    localStorage.setItem('careerpath_dark_mode', themePrefs.darkMode ? 'true' : 'false');
+    localStorage.setItem('careerpath_high_contrast', themePrefs.highContrast ? 'true' : 'false');
+    localStorage.setItem('careerpath_compact_sidebar', themePrefs.compactSidebar ? 'true' : 'false');
+    localStorage.setItem('careerpath_color_accent', themePrefs.colorAccent);
+
+    // Apply document classes and color changes instantly
+    document.documentElement.classList.toggle('dark', themePrefs.darkMode);
+    document.body.classList.toggle('high-contrast', themePrefs.highContrast);
+    document.body.classList.toggle('compact-sidebar', themePrefs.compactSidebar);
+    injectColors(themePrefs.colorAccent);
+
     setTimeout(() => {
       setIsSaving(false);
       setShowStatus('Appearance layout and theme styling applied successfully.');
@@ -300,13 +418,29 @@ export default function SettingsView({ activeUser }) {
     }
   };
 
+  // Search filter list definitions
+  const menuItems = [
+    { id: 'account', label: text.account, icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact ivatan language font size' },
+    { id: 'notifications', label: text.notifications, icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
+    { id: 'appearance', label: text.appearance, icon: <Eye className="w-5 h-5 text-slate-500" />, keywords: 'theme dark mode high contrast colors compact layout' },
+    { id: 'security', label: text.privacySecurity, icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock sessions 2fa questions delete recovery safety' },
+    { id: 'help', label: text.helpSupport, icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
+    { id: 'about', label: text.about, icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
+  ];
+
+  const filteredMenuItems = menuItems.filter(item => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return item.label.toLowerCase().includes(q) || item.keywords.includes(q);
+  });
+
   return (
     <div className="max-w-xl mx-auto font-sans text-slate-800 transition-colors">
       
       {/* Toast Alert Indicator */}
       {showStatus && (
         <div role="alert" className="mb-4 p-4 bg-emerald-50 text-emerald-950 border border-emerald-250 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-xs animate-fade-in z-20">
-          <span className="p-1 bg-[#1e4620] text-emerald-50 rounded-full"><Check className="w-4 h-4 text-emerald-50" /></span>
+          <span className="p-1 bg-[#1e4620] text-emerald-50 rounded-full"><Check className="w-4 h-4 text-emerald-550" /></span>
           <div>
             <p className="font-extrabold text-emerald-900">Success</p>
             <p className="text-[11px] font-semibold text-emerald-800 mt-0.5">{showStatus}</p>
@@ -319,7 +453,7 @@ export default function SettingsView({ activeUser }) {
         <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
           {/* Header Title block */}
           <div className="p-6 text-center border-b border-slate-50 relative dark:border-slate-800">
-            <h2 className="text-lg font-extrabold tracking-tight dark:text-white">Settings</h2>
+            <h2 className="text-lg font-extrabold tracking-tight dark:text-white">{text.settings}</h2>
           </div>
 
           {/* Settings Search bar */}
@@ -332,7 +466,7 @@ export default function SettingsView({ activeUser }) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for a setting..."
+                placeholder={text.searchPlaceholder}
                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-1 focus:ring-slate-900 focus:border-slate-350 text-slate-800 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:focus:ring-white"
               />
             </div>
@@ -342,7 +476,7 @@ export default function SettingsView({ activeUser }) {
           <div className="divide-y divide-slate-50 dark:divide-slate-800">
             {filteredMenuItems.length === 0 ? (
               <div className="p-8 text-center text-slate-400 font-bold text-xs">
-                No matching settings found.
+                {text.noSettingsFound}
               </div>
             ) : (
               filteredMenuItems.map((item) => (
@@ -371,7 +505,7 @@ export default function SettingsView({ activeUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Account</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.account}</h3>
           </div>
 
           <div className="p-6 space-y-5">
@@ -408,9 +542,9 @@ export default function SettingsView({ activeUser }) {
             </div>
 
             {/* Inputs list */}
-            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-300">
+            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-350">
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Full Name</label>
+                <label className="text-slate-455 block font-bold">{text.fullName}</label>
                 <input
                   type="text"
                   required
@@ -421,7 +555,7 @@ export default function SettingsView({ activeUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Email Address</label>
+                <label className="text-slate-455 block font-bold">{text.emailAddress}</label>
                 <input
                   type="email"
                   required
@@ -432,7 +566,7 @@ export default function SettingsView({ activeUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Phone Number</label>
+                <label className="text-slate-455 block font-bold">{text.phoneNumber}</label>
                 <input
                   type="text"
                   required
@@ -444,7 +578,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Preferred Language</label>
+                  <label className="text-slate-455 block font-bold">{text.preferredLanguage}</label>
                   <select
                     value={profileForm.language}
                     onChange={(e) => setProfileForm({...profileForm, language: e.target.value})}
@@ -457,7 +591,7 @@ export default function SettingsView({ activeUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Text Scaling / Font Size</label>
+                  <label className="text-slate-455 block font-bold">{text.textScaling}</label>
                   <select
                     value={profileForm.fontSize}
                     onChange={(e) => setProfileForm({...profileForm, fontSize: e.target.value})}
@@ -470,12 +604,22 @@ export default function SettingsView({ activeUser }) {
                   </select>
                 </div>
               </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-455 block font-bold">{text.systemRole}</label>
+                <input
+                  type="text"
+                  disabled
+                  value={activeUser?.role || 'Guest'}
+                  className="w-full bg-slate-105 border border-slate-200 rounded-xl p-2.5 text-slate-450 font-bold cursor-not-allowed select-none dark:bg-slate-950/40 dark:border-slate-750"
+                />
+              </div>
             </div>
           </div>
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Changes
+              <Save className="w-3.5 h-3.5" /> {text.saveChanges}
             </button>
           </div>
         </form>
@@ -488,7 +632,7 @@ export default function SettingsView({ activeUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Notifications</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.notifications}</h3>
           </div>
 
           <div className="p-6 space-y-4">
@@ -496,7 +640,7 @@ export default function SettingsView({ activeUser }) {
               
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Email Alerts</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.emailAlerts}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive immediate SMTP emails regarding credential assignments or announcements.</span>
                 </div>
                 <input
@@ -509,7 +653,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Job Matching Updates</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.jobVacancies}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Get notified instantly when partner employers post vacancies matching your core skills.</span>
                 </div>
                 <input
@@ -522,7 +666,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Tracer Surveys</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.surveyInvites}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive alert cues when new tracer studies or feedback surveys are deployed.</span>
                 </div>
                 <input
@@ -535,7 +679,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center dark:bg-slate-800/40 dark:border-slate-800">
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">Digest Summary Schedule</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.digestFrequency}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Choose how often notifications are compiled and sent.</span>
                 </div>
                 <select
@@ -555,7 +699,7 @@ export default function SettingsView({ activeUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Alerts
+              <Save className="w-3.5 h-3.5" /> {text.saveAlerts}
             </button>
           </div>
         </form>
@@ -568,15 +712,15 @@ export default function SettingsView({ activeUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Appearance</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.appearance}</h3>
           </div>
 
           <div className="p-6 space-y-4">
-            <div className="space-y-3.5 text-xs font-semibold text-slate-700 dark:text-slate-350">
+            <div className="space-y-3.5 text-xs font-semibold text-slate-700 dark:text-slate-355">
               
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">Dark Mode Interface</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.darkMode}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Invert page layout brightness to ease eye straining in dark conditions.</span>
                 </div>
                 <input
@@ -592,7 +736,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">High Contrast Layout</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.highContrast}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Enhance color contrast parameters for low vision usability.</span>
                 </div>
                 <input
@@ -605,7 +749,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">Compact Sidebar Menu</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.compactSidebar}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Minimize the desktop navigation sidebar to display only icon layouts.</span>
                 </div>
                 <input
@@ -618,7 +762,7 @@ export default function SettingsView({ activeUser }) {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
                 <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">System Color Accent Theme</span>
+                  <span className="block font-bold text-slate-855 dark:text-white">{text.colorTheme}</span>
                   <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Select a highlighting brand color for dashboard navigation links.</span>
                 </div>
                 <select
@@ -638,7 +782,7 @@ export default function SettingsView({ activeUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Theme
+              <Save className="w-3.5 h-3.5" /> {text.saveTheme}
             </button>
           </div>
         </form>
@@ -651,7 +795,7 @@ export default function SettingsView({ activeUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Privacy &amp; Security</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.privacySecurity}</h3>
           </div>
 
           <div className="p-6 space-y-6">
@@ -659,14 +803,14 @@ export default function SettingsView({ activeUser }) {
             {/* Password edit inputs */}
             <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-300">
               <div className="space-y-1 relative">
-                <label className="text-slate-455 block font-bold">Current Password</label>
+                <label className="text-slate-455 block font-bold">{text.currentPassword}</label>
                 <div className="relative">
                   <input
                     type={showOldPass ? 'text' : 'password'}
                     required
                     value={passwordForm.oldPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   />
                   <button
                     type="button"
@@ -680,13 +824,13 @@ export default function SettingsView({ activeUser }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1 relative">
-                  <label className="text-slate-455 block font-bold">New Password</label>
+                  <label className="text-slate-455 block font-bold">{text.newPassword}</label>
                   <div className="relative">
                     <input
                       type={showNewPass ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     />
                     <button
                       type="button"
@@ -702,9 +846,9 @@ export default function SettingsView({ activeUser }) {
                       <div className="flex justify-between items-center text-[10px] font-bold">
                         <span className="text-slate-400">Password Strength:</span>
                         <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-extrabold ${
-                          strength.score <= 1 ? 'text-red-750 bg-red-50' :
-                          strength.score === 2 ? 'text-amber-750 bg-amber-50' :
-                          strength.score === 3 ? 'text-sky-750 bg-sky-50' :
+                          strength.score <= 1 ? 'text-red-755 bg-red-50' :
+                          strength.score === 2 ? 'text-amber-755 bg-amber-50' :
+                          strength.score === 3 ? 'text-sky-755 bg-sky-50' :
                           'text-emerald-755 bg-emerald-50'
                         }`}>{strength.label}</span>
                       </div>
@@ -716,7 +860,7 @@ export default function SettingsView({ activeUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Confirm New Password</label>
+                  <label className="text-slate-455 block font-bold">{text.confirmPassword}</label>
                   <input
                     type="password"
                     value={passwordForm.confirmPassword}
@@ -732,7 +876,7 @@ export default function SettingsView({ activeUser }) {
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-300">Recovery Question Selection</label>
+                  <label className="text-slate-455 block font-bold dark:text-slate-350">{text.recoveryQuestion}</label>
                   <select
                     value={passwordForm.securityQuestion}
                     onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
@@ -746,7 +890,7 @@ export default function SettingsView({ activeUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-300">Answer Verification Key</label>
+                  <label className="text-slate-455 block font-bold dark:text-slate-350">{text.recoveryAnswer}</label>
                   <input
                     type="text"
                     value={passwordForm.securityAnswer}
@@ -761,7 +905,7 @@ export default function SettingsView({ activeUser }) {
             {/* Danger Zone */}
             <div className="p-4 bg-rose-50/40 border border-rose-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 text-xs dark:bg-rose-950/10 dark:border-rose-900">
               <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-800 block dark:text-rose-200">Deactivate Account Registry</span>
+                <span className="font-extrabold text-slate-800 block dark:text-rose-200">{text.deactivate}</span>
                 <span className="text-[10px] text-slate-400 leading-relaxed block dark:text-slate-400">Deactivate dashboard credentials. Restorations require administrative verify.</span>
               </div>
               <button
@@ -777,7 +921,7 @@ export default function SettingsView({ activeUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Security
+              <Save className="w-3.5 h-3.5" /> {text.saveSecurity}
             </button>
           </div>
         </form>
@@ -790,13 +934,13 @@ export default function SettingsView({ activeUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Help and Support</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.helpSupport}</h3>
           </div>
 
           <div className="p-6 space-y-5 text-xs">
             {/* Support info details */}
             <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 text-slate-600 font-semibold leading-relaxed dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-350">
-              <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">BSC System Directory Links</span>
+              <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">{text.helpdeskTitle}</span>
               <p>For tracer corrections, password resets, or official student evaluations, contact the IT Bureau.</p>
               <div className="pt-2 text-[10px] font-bold text-slate-500 space-y-1 font-mono dark:text-slate-400">
                 <p>Website: <a href="https://bsc.edu.ph" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">www.bsc.edu.ph</a></p>
@@ -810,7 +954,7 @@ export default function SettingsView({ activeUser }) {
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Send Quick Support Ticket</span>
               
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Ticket Subject Summary</label>
+                <label className="text-slate-455 block font-bold">{text.ticketSubject}</label>
                 <input
                   type="text"
                   required
@@ -822,7 +966,7 @@ export default function SettingsView({ activeUser }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Description message details</label>
+                <label className="text-slate-455 block font-bold">{text.ticketDescription}</label>
                 <textarea
                   rows={4}
                   required
@@ -837,7 +981,7 @@ export default function SettingsView({ activeUser }) {
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
             <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Mail className="w-3.5 h-3.5" /> Submit Ticket
+              <Mail className="w-3.5 h-3.5" /> {text.submitTicket}
             </button>
           </div>
         </form>
@@ -850,7 +994,7 @@ export default function SettingsView({ activeUser }) {
             <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
               <ArrowLeft className="w-5 h-5 dark:text-white" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">About Portal</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">{text.about}</h3>
           </div>
 
           <div className="p-8 space-y-5 text-slate-600 font-semibold text-xs dark:text-slate-350">
@@ -859,7 +1003,7 @@ export default function SettingsView({ activeUser }) {
             </div>
 
             <div className="space-y-1">
-              <h4 className="font-extrabold text-slate-800 text-sm dark:text-white">BSC CareerPath Tracer Portal</h4>
+              <h4 className="font-extrabold text-slate-800 text-sm dark:text-white">{text.aboutTitle}</h4>
               <p className="text-[10px] text-slate-400 font-bold font-mono">Version 2.4.0 (Stable Release)</p>
             </div>
 
