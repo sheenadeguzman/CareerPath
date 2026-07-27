@@ -9,21 +9,10 @@ export default function Header({
   setProfileDropdownOpen,
   mobileMenuOpen,
   setMobileMenuOpen,
-  handleLogout
+  handleLogout,
+  darkMode,
+  onToggleDarkMode
 }) {
-  const [darkMode, setDarkMode] = useState(() => {
-    return document.documentElement.classList.contains('dark');
-  });
-
-  const toggleDarkMode = () => {
-    if (document.documentElement.classList.contains('dark')) {
-      document.documentElement.classList.remove('dark');
-      setDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      setDarkMode(true);
-    }
-  };
 
   return (
     <header className="bg-white border-b border-slate-200/70 h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 font-sans shadow-premium">
@@ -44,7 +33,7 @@ export default function Header({
 
         {/* Toggle para sa Dark Mode Switcher */}
         <button
-          onClick={toggleDarkMode}
+          onClick={onToggleDarkMode}
           className="p-2 text-slate-500 hover:text-[#1e4620] hover:bg-slate-50 rounded-lg transition relative shrink-0"
           title="Toggle Dark Mode"
         >

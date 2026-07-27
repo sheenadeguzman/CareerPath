@@ -299,7 +299,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             {/* Inputs list */}
-            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-355">
+            <div className="space-y-4 text-xs font-semibold text-slate-655 dark:text-slate-355">
               <div className="space-y-1">
                 <label className="text-slate-455 block font-bold">Full Name</label>
                 <input
@@ -353,7 +353,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                   type="text"
                   disabled
                   value={activeUser?.role || 'Guest'}
-                  className="w-full bg-slate-105 border border-slate-200 rounded-xl p-2.5 text-slate-450 font-bold cursor-not-allowed select-none dark:bg-slate-950/40 dark:border-slate-750"
+                  className="w-full bg-slate-105 border border-slate-200 rounded-xl p-2.5 text-slate-455 font-bold cursor-not-allowed select-none dark:bg-slate-950/40 dark:border-slate-750"
                 />
               </div>
             </div>
@@ -440,7 +440,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
           </div>
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
+            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Save className="w-3.5 h-3.5" /> Save Alerts
             </button>
           </div>
@@ -460,7 +460,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
           <div className="p-6 space-y-6">
             
             {/* Password edit inputs */}
-            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-300">
+            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-350">
               <div className="space-y-1 relative">
                 <label className="text-slate-455 block font-bold">Current Account Password</label>
                 <div className="relative">
@@ -549,7 +549,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-355">Answer Verification Key</label>
+                  <label className="text-slate-455 block font-bold dark:text-slate-350">Answer Verification Key</label>
                   <input
                     type="text"
                     value={passwordForm.securityAnswer}
@@ -609,7 +609,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
             </div>
 
             {/* Quick Ticket form */}
-            <div className="space-y-4 font-semibold text-slate-655 dark:text-slate-300">
+            <div className="space-y-4 font-semibold text-slate-655 dark:text-slate-355">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Send Quick Support Ticket</span>
               
               <div className="space-y-1">
@@ -639,7 +639,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
           </div>
 
           <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
+            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
               <Mail className="w-3.5 h-3.5" /> Submit Ticket
             </button>
           </div>

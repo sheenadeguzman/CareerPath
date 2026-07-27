@@ -5,7 +5,7 @@
  * Header, Sidebar, MobileMenu, at tinatakda kung anong functional sub-view ang ipapakita base sa active tab.
  */
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 
 // Synchronous Dark Theme Initialization before component mounts
@@ -122,6 +122,8 @@ import MobileMenu from './components/layout/MobileMenu';
 import { useCareerPath } from './hooks/useCareerPath';
 
 export default function App() {
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('careerpath_dark_mode') === 'true');
+
   // Kuhanin ang application states, data listings, at state mutators mula sa ating custom hook
   const {
     activeUser,
@@ -164,13 +166,18 @@ export default function App() {
     appendActivity
   } = useCareerPath();
 
+  const handleToggleDarkMode = () => {
+    const nextDark = !darkMode;
+    setDarkMode(nextDark);
+    localStorage.setItem('careerpath_dark_mode', nextDark ? 'true' : 'false');
+  };
+
   // Apply saved global appearance settings on mount & activeUser changes
   useEffect(() => {
     if (!activeUser) return;
-
+    
     // 1. Apply Dark Mode
-    const isDark = localStorage.getItem('careerpath_dark_mode') === 'true';
-    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.classList.toggle('dark', darkMode);
 
     // 2. Apply Font Size Scaling
     const size = localStorage.getItem('careerpath_font_size') || 'Normal';
@@ -190,7 +197,7 @@ export default function App() {
 
     const colorAccent = localStorage.getItem('careerpath_color_accent') || 'BSC Crimson';
     applyAccentTheme(colorAccent);
-  }, [activeUser]);
+  }, [activeUser, darkMode]);
 
   // Magpakita ng full-screen loading spinner habang ina-initialize at sini-sync ang data mula sa database
   if (isLoading) {
@@ -229,6 +236,8 @@ export default function App() {
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         handleLogout={handleLogout}
+        darkMode={darkMode}
+        onToggleDarkMode={handleToggleDarkMode}
       />
 
       {/* Main Layout Container (Sidebar + Content Stage Area) */}
