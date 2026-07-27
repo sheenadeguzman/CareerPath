@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ChevronRight, User, Bell, Lock, HelpCircle, Info, 
-  ArrowLeft, Check, RefreshCw, Save, Camera, Mail, Eye, EyeOff
+  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff
 } from 'lucide-react';
 
 const MOCK_AVATARS = [
@@ -12,8 +12,10 @@ const MOCK_AVATARS = [
 ];
 
 export default function SettingsView({ activeUser, setActiveUser }) {
-  // Navigation stack state
-  const [currentView, setCurrentView] = useState('main');
+  // Active view state
+  const [activeTab, setActiveTab] = useState('account');
+  // For mobile view, we track if we are inside a detail panel or on the category menu
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Saving states & Hide/Show Toggles
@@ -94,14 +96,12 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     e.preventDefault();
     setIsSaving(true);
 
-    // Save profile attributes to localStorage
     localStorage.setItem('careerpath_name', profileForm.name);
     localStorage.setItem('careerpath_email', profileForm.email);
     localStorage.setItem('careerpath_phone', profileForm.phone);
     localStorage.setItem('careerpath_avatar', profileForm.avatar);
     localStorage.setItem('careerpath_font_size', profileForm.fontSize);
 
-    // Call state setter update to modify layouts across Header and Sidebars
     if (setActiveUser && activeUser) {
       const updatedUser = { 
         ...activeUser, 
@@ -117,8 +117,8 @@ export default function SettingsView({ activeUser, setActiveUser }) {
       setIsSaving(false);
       setShowStatus('Profile details updated successfully!');
       setTimeout(() => setShowStatus(''), 4500);
-      setCurrentView('main');
-    }, 1200);
+      setIsMobileDetailOpen(false);
+    }, 1000);
   };
 
   const handleSecuritySubmit = (e) => {
@@ -134,11 +134,11 @@ export default function SettingsView({ activeUser, setActiveUser }) {
 
     setTimeout(() => {
       setIsSaving(false);
-      setShowStatus('Security password and recovery questions updated!');
+      setShowStatus('Security preferences updated!');
       setPasswordForm(prev => ({ ...prev, oldPassword: '', newPassword: '', confirmPassword: '' }));
       setTimeout(() => setShowStatus(''), 4500);
-      setCurrentView('main');
-    }, 1200);
+      setIsMobileDetailOpen(false);
+    }, 1000);
   };
 
   const handleNotificationsSubmit = (e) => {
@@ -154,7 +154,7 @@ export default function SettingsView({ activeUser, setActiveUser }) {
       setIsSaving(false);
       setShowStatus('Notifications rules saved successfully!');
       setTimeout(() => setShowStatus(''), 4500);
-      setCurrentView('main');
+      setIsMobileDetailOpen(false);
     }, 1000);
   };
 
@@ -163,26 +163,26 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      setShowStatus('Helpdesk ticket successfully queued. Support response will be sent to your email.');
+      setShowStatus('Helpdesk ticket successfully queued.');
       setSupportTicket({ subject: '', message: '' });
       setTimeout(() => setShowStatus(''), 4500);
-      setCurrentView('main');
-    }, 1200);
+      setIsMobileDetailOpen(false);
+    }, 1000);
   };
 
   const handleDeactivateAccount = () => {
-    if (confirm("DANGER: Are you absolutely sure you want to deactivate your account?\n\nThis will instantly revoke your credentials and log you out. To restore it later, you must verify your identity with the administration.")) {
-      alert("Account deactivation requested. Session will now close.");
+    if (confirm("Are you sure you want to deactivate your account?")) {
+      alert("Account deactivation requested.");
     }
   };
 
-  // Search filter list definitions (Appearance and language removed)
+  // Menu items list
   const menuItems = [
-    { id: 'account', label: 'Account', icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact font size' },
-    { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
-    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock sessions questions delete recovery safety' },
-    { id: 'help', label: 'Help and Support', icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
-    { id: 'about', label: 'About', icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
+    { id: 'account', label: 'Account', icon: <User className="w-4 h-4" />, keywords: 'profile name email avatar phone contact font size' },
+    { id: 'notifications', label: 'Notifications', icon: <Bell className="w-4 h-4" />, keywords: 'alerts email job surveys digests push messages' },
+    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-4 h-4" />, keywords: 'password lock sessions questions delete recovery safety' },
+    { id: 'help', label: 'Help & Support', icon: <HelpCircle className="w-4 h-4" />, keywords: 'tickets admin support contact website issues bugs help' },
+    { id: 'about', label: 'About App', icon: <Info className="w-4 h-4" />, keywords: 'version copyright information build tracer details developer' }
   ];
 
   const filteredMenuItems = menuItems.filter(item => {
@@ -191,492 +191,539 @@ export default function SettingsView({ activeUser, setActiveUser }) {
     return item.label.toLowerCase().includes(q) || item.keywords.includes(q);
   });
 
+  // Helper selector for mobile navigation switch
+  const selectTabOnMobile = (tabId) => {
+    setActiveTab(tabId);
+    setIsMobileDetailOpen(true);
+  };
+
   return (
-    <div className="max-w-xl mx-auto font-sans text-slate-800 transition-colors">
+    <div className="max-w-5xl mx-auto font-sans text-slate-800 transition-colors duration-300">
       
       {/* Toast Alert Indicator */}
       {showStatus && (
-        <div role="alert" className="mb-4 p-4 bg-emerald-50 text-emerald-950 border border-emerald-250 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-xs animate-fade-in z-20">
-          <span className="p-1 bg-[#1e4620] text-emerald-50 rounded-full"><Check className="w-4 h-4 text-emerald-550" /></span>
+        <div role="alert" className="mb-6 p-4 bg-emerald-50 text-emerald-950 border border-emerald-200 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-xs animate-fade-in z-20 dark:bg-emerald-950/20 dark:border-emerald-900 dark:text-emerald-200">
+          <span className="p-1.5 bg-[#1e4620] text-emerald-50 rounded-xl"><Check className="w-3.5 h-3.5" /></span>
           <div>
-            <p className="font-extrabold text-emerald-900">Success</p>
-            <p className="text-[11px] font-semibold text-emerald-800 mt-0.5">{showStatus}</p>
+            <p className="font-extrabold text-emerald-900 dark:text-emerald-350">Success</p>
+            <p className="text-[11px] font-semibold text-emerald-800 dark:text-slate-400 mt-0.5">{showStatus}</p>
           </div>
         </div>
       )}
 
-      {/* Main Settings List View */}
-      {currentView === 'main' && (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
+      {/* Main Container: Desktop shows grid, Mobile handles screen stack */}
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden flex min-h-[580px] dark:bg-slate-900 dark:border-slate-800">
+        
+        {/* SIDE BAR / MENU PANEL */}
+        {/* On mobile: hidden if a detail panel is open */}
+        <div className={`w-full md:w-80 border-r border-slate-100 flex flex-col shrink-0 dark:border-slate-800 ${
+          isMobileDetailOpen ? 'hidden md:flex' : 'flex'
+        }`}>
           {/* Header Title block */}
-          <div className="p-6 text-center border-b border-slate-50 relative dark:border-slate-800">
-            <h2 className="text-lg font-extrabold tracking-tight dark:text-white">Settings</h2>
+          <div className="p-6 border-b border-slate-50 dark:border-slate-800">
+            <h2 className="text-lg font-black tracking-tight text-slate-800 dark:text-white">Settings</h2>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Tracer configurations</p>
           </div>
 
-          {/* Settings Search bar */}
+          {/* Search bar input */}
           <div className="p-4 bg-slate-50/50 border-b border-slate-100 dark:bg-slate-950/20 dark:border-slate-800">
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Search className="w-4 h-4 text-slate-400" />
+                <Search className="w-3.5 h-3.5 text-slate-400" />
               </span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for a setting..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-1 focus:ring-slate-900 focus:border-slate-350 text-slate-800 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:focus:ring-white"
+                placeholder="Search settings..."
+                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:ring-1 focus:ring-slate-900 text-slate-850 transition dark:bg-slate-900 dark:border-slate-700 dark:text-white"
               />
             </div>
           </div>
 
-          {/* List items block */}
-          <div className="divide-y divide-slate-50 dark:divide-slate-800">
-            {filteredMenuItems.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 font-bold text-xs">
-                No matching settings found.
-              </div>
-            ) : (
-              filteredMenuItems.map((item) => (
+          {/* Settings Items list */}
+          <div className="flex-1 p-3 space-y-1 overflow-y-auto">
+            {filteredMenuItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setCurrentView(item.id)}
-                  className="w-full flex items-center justify-between p-4.5 hover:bg-slate-50/70 transition cursor-pointer select-none text-left dark:hover:bg-slate-800/40"
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    selectTabOnMobile(item.id);
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all duration-200 cursor-pointer ${
+                    isActive 
+                      ? 'bg-[#1e4620] text-white shadow-md' 
+                      : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 dark:hover:bg-slate-800/40 dark:text-slate-300'
+                  }`}
                 >
-                  <div className="flex items-center gap-3.5">
-                    <span className="p-2 bg-slate-100 rounded-xl text-slate-700 dark:bg-slate-800 dark:text-slate-300">{item.icon}</span>
-                    <span className="text-xs font-extrabold text-slate-700 tracking-wide dark:text-slate-250">{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`p-1.5 rounded-lg transition-colors ${
+                      isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-650 dark:bg-slate-800 dark:text-slate-300'
+                    }`}>{item.icon}</span>
+                    <span className="text-xs font-extrabold tracking-wide">{item.label}</span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-350" />
+                  <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    isActive ? 'text-white' : 'text-slate-400 hover:text-slate-600'
+                  }`} />
                 </button>
-              ))
-            )}
+              );
+            })}
           </div>
         </div>
-      )}
 
-      {/* VIEW: Account details */}
-      {currentView === 'account' && (
-        <form onSubmit={handleProfileSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
-            <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
+        {/* DETAILS/VIEW WINDOW */}
+        {/* On mobile: hidden if we are looking at the Menu list */}
+        <div className={`flex-1 flex flex-col min-w-0 bg-slate-50/40 dark:bg-slate-950/10 ${
+          isMobileDetailOpen ? 'flex' : 'hidden md:flex'
+        }`}>
+          
+          {/* Mobile Back Button strip header */}
+          <div className="p-4 border-b border-slate-50 flex items-center gap-3 bg-white md:hidden dark:bg-slate-900 dark:border-slate-800">
+            <button 
+              type="button" 
+              onClick={() => setIsMobileDetailOpen(false)}
+              className="p-2 hover:bg-slate-100 rounded-xl text-slate-550 transition cursor-pointer dark:hover:bg-slate-800 dark:text-white"
+            >
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Account</h3>
+            <span className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
+              {menuItems.find(i => i.id === activeTab)?.label}
+            </span>
           </div>
 
-          <div className="p-6 space-y-5">
-            {/* Avatar block */}
-            <div className="text-center space-y-3 relative">
-              <div className="relative w-20 h-20 mx-auto">
-                <img src={profileForm.avatar} alt="avatar" className="w-20 h-20 rounded-full object-cover border border-slate-200 shadow-xs dark:border-slate-700" />
-                <button
-                  type="button"
-                  onClick={() => setShowAvatarSelector(!showAvatarSelector)}
-                  className="absolute bottom-0 right-0 p-1.5 bg-slate-850 hover:bg-slate-900 text-white rounded-full border-2 border-white shadow-sm cursor-pointer transition dark:border-slate-900"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {showAvatarSelector && (
-                <div className="absolute top-20 left-0 right-0 mx-auto w-44 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-10 grid grid-cols-2 gap-1.5 animate-fade-in dark:bg-slate-800 dark:border-slate-700">
-                  {MOCK_AVATARS.map((av, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setProfileForm(prev => ({ ...prev, avatar: av }));
-                        setShowAvatarSelector(false);
-                      }}
-                      className="border border-slate-100 rounded-xl overflow-hidden hover:border-slate-400 transition cursor-pointer focus:outline-none dark:border-slate-700"
-                    >
-                      <img src={av} alt="avatar option" className="w-full h-11 object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Inputs list */}
-            <div className="space-y-4 text-xs font-semibold text-slate-655 dark:text-slate-355">
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={profileForm.name}
-                  onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-white"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={profileForm.email}
-                  onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-white"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Phone Number</label>
-                <input
-                  type="text"
-                  required
-                  value={profileForm.phone}
-                  onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-white"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Text Scaling / Font Size</label>
-                <select
-                  value={profileForm.fontSize}
-                  onChange={(e) => setProfileForm({...profileForm, fontSize: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                >
-                  <option value="Small">Small (Compact)</option>
-                  <option value="Normal">Normal (Default)</option>
-                  <option value="Large">Large</option>
-                  <option value="Extra Large">Extra Large (High Visibility)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">System Role</label>
-                <input
-                  type="text"
-                  disabled
-                  value={activeUser?.role || 'Guest'}
-                  className="w-full bg-slate-105 border border-slate-200 rounded-xl p-2.5 text-slate-455 font-bold cursor-not-allowed select-none dark:bg-slate-950/40 dark:border-slate-750"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Changes
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* VIEW: Notifications */}
-      {currentView === 'notifications' && (
-        <form onSubmit={handleNotificationsSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
-            <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
-            </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Notifications</h3>
-          </div>
-
-          <div className="p-6 space-y-4">
-            <div className="space-y-3.5 text-xs font-semibold text-slate-700 dark:text-slate-350">
-              
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
-                <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Email Alerts</span>
-                  <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive immediate SMTP emails regarding credential assignments or announcements.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifyPrefs.emailAlerts}
-                  onChange={(e) => setNotifyPrefs({...notifyPrefs, emailAlerts: e.target.checked})}
-                  className="w-4.5 h-4.5 rounded text-slate-900 border-slate-350 focus:ring-slate-900 cursor-pointer"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
-                <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Job Matching Updates</span>
-                  <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Get notified instantly when partner employers post vacancies matching your core skills.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifyPrefs.jobVacancies}
-                  onChange={(e) => setNotifyPrefs({...notifyPrefs, jobVacancies: e.target.checked})}
-                  className="w-4.5 h-4.5 rounded text-slate-900 border-slate-350 focus:ring-slate-900 cursor-pointer"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
-                <div className="max-w-[80%]">
-                  <span className="block font-bold text-slate-855 dark:text-white">Tracer Surveys</span>
-                  <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive alert cues when new tracer studies or feedback surveys are deployed.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifyPrefs.surveyInvites}
-                  onChange={(e) => setNotifyPrefs({...notifyPrefs, surveyInvites: e.target.checked})}
-                  className="w-4.5 h-4.5 rounded text-slate-900 border-slate-355 focus:ring-slate-900 cursor-pointer"
-                />
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center dark:bg-slate-800/40 dark:border-slate-800">
-                <div>
-                  <span className="block font-bold text-slate-855 dark:text-white">Digest Summary Schedule</span>
-                  <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Choose how often notifications are compiled and sent.</span>
-                </div>
-                <select
-                  value={notifyPrefs.digestFrequency}
-                  onChange={(e) => setNotifyPrefs({...notifyPrefs, digestFrequency: e.target.value})}
-                  className="bg-white border border-slate-200 rounded-xl p-2 font-bold text-slate-700 text-xs focus:ring-1 focus:ring-slate-900 cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                >
-                  <option value="Instant">Instant</option>
-                  <option value="Daily">Daily Summary</option>
-                  <option value="Weekly">Weekly Summary</option>
-                  <option value="Never">Unsubscribe</option>
-                </select>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Alerts
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* VIEW: Privacy & Security */}
-      {currentView === 'security' && (
-        <form onSubmit={handleSecuritySubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
-            <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
-            </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Privacy &amp; Security</h3>
-          </div>
-
-          <div className="p-6 space-y-6">
+          <div className="flex-1 p-6 md:p-8 overflow-y-auto max-w-2xl">
             
-            {/* Password edit inputs */}
-            <div className="space-y-4 text-xs font-semibold text-slate-650 dark:text-slate-350">
-              <div className="space-y-1 relative">
-                <label className="text-slate-455 block font-bold">Current Account Password</label>
-                <div className="relative">
-                  <input
-                    type={showOldPass ? 'text' : 'password'}
-                    required
-                    value={passwordForm.oldPassword}
-                    onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOldPass(!showOldPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-605 cursor-pointer"
-                  >
-                    {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
+            {/* VIEW: Account Detail */}
+            {activeTab === 'account' && (
+              <form onSubmit={handleProfileSubmit} className="space-y-6">
+                <div className="border-b border-slate-100 pb-4 dark:border-slate-800">
+                  <h3 className="text-base font-extrabold text-slate-850 dark:text-white">Account Information</h3>
+                  <p className="text-[10px] text-slate-400 leading-normal mt-1">Configure profile tags, contacts, timezone structures, and font scaling details.</p>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1 relative">
-                  <label className="text-slate-455 block font-bold">New Password</label>
-                  <div className="relative">
-                    <input
-                      type={showNewPass ? 'text' : 'password'}
-                      value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                    />
+                {/* Avatar upload */}
+                <div className="flex items-center gap-5 p-4 bg-white border border-slate-100 rounded-2xl dark:bg-slate-900 dark:border-slate-800">
+                  <div className="relative w-16 h-16 shrink-0">
+                    <img src={profileForm.avatar} alt="avatar" className="w-16 h-16 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
                     <button
                       type="button"
-                      onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-605 cursor-pointer"
+                      onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+                      className="absolute bottom-0 right-0 p-1 bg-slate-850 hover:bg-slate-950 text-white rounded-full border border-white shadow-xs cursor-pointer transition dark:border-slate-900"
                     >
-                      {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <Camera className="w-3 h-3" />
                     </button>
                   </div>
-                  
-                  {passwordForm.newPassword && (
-                    <div className="pt-2 space-y-1">
-                      <div className="flex justify-between items-center text-[10px] font-bold">
-                        <span className="text-slate-400">Password Strength:</span>
-                        <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-extrabold ${
-                          strength.score <= 1 ? 'text-red-755 bg-red-50' :
-                          strength.score === 2 ? 'text-amber-755 bg-amber-50' :
-                          strength.score === 3 ? 'text-sky-755 bg-sky-50' :
-                          'text-emerald-755 bg-emerald-50'
-                        }`}>{strength.label}</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-105 rounded-full overflow-hidden">
-                        <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score + 1) * 20}%` }}></div>
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <span className="block text-xs font-extrabold text-slate-700 dark:text-slate-250">Profile Picture</span>
+                    <span className="text-[9px] text-slate-400 block mt-1">Click the camera badge to pick standard avatars.</span>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
+                {showAvatarSelector && (
+                  <div className="bg-white rounded-2xl shadow-xl border border-slate-150 p-3 z-10 grid grid-cols-4 gap-2 animate-fade-in dark:bg-slate-800 dark:border-slate-700">
+                    {MOCK_AVATARS.map((av, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setProfileForm(prev => ({ ...prev, avatar: av }));
+                          setShowAvatarSelector(false);
+                        }}
+                        className="border border-slate-100 rounded-xl overflow-hidden hover:border-slate-450 transition cursor-pointer dark:border-slate-700"
+                      >
+                        <img src={av} alt="avatar option" className="w-full h-10 object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-            {/* Recovery security question */}
-            <div className="p-4.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-3.5 text-xs font-semibold text-slate-700 dark:bg-slate-800/40 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-350">Recovery Question Selection</label>
+                {/* Details Form Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-655 dark:text-slate-350">
+                  <div className="space-y-1">
+                    <label className="text-slate-455 block font-bold">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={profileForm.name}
+                      onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-455 block font-bold">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-455 block font-bold">Phone Number</label>
+                    <input
+                      type="text"
+                      required
+                      value={profileForm.phone}
+                      onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-855 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-455 block font-bold">Timezone</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={profileForm.timezone}
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-slate-450 font-bold cursor-not-allowed select-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Font Scaling selector */}
+                <div className="space-y-1 text-xs font-semibold text-slate-655 dark:text-slate-350">
+                  <label className="text-slate-455 block font-bold">Text Scaling / Font Size</label>
                   <select
-                    value={passwordForm.securityQuestion}
-                    onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    value={profileForm.fontSize}
+                    onChange={(e) => setProfileForm({...profileForm, fontSize: e.target.value})}
+                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                   >
-                    <option value="school">What elementary school did you attend?</option>
-                    <option value="pet">What was the name of your first childhood pet?</option>
-                    <option value="city">In what city or municipality were you born?</option>
-                    <option value="mother">What is your mother's maiden name?</option>
+                    <option value="Small">Small (Compact)</option>
+                    <option value="Normal">Normal (Default)</option>
+                    <option value="Large">Large</option>
+                    <option value="Extra Large">Extra Large (High Visibility)</option>
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold dark:text-slate-350">Answer Verification Key</label>
-                  <input
-                    type="text"
-                    value={passwordForm.securityAnswer}
-                    onChange={(e) => setPasswordForm({...passwordForm, securityAnswer: e.target.value})}
-                    placeholder="Type recovery key response..."
-                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  />
+                <div className="pt-4 flex justify-end">
+                  <button type="submit" className="px-5 py-2.5 bg-slate-850 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                    <Save className="w-3.5 h-3.5" /> Save Changes
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* VIEW: Notifications */}
+            {activeTab === 'notifications' && (
+              <form onSubmit={handleNotificationsSubmit} className="space-y-6">
+                <div className="border-b border-slate-100 pb-4 dark:border-slate-800">
+                  <h3 className="text-base font-extrabold text-slate-850 dark:text-white">Notifications Preferences</h3>
+                  <p className="text-[10px] text-slate-400 leading-normal mt-1">Control alert deliveries, emails, digest frequencies, and notifications routing keys.</p>
+                </div>
+
+                {/* iOS-Style Switches */}
+                <div className="space-y-3.5 text-xs font-semibold text-slate-750 dark:text-slate-300">
+                  
+                  <div className="flex items-center justify-between p-4.5 bg-white border border-slate-100 rounded-2xl dark:bg-slate-900 dark:border-slate-800">
+                    <div className="max-w-[70%]">
+                      <span className="block font-bold text-slate-850 dark:text-white">Email Alerts</span>
+                      <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive immediate SMTP emails regarding credential assignments or announcements.</span>
+                    </div>
+                    {/* Custom iOS Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={() => setNotifyPrefs({ ...notifyPrefs, emailAlerts: !notifyPrefs.emailAlerts })}
+                      className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                        notifyPrefs.emailAlerts ? 'bg-[#1e4620]' : 'bg-slate-300'
+                      }`}
+                    >
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                        notifyPrefs.emailAlerts ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4.5 bg-white border border-slate-100 rounded-2xl dark:bg-slate-900 dark:border-slate-800">
+                    <div className="max-w-[70%] font-semibold">
+                      <span className="block font-bold text-slate-850 dark:text-white">Job Matching Updates</span>
+                      <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Get notified instantly when partner employers post vacancies matching your core skills.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNotifyPrefs({ ...notifyPrefs, jobVacancies: !notifyPrefs.jobVacancies })}
+                      className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                        notifyPrefs.jobVacancies ? 'bg-[#1e4620]' : 'bg-slate-300'
+                      }`}
+                    >
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                        notifyPrefs.jobVacancies ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4.5 bg-white border border-slate-100 rounded-2xl dark:bg-slate-900 dark:border-slate-800">
+                    <div className="max-w-[70%] font-semibold">
+                      <span className="block font-bold text-slate-850 dark:text-white">Tracer Surveys</span>
+                      <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Receive alert cues when new tracer studies or feedback surveys are deployed.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNotifyPrefs({ ...notifyPrefs, surveyInvites: !notifyPrefs.surveyInvites })}
+                      className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                        notifyPrefs.surveyInvites ? 'bg-[#1e4620]' : 'bg-slate-300'
+                      }`}
+                    >
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                        notifyPrefs.surveyInvites ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  </div>
+
+                  <div className="p-4.5 bg-white border border-slate-100 rounded-2xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-800">
+                    <div>
+                      <span className="block font-bold text-slate-850 dark:text-white">Digest Schedule</span>
+                      <span className="text-[10px] text-slate-400 leading-relaxed block mt-0.5">Choose how often notifications are compiled and sent.</span>
+                    </div>
+                    <select
+                      value={notifyPrefs.digestFrequency}
+                      onChange={(e) => setNotifyPrefs({...notifyPrefs, digestFrequency: e.target.value})}
+                      className="bg-white border border-slate-200 rounded-xl p-2 font-bold text-slate-700 text-xs focus:ring-1 focus:ring-slate-900 cursor-pointer dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    >
+                      <option value="Instant">Instant</option>
+                      <option value="Daily">Daily Summary</option>
+                      <option value="Weekly">Weekly Summary</option>
+                      <option value="Never">Unsubscribe</option>
+                    </select>
+                  </div>
+
+                </div>
+
+                <div className="pt-4 flex justify-end">
+                  <button type="submit" className="px-5 py-2.5 bg-slate-850 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                    <Save className="w-3.5 h-3.5" /> Save Preferences
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* VIEW: Privacy & Security */}
+            {activeTab === 'security' && (
+              <form onSubmit={handleSecuritySubmit} className="space-y-6">
+                <div className="border-b border-slate-100 pb-4 dark:border-slate-800">
+                  <h3 className="text-base font-extrabold text-slate-850 dark:text-white">Security Settings</h3>
+                  <p className="text-[10px] text-slate-400 leading-normal mt-1">Configure account access credentials, password hashes, and answer security questions.</p>
+                </div>
+
+                <div className="space-y-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                  <div className="space-y-1 relative">
+                    <label className="text-slate-455 block font-bold">Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showOldPass ? 'text' : 'password'}
+                        required
+                        value={passwordForm.oldPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowOldPass(!showOldPass)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
+                      >
+                        {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1 relative">
+                      <label className="text-slate-455 block font-bold">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showNewPass ? 'text' : 'password'}
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                          className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPass(!showNewPass)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
+                        >
+                          {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      
+                      {passwordForm.newPassword && (
+                        <div className="pt-2 space-y-1">
+                          <div className="flex justify-between items-center text-[10px] font-bold">
+                            <span className="text-slate-400">Strength:</span>
+                            <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-extrabold ${
+                              strength.score <= 1 ? 'text-red-755 bg-red-50' :
+                              strength.score === 2 ? 'text-amber-755 bg-amber-50' :
+                              strength.score === 3 ? 'text-sky-755 bg-sky-50' :
+                              'text-emerald-755 bg-emerald-50'
+                            }`}>{strength.label}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score + 1) * 20}%` }}></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-slate-455 block font-bold">Confirm New Password</label>
+                      <input
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Verification Question */}
+                <div className="p-4.5 bg-white border border-slate-100 rounded-2xl space-y-3.5 text-xs font-semibold text-slate-700 dark:bg-slate-900 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-slate-455 block font-bold dark:text-slate-350">Recovery Question Selection</label>
+                      <select
+                        value={passwordForm.securityQuestion}
+                        onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                      >
+                        <option value="school">What elementary school did you attend?</option>
+                        <option value="pet">What was the name of your first childhood pet?</option>
+                        <option value="city">In what city or municipality were you born?</option>
+                        <option value="mother">What is your mother's maiden name?</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-slate-455 block font-bold dark:text-slate-350">Answer Verification Key</label>
+                      <input
+                        type="text"
+                        value={passwordForm.securityAnswer}
+                        onChange={(e) => setPasswordForm({...passwordForm, securityAnswer: e.target.value})}
+                        placeholder="Type recovery key response..."
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Danger zone */}
+                <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs dark:bg-rose-955/10 dark:border-rose-900">
+                  <div>
+                    <span className="font-extrabold text-slate-800 block dark:text-rose-200">Deactivate Account Registry</span>
+                    <span className="text-[10px] text-slate-400 leading-relaxed block dark:text-slate-400">Deactivate dashboard credentials. Restorations require administration verify.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDeactivateAccount}
+                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] rounded-lg transition uppercase cursor-pointer shrink-0"
+                  >
+                    Deactivate
+                  </button>
+                </div>
+
+                <div className="pt-4 flex justify-end">
+                  <button type="submit" className="px-5 py-2.5 bg-slate-850 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                    <Save className="w-3.5 h-3.5" /> Save Security
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* VIEW: Help & Support */}
+            {activeTab === 'help' && (
+              <form onSubmit={handleSupportSubmit} className="space-y-6">
+                <div className="border-b border-slate-100 pb-4 dark:border-slate-800">
+                  <h3 className="text-base font-extrabold text-slate-850 dark:text-white">Help &amp; Support Helpdesk</h3>
+                  <p className="text-[10px] text-slate-400 leading-normal mt-1">Submit feedback tickets, check registrar phone lines, or report portal system bugs.</p>
+                </div>
+
+                <div className="space-y-5 text-xs font-semibold text-slate-700">
+                  <div className="p-4.5 bg-[#1e4620]/5 border border-[#1e4620]/15 rounded-2xl space-y-2.5 text-slate-700 leading-relaxed dark:bg-[#1e4620]/10 dark:text-slate-300">
+                    <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">BSC System Contact Directory</span>
+                    <p>For official tracer profile corrections, grade audits, or credential assistance, reach our registrars directly:</p>
+                    <div className="pt-2 text-[10px] font-bold text-slate-500 space-y-1 font-mono dark:text-slate-450">
+                      <p>IT Bureau Helpdesk: support@bsc.edu.ph</p>
+                      <p>BSC Official Web: <a href="https://bsc.edu.ph" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">www.bsc.edu.ph</a></p>
+                      <p>Basco Registrar: (+63) 987 654 3210</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 text-xs font-semibold text-slate-655 dark:text-slate-350">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Send Support Ticket</span>
+                    
+                    <div className="space-y-1">
+                      <label className="text-slate-455 block font-bold">Ticket Subject Summary</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Graduation year correction"
+                        value={supportTicket.subject}
+                        onChange={(e) => setSupportTicket({...supportTicket, subject: e.target.value})}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 font-bold focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-slate-455 block font-bold">Description Details</label>
+                      <textarea
+                        rows={4}
+                        required
+                        placeholder="Write detailed information regarding the bug..."
+                        value={supportTicket.message}
+                        onChange={(e) => setSupportTicket({...supportTicket, message: e.target.value})}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-850 focus:ring-1 focus:ring-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-end">
+                  <button type="submit" className="px-5 py-2.5 bg-slate-850 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5" /> Send Ticket
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* VIEW: About App */}
+            {activeTab === 'about' && (
+              <div className="space-y-6">
+                <div className="border-b border-slate-100 pb-4 dark:border-slate-800">
+                  <h3 className="text-base font-extrabold text-slate-850 dark:text-white">About the Application</h3>
+                  <p className="text-[10px] text-slate-400 leading-normal mt-1">Review system build, release tags, and copyright information.</p>
+                </div>
+
+                <div className="p-8 bg-white border border-slate-100 rounded-3xl text-center space-y-4.5 dark:bg-slate-900 dark:border-slate-800">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center font-bold text-white text-lg mx-auto shadow-sm dark:bg-slate-800">
+                    BSC
+                  </div>
+
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-slate-850 text-sm dark:text-white">BSC CareerPath Tracer</h4>
+                    <p className="text-[9px] text-slate-400 font-bold font-mono">v2.4.0 (Stable Release Build)</p>
+                  </div>
+
+                  <p className="max-w-xs mx-auto leading-relaxed text-slate-500 text-xs font-semibold dark:text-slate-450">
+                    This portal facilitates post-graduate surveys, curriculum analyses, and regional job vacancy matches under CHED educational standards for Batanes State College.
+                  </p>
+
+                  <div className="pt-4 border-t border-slate-50 text-[10px] text-slate-400 font-bold space-y-0.5 dark:border-slate-800">
+                    <p>Batanes State College &copy; 2026</p>
+                    <p>Basco, Batanes, Philippines</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Danger Zone */}
-            <div className="p-4 bg-rose-50/40 border border-rose-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 text-xs dark:bg-rose-955/10 dark:border-rose-900">
-              <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-800 block dark:text-rose-200">Deactivate Account Registry</span>
-                <span className="text-[10px] text-slate-400 leading-relaxed block dark:text-slate-400">Deactivate dashboard credentials. Restorations require administrative verify.</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleDeactivateAccount}
-                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] rounded-lg transition uppercase cursor-pointer"
-              >
-                Deactivate
-              </button>
-            </div>
-
-          </div>
-
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Save className="w-3.5 h-3.5" /> Save Security
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* VIEW: Help & Support */}
-      {currentView === 'help' && (
-        <form onSubmit={handleSupportSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
-            <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
-            </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Help and Support</h3>
-          </div>
-
-          <div className="p-6 space-y-5 text-xs">
-            {/* Support info details */}
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-2 text-slate-600 font-semibold leading-relaxed dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-350">
-              <span className="text-[10px] text-[#1e4620] font-extrabold uppercase tracking-wider block dark:text-emerald-400">BSC System Directory Links</span>
-              <p>For tracer corrections, password resets, or official student evaluations, contact the IT Bureau.</p>
-              <div className="pt-2 text-[10px] font-bold text-slate-500 space-y-1 font-mono dark:text-slate-400">
-                <p>Website: <a href="https://bsc.edu.ph" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">www.bsc.edu.ph</a></p>
-                <p>Helpdesk: support@bsc.edu.ph</p>
-                <p>Registrar: (+63) 987 654 3210</p>
-              </div>
-            </div>
-
-            {/* Quick Ticket form */}
-            <div className="space-y-4 font-semibold text-slate-655 dark:text-slate-355">
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Send Quick Support Ticket</span>
-              
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Ticket Subject Summary</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Tracer completion bar error"
-                  value={supportTicket.subject}
-                  onChange={(e) => setSupportTicket({...supportTicket, subject: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-slate-455 block font-bold">Description message details</label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Explain the issues encountered in details..."
-                  value={supportTicket.message}
-                  onChange={(e) => setSupportTicket({...supportTicket, message: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:ring-1 focus:ring-slate-900 focus:bg-white leading-relaxed dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-950/20 dark:border-slate-800">
-            <button type="submit" className="px-5 py-2 bg-slate-800 hover:bg-slate-950 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-700 dark:hover:bg-slate-600">
-              <Mail className="w-3.5 h-3.5" /> Submit Ticket
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* VIEW: About */}
-      {currentView === 'about' && (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden text-center dark:bg-slate-900 dark:border-slate-800">
-          <div className="p-5 border-b border-slate-50 flex items-center gap-3 dark:border-slate-800">
-            <button type="button" onClick={() => setCurrentView('main')} className="p-1 hover:bg-slate-100 rounded-lg text-slate-550 transition cursor-pointer dark:hover:bg-slate-800">
-              <ArrowLeft className="w-5 h-5 dark:text-white" />
-            </button>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">About</h3>
-          </div>
-
-          <div className="p-8 space-y-5 text-slate-600 font-semibold text-xs dark:text-slate-355">
-            <div className="w-16 h-16 rounded-3xl bg-slate-900 flex items-center justify-center font-bold text-white text-xl mx-auto shadow-md dark:bg-slate-800">
-              BSC
-            </div>
-
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-slate-800 text-sm dark:text-white">BSC CareerPath Tracer Portal</h4>
-              <p className="text-[10px] text-slate-400 font-bold font-mono">Version 2.4.0 (Stable Release)</p>
-            </div>
-
-            <p className="max-w-xs mx-auto leading-relaxed text-slate-500 font-medium dark:text-slate-400">
-              This system facilitates post-graduate tracking, curricular analytics, and job placement assistance under CHED directives for Batanes State College.
-            </p>
-
-            <div className="pt-4 border-t border-slate-50 text-[10px] text-slate-400 font-bold space-y-0.5 dark:border-slate-800">
-              <p>Batanes State College &copy; 2026</p>
-              <p>Basco, Batanes, Philippines</p>
-            </div>
           </div>
         </div>
-      )}
+
+      </div>
 
     </div>
   );
