@@ -27,6 +27,7 @@ import ImportView from './components/roles/admin/ImportView';
 import ExportView from './components/roles/admin/ExportView';
 import NotificationsView from './components/shared/NotificationsView';
 import SettingsView from './components/roles/admin/SettingsView';
+import MessageEmailView from './components/roles/admin/MessageEmailView';
 
 // =========================================================================
 // MGA LAYOUT COMPONENT
@@ -284,14 +285,20 @@ export default function App() {
               />
             )}
 
-            {/* Settings: Security settings, batch reminders, at account invitations */}
-            {/* NOTE: Nilagyan natin ng role-check para tanging Administrator lamang ang pwedeng mag-render ng SettingsView. */}
+            {/* Message/Email: Communication broadcaster for alumni reminders and trace audits */}
+            {currentTab === 'Message/Email' && (activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin') && (
+              <MessageEmailView
+                alumniList={alumniList}
+                onSendReminders={handleSendBatchReminders}
+              />
+            )}
+
+            {/* Settings: Security settings, SMTP settings, portal variables, at account directory */}
             {currentTab === 'Settings' && (activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin') && (
               <SettingsView
                 alumniList={alumniList}
                 activeUser={activeUser}
                 users={users}
-                onSendReminders={handleSendBatchReminders}
                 onInviteUserByEmail={handleInviteUserByEmail}
                 onDeleteUser={handleDeleteUser}
               />
