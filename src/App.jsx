@@ -8,6 +8,13 @@
 import React, { useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 
+// Synchronous Dark Theme Initialization before component mounts
+if (localStorage.getItem('careerpath_dark_mode') === 'true') {
+  document.documentElement.classList.add('dark');
+} else {
+  document.documentElement.classList.remove('dark');
+}
+
 function applyAccentTheme(themeName) {
   let css = '';
   
