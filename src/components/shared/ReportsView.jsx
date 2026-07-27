@@ -352,6 +352,7 @@ export default function ReportsView({ alumniList, activeUser }) {
     '20,001 - 30,000': registeredAlumni.filter(a => a.monthlyIncome === '20,001 - 30,000').length,
     '30,001 - 40,000': registeredAlumni.filter(a => a.monthlyIncome === '30,001 - 40,000').length,
     'Above 40,000': registeredAlumni.filter(a => a.monthlyIncome === 'Above 40,000').length,
+     ...(unregistered > 0 ? { 'Unregistered / No Response': unregistered } : {})
   };
 
   // 4. Competency mapping: kinakalkula kung ilang beses lumabas ang bawat skill at ang employment ratio nito
@@ -817,13 +818,19 @@ export default function ReportsView({ alumniList, activeUser }) {
               return (
                 <div key={bracket} className="space-y-1 group/row">
                   <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                    <span className="font-semibold group-hover/row:text-slate-700 transition-colors">{bracket} PHP</span>
+                   <span className="font-semibold group-hover/row:text-slate-700 transition-colors">
+                      {bracket}{bracket !== 'Unregistered / No Response' ? ' PHP' : ''}
+                    </span>
                     {/* NOTE: Dynamic pluralization ng grads ( <= 1 ay 'grad' ) alinsunod sa bagong preference ng user. */}
                     <span className="text-[#1e4620] font-extrabold">{count} {count <= 1 ? 'grad' : 'grads'} ({totalPct}%)</span>
                   </div>
                   <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/row:border-slate-300 transition-colors">
                     <div 
-                      className="h-full bg-gradient-to-r from-emerald-600 to-emerald-500 transition-all duration-500 rounded-full"
+                      className={`h-full transition-all duration-500 rounded-full ${
+                        bracket === 'Unregistered / No Response' 
+                          ? 'bg-slate-400' 
+                          : 'bg-gradient-to-r from-emerald-600 to-emerald-500'
+                      }`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -891,6 +898,25 @@ export default function ReportsView({ alumniList, activeUser }) {
                 />
               </div>
             </div>
+
+             {/* Unregistered / No Response */}
+            {unregistered > 0 && (
+              <div className="space-y-1 group/alignment-unregistered">
+                <div className="flex justify-between text-[11px] font-bold text-slate-500">
+                  <span className="flex items-center gap-1.5 group-hover/alignment-unregistered:text-slate-700 transition-colors">
+                    <span className="w-2.5 h-2.5 bg-slate-400 rounded-xs block" />
+                    Unregistered / No Response
+                  </span>
+                  <span className="font-extrabold text-slate-800">{unregistered} {unregistered <= 1 ? 'grad' : 'grads'} ({Math.round((unregistered / total) * 100)}%)</span>
+                </div>
+                <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-unregistered:border-slate-300 transition-colors">
+                  <div
+                    className="h-full bg-slate-400 transition-all duration-500 rounded-full"
+                    style={{ width: `${Math.round((unregistered / total) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

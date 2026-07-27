@@ -37,20 +37,22 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     ? Math.round(validSalaries.reduce((acc, curr) => acc + curr, 0) / validSalaries.length) 
     : 0;
 
+      const unregisteredCount = totalInScope - totalRegisteredCount;
+
   // Time to First Job representation (mga nakahanap ng trabaho sa loob ng 6 na buwan)
   const fastLandingCount = employedList.filter(a => 
     a.timeToFirstJob === 'Less than 6 months' || a.timeToFirstJob === '1-3 months' || a.timeToFirstJob === '3-6 months'
   ).length;
-  const fastLandingPct = employedCount > 0 
-    ? Math.round((fastLandingCount / employedCount) * 100) 
+  const fastLandingPct = totalInScope > 0 
+    ? Math.round((fastLandingCount / totalInScope) * 100) 
     : 0;
 
   // Course Relatedness distribution
   const courseAlignedCount = employedList.filter(a => a.jobRelatedToCourse === 'Yes').length;
   const courseAlignedPart = employedList.filter(a => a.jobRelatedToCourse === 'Partially').length;
   const courseAlignedNo = employedList.filter(a => a.jobRelatedToCourse === 'No').length;
-  const alignedPct = employedCount > 0 
-    ? Math.round((courseAlignedCount / employedCount) * 100) 
+  const alignedPct = totalInScope > 0 
+    ? Math.round((courseAlignedCount / totalInScope) * 100) 
     : 0;
 
   // Status distributions
@@ -83,6 +85,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
 
   const industryDistribution = Object.entries(industryCounts)
     .map(([industry, count]) => ({ industry, count }))
+    .concat(unregisteredCount > 0 ? [{ industry: 'Unregistered / No Response', count: unregisteredCount }] : [])
     .sort((a, b) => b.count - a.count);
 
   return (
@@ -224,11 +227,11 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
 
           <div className="space-y-4 pt-2 text-xs">
             {Object.entries(salaryBrackets).map(([bracket, count]) => {
-              const pct = employedCount > 0 ? Math.round((count / employedCount) * 100) : 0;
+              const pct = totalInScope > 0 ? Math.round((count / totalInScope) * 100) : 0;
               return (
                 <div key={bracket} className="space-y-1">
                   <div className="flex justify-between items-center text-[10.5px]">
-                    <span className="font-extrabold text-slate-650">{bracket}</span>
+                    <span className="font-extrabold text-slate-655">{bracket}</span>
                     <span className="font-mono text-slate-455 font-bold">{count} {count <= 1 ? 'grad' : 'grads'} ({pct}%)</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
@@ -237,6 +240,17 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 </div>
               );
             })}
+            {unregisteredCount > 0 && (
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[10.5px]">
+                  <span className="font-extrabold text-slate-400">No Response / Unregistered</span>
+                  <span className="font-mono text-slate-455 font-bold">{unregisteredCount} {unregisteredCount <= 1 ? 'grad' : 'grads'} ({Math.round((unregisteredCount / totalInScope) * 100)}%)</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                  <div className="h-full bg-slate-400 rounded-full" style={{ width: `${Math.round((unregisteredCount / totalInScope) * 100)}%` }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -258,10 +272,10 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-emerald-500 rounded-full block" /> Course Related
                 </span>
-                <span>{courseAlignedCount} {courseAlignedCount <= 1 ? 'grad' : 'grads'} ({employedCount > 0 ? Math.round((courseAlignedCount / employedCount) * 100) : 0}%)</span>
+                <span>{courseAlignedCount} {courseAlignedCount <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((courseAlignedCount / totalInScope) * 100) : 0}%)</span>
               </div>
               <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                <div className="h-full bg-emerald-500" style={{ width: `${employedCount > 0 ? (courseAlignedCount / employedCount) * 100 : 0}%` }} />
+                <div className="h-full bg-emerald-500" style={{ width: `${totalInScope > 0 ? (courseAlignedCount / totalInScope) * 100 : 0}%` }} />
               </div>
             </div>
 
@@ -271,10 +285,10 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-[#cca43b] rounded-full block" /> Partially Aligned
                 </span>
-                <span>{courseAlignedPart} {courseAlignedPart <= 1 ? 'grad' : 'grads'} ({employedCount > 0 ? Math.round((courseAlignedPart / employedCount) * 100) : 0}%)</span>
+                <span>{courseAlignedPart} {courseAlignedPart <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((courseAlignedPart / totalInScope) * 100) : 0}%)</span>
               </div>
               <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                <div className="h-full bg-[#cca43b]" style={{ width: `${employedCount > 0 ? (courseAlignedPart / employedCount) * 100 : 0}%` }} />
+                <div className="h-full bg-[#cca43b]" style={{ width: `${totalInScope > 0 ? (courseAlignedPart / totalInScope) * 100 : 0}%` }} />
               </div>
             </div>
 
@@ -284,13 +298,27 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-rose-500 rounded-full block" /> Non-Related
                 </span>
-                <span>{courseAlignedNo} {courseAlignedNo <= 1 ? 'grad' : 'grads'} ({employedCount > 0 ? Math.round((courseAlignedNo / employedCount) * 100) : 0}%)</span>
+               <span>{courseAlignedNo} {courseAlignedNo <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((courseAlignedNo / totalInScope) * 100) : 0}%)</span>
               </div>
               <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                <div className="h-full bg-rose-500" style={{ width: `${employedCount > 0 ? (courseAlignedNo / employedCount) * 100 : 0}%` }} />
+               <div className="h-full bg-rose-500" style={{ width: `${totalInScope > 0 ? (courseAlignedNo / totalInScope) * 100 : 0}%` }} />
               </div>
             </div>
           </div>
+           {/* Unregistered / No Response */}
+            {unregisteredCount > 0 && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px] font-bold text-slate-705">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-slate-400 rounded-full block" /> Unregistered / No Response
+                  </span>
+                  <span>{unregisteredCount} {unregisteredCount <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((unregisteredCount / totalInScope) * 100) : 0}%)</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                  <div className="h-full bg-slate-400" style={{ width: `${totalInScope > 0 ? (unregisteredCount / totalInScope) * 100 : 0}%` }} />
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
@@ -302,7 +330,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-1 text-xs">
           {industryDistribution.map(({ industry, count }) => {
-            const pct = employedCount > 0 ? Math.round((count / employedCount) * 100) : 0;
+           const pct = totalInScope > 0 ? Math.round((count / totalInScope) * 100) : 0;
             return (
               <div key={industry} className="space-y-1">
                 <div className="flex justify-between items-center text-[10.5px]">

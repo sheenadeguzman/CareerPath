@@ -59,21 +59,23 @@ export default function AdminDashboard({
   const relevanceYes = registeredAlumni.filter(a => a.jobRelatedToCourse === 'Yes').length;
   const relevancePartially = registeredAlumni.filter(a => a.jobRelatedToCourse === 'Partially').length;
   const relevanceNo = registeredAlumni.filter(a => a.jobRelatedToCourse === 'No').length;
-  const totalRelevance = relevanceYes + relevancePartially + relevanceNo || 1;
-  const relevanceYesPct = Math.round((relevanceYes / totalRelevance) * 100);
-  const relevancePartiallyPct = Math.round((relevancePartially / totalRelevance) * 100);
-  const relevanceNoPct = Math.round((relevanceNo / totalRelevance) * 100);
+  const relevanceDenominator = totalAlumni || 1;
+  const relevanceYesPct = Math.round((relevanceYes / relevanceDenominator) * 100);
+  const relevancePartiallyPct = Math.round((relevancePartially / relevanceDenominator) * 100);
+  const relevanceNoPct = Math.round((relevanceNo / relevanceDenominator) * 100);
+  const relevanceUnregisteredPct = Math.max(0, 100 - (relevanceYesPct + relevancePartiallyPct + relevanceNoPct));
 
   // Time to Land First Job
   const timeImmediate = registeredAlumni.filter(a => a.timeToFirstJob === 'Immediate').length;
   const time1to6 = registeredAlumni.filter(a => a.timeToFirstJob === '1 to 6 months').length;
   const time7to11 = registeredAlumni.filter(a => a.timeToFirstJob === '7 to 11 months').length;
   const time1YearPlus = registeredAlumni.filter(a => a.timeToFirstJob === '1 year or longer').length;
-  const totalTime = timeImmediate + time1to6 + time7to11 + time1YearPlus || 1;
-  const timeImmediatePct = Math.round((timeImmediate / totalTime) * 100);
-  const time1to6Pct = Math.round((time1to6 / totalTime) * 100);
-  const time7to11Pct = Math.round((time7to11 / totalTime) * 100);
-  const time1YearPlusPct = Math.round((time1YearPlus / totalTime) * 100);
+   const timeDenominator = totalAlumni || 1;
+  const timeImmediatePct = Math.round((timeImmediate / timeDenominator) * 100);
+  const time1to6Pct = Math.round((time1to6 / timeDenominator) * 100);
+  const time7to11Pct = Math.round((time7to11 / timeDenominator) * 100);
+  const time1YearPlusPct = Math.round((time1YearPlus / timeDenominator) * 100);
+  const timeUnregisteredPct = Math.max(0, 100 - (timeImmediatePct + time1to6Pct + time7to11Pct + time1YearPlusPct));
 
   // Monthly Salary Bracket (PHP)
   const salUnder10k = registeredAlumni.filter(a => a.monthlyIncome === 'Under 10,000').length;
@@ -81,12 +83,13 @@ export default function AdminDashboard({
   const sal20to30k = registeredAlumni.filter(a => a.monthlyIncome === '20,001 - 30,000').length;
   const sal30to40k = registeredAlumni.filter(a => a.monthlyIncome === '30,001 - 40,000').length;
   const salOver40k = registeredAlumni.filter(a => a.monthlyIncome === 'Above 40,000').length;
-  const totalSal = salUnder10k + sal10to20k + sal20to30k + sal30to40k + salOver40k || 1;
-  const salUnder10kPct = Math.round((salUnder10k / totalSal) * 100);
-  const sal10to20kPct = Math.round((sal10to20k / totalSal) * 100);
-  const sal20to30kPct = Math.round((sal20to30k / totalSal) * 100);
-  const sal30to40kPct = Math.round((sal30to40k / totalSal) * 100);
-  const salOver40kPct = Math.round((salOver40k / totalSal) * 100);
+  const salDenominator = totalAlumni || 1;
+  const salUnder10kPct = Math.round((salUnder10k / salDenominator) * 100);
+  const sal10to20kPct = Math.round((sal10to20k / salDenominator) * 100);
+  const sal20to30kPct = Math.round((sal20to30k / salDenominator) * 100);
+  const sal30to40kPct = Math.round((sal30to40k / salDenominator) * 100);
+  const salOver40kPct = Math.round((salOver40k / salDenominator) * 100);
+  const salUnregisteredPct = Math.max(0, 100 - (salUnder10kPct + sal10to20kPct + sal20to30kPct + sal30to40kPct + salOver40kPct));
 
   // Sector and Location
   const sectorPrivate = registeredAlumni.filter(a => a.sector === 'Private').length;
@@ -618,6 +621,18 @@ export default function AdminDashboard({
                   <div className="h-full bg-rose-500 rounded-full" style={{ width: `${relevanceNoPct}%` }} />
                 </div>
               </div>
+               {/* Unregistered / No response */}
+              {unregisteredAlumni > 0 && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-400">Unregistered / No Response</span>
+                    <span className="text-slate-500 font-bold">{unregisteredAlumni} ({relevanceUnregisteredPct}%)</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${relevanceUnregisteredPct}%` }} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -644,6 +659,13 @@ export default function AdminDashboard({
                 <div className="text-lg font-black text-slate-800">{time1YearPlus}</div>
                 <span className="text-[10px] text-rose-500 font-bold block">{time1YearPlusPct}% of cohort</span>
               </div>
+               {unregisteredAlumni > 0 && (
+                <div className="p-3 bg-slate-50/70 border border-slate-200/60 rounded-lg text-center space-y-1 col-span-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Unregistered / No Response</span>
+                  <div className="text-lg font-black text-slate-505">{unregisteredAlumni}</div>
+                  <span className="text-[10px] text-slate-455 font-bold block">{timeUnregisteredPct}% of cohort</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -698,6 +720,16 @@ export default function AdminDashboard({
                 </div>
                 <span className="font-extrabold text-slate-700 w-12 text-right">{salUnder10k} ({salUnder10kPct}%)</span>
               </div>
+              {/* Unregistered / No response */}
+              {unregisteredAlumni > 0 && (
+                <div className="flex items-center justify-between text-xs border-t border-slate-50 pt-2.5">
+                  <span className="text-slate-400 w-24">No Response</span>
+                  <div className="flex-1 mx-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${salUnregisteredPct}%` }} />
+                  </div>
+                  <span className="font-extrabold text-slate-500 w-12 text-right">{unregisteredAlumni} ({salUnregisteredPct}%)</span>
+                </div>
+              )}
             </div>
           </div>
 
