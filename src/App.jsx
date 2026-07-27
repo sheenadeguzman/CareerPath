@@ -289,7 +289,11 @@ export default function App() {
             {currentTab === 'Message/Email' && (activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin') && (
               <MessageEmailView
                 alumniList={alumniList}
+                activeUser={activeUser}
+                users={users}
                 onSendReminders={handleSendBatchReminders}
+                onInviteUserByEmail={handleInviteUserByEmail}
+                onDeleteUser={handleDeleteUser}
               />
             )}
 
