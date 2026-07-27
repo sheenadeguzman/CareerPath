@@ -101,8 +101,8 @@ export default function Header({
                 <p className="font-bold text-slate-800 truncate">{activeUser.name}</p>
                 <p className="text-[10px] text-slate-400 truncate mt-0.5">{activeUser.email}</p>
               </div>
-              {/* NOTE: Binago natin ito para tanging Administrator lamang ang makakakita at makaka-access sa 'Portal Settings' mula sa dropdown, dahil ang SettingsView ay naglalaman ng SMTP broadcast at invitations na para sa Admin lamang (tinanggal natin ito para sa mga employer, alumni, at chairperson). */}
-              {activeUser.role === 'Administrator' && (
+              {/* NOTE: Binago natin ito para tanging Administrator at Super Admin lamang ang makakakita at makaka-access sa 'Portal Settings' mula sa dropdown (tinanggal natin ito para sa mga employer, alumni, at chairperson). */}
+              {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
                 <button
                   onClick={() => {
                     setCurrentTab('Settings');
