@@ -29,8 +29,12 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Skip API requests and non-GET requests (POST, PUT, DELETE, etc.)
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+  // Skip non-http/https requests, API requests, and non-GET requests (POST, etc.)
+  if (
+    event.request.method !== 'GET' || 
+    event.request.url.includes('/api/') ||
+    (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://'))
+  ) {
     return;
   }
 
