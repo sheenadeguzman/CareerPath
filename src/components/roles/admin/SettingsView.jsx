@@ -1,122 +1,106 @@
 import React, { useState } from 'react';
 import { 
-  Check, AlertTriangle, UserPlus, RefreshCw, Trash2, Search, 
-  Settings, Globe, Server, Shield, Users, Key, ToggleLeft, ToggleRight, 
-  HelpCircle, Eye, EyeOff, Save, CheckCircle
+  User, Shield, Bell, Layout, Check, Mail, Lock, 
+  Smartphone, Monitor, Globe, Palette, Save, AlertCircle, Eye, EyeOff
 } from 'lucide-react';
 
 /**
  * SettingsView Component
- * @description View component para sa mga administrative at system settings.
- * May kasamang General Configuration, SMTP Server setups, Security Constraints, 
- * at integrated User Directory Account management.
+ * @description View component for personal account settings, security policies, 
+ * notification logs, and user interface preferences. Visible to all roles.
  */
-export default function SettingsView({ 
-  alumniList = [], 
-  activeUser, 
-  users = [],
-  onInviteUserByEmail,
-  onDeleteUser
-}) {
-  
-  // Inner settings tabs navigation state
-  const [activeSettingsTab, setActiveSettingsTab] = useState('general');
+export default function SettingsView({ activeUser }) {
+  // Inner settings categories
+  const [activeSubTab, setActiveSubTab] = useState('profile');
 
-  // State hook para sa loading status habang nag-iimbita ng bagong user
-  const [isInviting, setIsInviting] = useState(false);
-  // State hook para sa loading status habang nagse-save ng configurations
+  // Success indicators
   const [isSaving, setIsSaving] = useState(false);
-  // State hook para sa text na ipapakita sa toast status message
   const [showStatus, setShowStatus] = useState('');
 
-  // =========================================================================
-  // MOCK SYSTEM CONFIG STATES
-  // =========================================================================
-  // General Configuration State
-  const [generalConfig, setGeneralConfig] = useState({
-    systemTitle: 'BSC CareerPath Tracer Portal',
-    collegeName: 'Batanes State College',
-    adminEmail: 'admin@bsc.edu.ph',
-    maintenanceMode: false,
-    currentTerm: '2026-2027 1st Semester',
-    tracerStatus: 'Active'
+  // Password hide/show toggles
+  const [showOldPass, setShowOldPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  
+  // Profile state pre-populated with activeUser details
+  const [profileForm, setProfileForm] = useState({
+    name: activeUser?.name || 'Juan Dela Cruz',
+    email: activeUser?.email || 'user@bsc.edu.ph',
+    phone: activeUser?.phone || '+63 912 345 6789',
+    language: 'English',
+    timezone: 'Asia/Manila (GMT+8)'
   });
 
-  // SMTP Server Configuration State
-  const [smtpConfig, setSmtpConfig] = useState({
-    host: 'smtp.bsc.edu.ph',
-    port: '587',
-    username: 'mailer@bsc.edu.ph',
-    password: 'secure_smtp_password_goes_here',
-    senderName: 'BSC Alumni Relations Bureau',
-    encryption: 'TLS'
-  });
-  const [showSmtpPassword, setShowSmtpPassword] = useState(false);
-
-  // Security Policy State
-  const [securityConfig, setSecurityConfig] = useState({
-    enforceComplexity: true,
-    sessionTimeout: '30',
-    allowAlumniSelfReg: true,
-    allowEmployerSelfReg: true,
-    maxLoginAttempts: '5'
+  // Password fields state
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
-  // =========================================================================
-  // USER DIRECTORY STATES & HANDLERS
-  // =========================================================================
-  // State variables para sa form ng bagong imbitasyon
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState(activeUser?.role === 'Super Admin' ? 'Super Admin' : 'Alumni');
-
-  // Super Admin Users Directory search query state
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredUsers = (users || []).filter(user => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
-    return (
-      (user.name || '').toLowerCase().includes(query) ||
-      (user.email || '').toLowerCase().includes(query) ||
-      (user.role || '').toLowerCase().includes(query) ||
-      (user.userId || '').toLowerCase().includes(query)
-    );
+  // Notification Preferences
+  const [notifyPrefs, setNotifyPrefs] = useState({
+    emailAlerts: true,
+    jobVacancies: true,
+    surveyInvites: true,
+    activityDigest: false
   });
 
-  const handleDeleteUserClick = (user) => {
-    if (confirm(`WARNING: Are you absolutely sure you want to permanently delete the user account "${user.name}" (${user.userId})?\n\nThis will completely purge their credentials and associated portal access!`)) {
-      onDeleteUser(user.id);
-    }
-  };
+  // Theme Preferences
+  const [themePrefs, setThemePrefs] = useState({
+    darkMode: false,
+    compactSidebar: false,
+    colorAccent: 'BSC Crimson'
+  });
 
-  /**
-   * handleInviteSubmit
-   * Tagapamahala sa pagpapadala ng imbitasyon para sa bagong rehistradong user sa system
-   */
-  const handleInviteSubmit = async (e) => {
-    e.preventDefault();
-    if (!inviteEmail.trim()) return;
-
-    setIsInviting(true);
-    await onInviteUserByEmail(inviteEmail.trim(), inviteRole);
-    setIsInviting(false);
+  // Simple password strength calculator
+  const getPasswordStrength = (pass) => {
+    if (!pass) return { score: 0, label: 'None', color: 'bg-slate-200' };
+    let score = 0;
+    if (pass.length >= 8) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
     
-    setShowStatus(`SUCCESS! Invitation credits configured for '${inviteEmail}'. Temporary password set to 'bsc123'.`);
-    setTimeout(() => setShowStatus(''), 4500);
-    setInviteEmail('');
+    if (score <= 1) return { score, label: 'Weak', color: 'bg-red-500' };
+    if (score === 2) return { score, label: 'Fair', color: 'bg-amber-500' };
+    if (score === 3) return { score, label: 'Good', color: 'bg-sky-500' };
+    return { score, label: 'Strong', color: 'bg-emerald-500' };
   };
 
-  /**
-   * handleConfigSave
-   * Simulates saving config changes with a nice spinner and success feedback
-   */
-  const handleConfigSave = (sectionName) => {
+  const strength = getPasswordStrength(passwordForm.newPassword);
+
+  const handleProfileSave = (e) => {
+    e.preventDefault();
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      setShowStatus(`SUCCESS! ${sectionName} changes have been successfully committed to the database.`);
+      setShowStatus('Profile details updated successfully!');
       setTimeout(() => setShowStatus(''), 4000);
     }, 1200);
+  };
+
+  const handleSecuritySave = (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert("New password and confirm password fields do not match!");
+      return;
+    }
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowStatus('Password and authentication preferences saved!');
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => setShowStatus(''), 4000);
+    }, 1200);
+  };
+
+  const handlePreferencesSave = (section) => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowStatus(`${section} settings saved successfully.`);
+      setTimeout(() => setShowStatus(''), 4000);
+    }, 1000);
   };
 
   return (
@@ -127,542 +111,448 @@ export default function SettingsView({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-white/10 rounded-lg text-amber-400">
-              <Settings className="w-5 h-5" />
+              <User className="w-5 h-5" />
             </span>
-            <h2 className="text-xl font-bold tracking-tight">Portal Configuration &amp; Administration Settings</h2>
+            <h2 className="text-xl font-bold tracking-tight">Account &amp; Preference Settings</h2>
           </div>
           <p className="text-xs text-slate-300 font-medium">
-            Manage system settings, security credentials, email configuration settings, and invite or delete users from Batanes State College.
+            Manage your personal profile information, update login credentials, configure notifications, and style system interfaces.
           </p>
         </div>
       </div>
 
-      {/* Toast notification indicator para sa tagumpay na mga operasyon */}
+      {/* Toast notifications */}
       {showStatus && (
         <div role="alert" className="p-4 bg-emerald-50 text-emerald-950 border border-emerald-250 rounded-xl text-xs font-bold flex items-center gap-3 shadow-xs animate-fade-in">
           <span className="p-1.5 bg-emerald-700 text-white rounded-full">
             <Check className="w-4 h-4" />
           </span>
           <div>
-            <p className="font-extrabold text-emerald-900">System Configuration Updated</p>
+            <p className="font-extrabold text-emerald-900">Success</p>
             <p className="text-[11px] font-semibold text-emerald-800 mt-0.5">{showStatus}</p>
           </div>
         </div>
       )}
 
-      {/* Main Settings Section Layout: Left Sidebar tabs, Right Workspace */}
+      {/* Settings Grid Structure */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* Navigation Sidebar inside Settings */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-1.5 h-fit shadow-xs">
-          <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider px-3 block mb-2">
-            Settings Categories
-          </span>
-          
-          <button
-            type="button"
-            onClick={() => setActiveSettingsTab('general')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-              activeSettingsTab === 'general'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Globe className="w-4 h-4" />
-            General Info
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setActiveSettingsTab('smtp')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-              activeSettingsTab === 'smtp'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Server className="w-4 h-4" />
-            SMTP Mail Server
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setActiveSettingsTab('security')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-              activeSettingsTab === 'security'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Shield className="w-4 h-4" />
-            Security &amp; Policies
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setActiveSettingsTab('users')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-              activeSettingsTab === 'users'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            User Accounts ({users.length})
-          </button>
+        {/* Left Side Sidebar */}
+        <div className="space-y-5">
+          {/* Summary Card */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs text-center space-y-3">
+            <div className="relative w-16 h-16 mx-auto">
+              <img
+                src={activeUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'}
+                alt={activeUser?.name}
+                className="w-16 h-16 rounded-full object-cover border border-slate-200"
+                onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'; }}
+              />
+              <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" title="Session Active"></div>
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-slate-800 truncate">{profileForm.name}</h4>
+              <p className="text-[10px] text-slate-400 font-bold truncate mt-0.5">{profileForm.email}</p>
+            </div>
+            <span className="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase rounded-full border border-slate-200 tracking-wider">
+              {activeUser?.role || 'User'}
+            </span>
+          </div>
+
+          {/* Settings Tabs Sub-Navigation */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-1 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('profile')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                activeSubTab === 'profile' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              Profile Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('security')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                activeSubTab === 'security' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              Security &amp; Password
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('notifications')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                activeSubTab === 'notifications' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <Bell className="w-4 h-4" />
+              Notifications
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('appearance')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                activeSubTab === 'appearance' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <Layout className="w-4 h-4" />
+              Appearance &amp; UI
+            </button>
+          </div>
         </div>
 
-        {/* Configurations Fields Workspace */}
+        {/* Right Side Settings Panel */}
         <div className="lg:col-span-3 space-y-6">
           
-          {/* TAB 1: General Info Settings */}
-          {activeSettingsTab === 'general' && (
+          {/* TAB 1: Profile details */}
+          {activeSubTab === 'profile' && (
             <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 shadow-xs">
-              <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">General Portal Configuration</h3>
-                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Define core institutional data fields and system flags.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleConfigSave('General Settings')}
-                  disabled={isSaving}
-                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-                >
-                  {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" /> : <Save className="w-3.5 h-3.5" />}
-                  Save Details
-                </button>
+              <div className="border-b border-slate-50 pb-3">
+                <h3 className="text-sm font-bold text-slate-800">Personal Profile Details</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Manage details linked directly to your active tracer study registration.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600">
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">System / Portal Name</label>
-                  <input
-                    type="text"
-                    value={generalConfig.systemTitle}
-                    onChange={(e) => setGeneralConfig({...generalConfig, systemTitle: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">Institution / College Name</label>
-                  <input
-                    type="text"
-                    value={generalConfig.collegeName}
-                    onChange={(e) => setGeneralConfig({...generalConfig, collegeName: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">System Administrator Support Email</label>
-                  <input
-                    type="email"
-                    value={generalConfig.adminEmail}
-                    onChange={(e) => setGeneralConfig({...generalConfig, adminEmail: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">Tracer Survey Status</label>
-                  <select
-                    value={generalConfig.tracerStatus}
-                    onChange={(e) => setGeneralConfig({...generalConfig, tracerStatus: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  >
-                    <option value="Active">Active &amp; Audit Open</option>
-                    <option value="Suspended">Suspended</option>
-                    <option value="Closed">Archived / Closed</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Maintenance Toggle */}
-              <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100">
-                <div className="space-y-0.5 pr-4">
-                  <span className="text-xs font-bold text-slate-800 block">Portal Maintenance Mode</span>
-                  <span className="text-[10px] text-slate-400 font-semibold leading-relaxed">
-                    Temporarily block all employer and alumni logins while performing system database migrations.
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setGeneralConfig({...generalConfig, maintenanceMode: !generalConfig.maintenanceMode})}
-                  className="text-slate-700 focus:outline-none cursor-pointer"
-                >
-                  {generalConfig.maintenanceMode ? (
-                    <span className="flex items-center gap-1 font-bold text-rose-700">
-                      <ToggleRight className="w-9 h-9 text-rose-600 shrink-0" />
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 font-bold text-slate-400">
-                      <ToggleLeft className="w-9 h-9 text-slate-350 shrink-0" />
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: SMTP Mail Configuration */}
-          {activeSettingsTab === 'smtp' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 shadow-xs">
-              <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">SMTP Email Server Settings</h3>
-                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Set up default outbound credentials for invitation codes and notifications.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleConfigSave('SMTP Server')}
-                  disabled={isSaving}
-                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-                >
-                  {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" /> : <Save className="w-3.5 h-3.5" />}
-                  Save SMTP
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-semibold text-slate-600">
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-slate-500 block">SMTP Relayer Host Server</label>
-                  <input
-                    type="text"
-                    value={smtpConfig.host}
-                    onChange={(e) => setSmtpConfig({...smtpConfig, host: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">SMTP Port Link</label>
-                  <input
-                    type="text"
-                    value={smtpConfig.port}
-                    onChange={(e) => setSmtpConfig({...smtpConfig, port: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">Sender Username Account</label>
-                  <input
-                    type="text"
-                    value={smtpConfig.username}
-                    onChange={(e) => setSmtpConfig({...smtpConfig, username: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-1 relative">
-                  <label className="text-slate-500 block">SMTP Security Password</label>
-                  <div className="relative">
-                    <input
-                      type={showSmtpPassword ? 'text' : 'password'}
-                      value={smtpConfig.password}
-                      onChange={(e) => setSmtpConfig({...smtpConfig, password: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-2.5 pr-9 py-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowSmtpPassword(!showSmtpPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      {showSmtpPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">Sender Header Display Name</label>
-                  <input
-                    type="text"
-                    value={smtpConfig.senderName}
-                    onChange={(e) => setSmtpConfig({...smtpConfig, senderName: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100">
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-slate-800 block">Encryption Standard</span>
-                  <span className="text-[10px] text-slate-400 font-semibold leading-relaxed">Choose transport layout cryptographic encryption.</span>
-                </div>
-                <div className="flex gap-2">
-                  {['TLS', 'SSL', 'None'].map(enc => (
-                    <button
-                      key={enc}
-                      type="button"
-                      onClick={() => setSmtpConfig({...smtpConfig, encryption: enc})}
-                      className={`px-3 py-1.5 border rounded-xl text-xs font-extrabold transition cursor-pointer ${
-                        smtpConfig.encryption === enc
-                          ? 'bg-slate-900 text-white border-slate-900'
-                          : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {enc}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: Security & Policies */}
-          {activeSettingsTab === 'security' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 shadow-xs">
-              <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">System Security Rules</h3>
-                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Control login constraints, self-registration rules, and timeouts.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleConfigSave('Security Policies')}
-                  disabled={isSaving}
-                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-                >
-                  {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" /> : <Save className="w-3.5 h-3.5" />}
-                  Save Rules
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-semibold text-slate-600">
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">Session Idle Timeout Limit (Minutes)</label>
-                  <select
-                    value={securityConfig.sessionTimeout}
-                    onChange={(e) => setSecurityConfig({...securityConfig, sessionTimeout: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  >
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="120">2 hours</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-500 block">Max Retries Login Limit</label>
-                  <select
-                    value={securityConfig.maxLoginAttempts}
-                    onChange={(e) => setSecurityConfig({...securityConfig, maxLoginAttempts: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
-                  >
-                    <option value="3">3 Attempts</option>
-                    <option value="5">5 Attempts</option>
-                    <option value="10">10 Attempts</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-3.5 pt-2">
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-slate-800 block">Alumni Self-Registration Status</span>
-                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed">Allow graduates without accounts to sign up via tracer database query verification.</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSecurityConfig({...securityConfig, allowAlumniSelfReg: !securityConfig.allowAlumniSelfReg})}
-                    className="text-slate-700 cursor-pointer"
-                  >
-                    {securityConfig.allowAlumniSelfReg ? <ToggleRight className="w-9 h-9 text-emerald-600" /> : <ToggleLeft className="w-9 h-9 text-slate-400" />}
-                  </button>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-slate-800 block">Employer Account Self-Registration</span>
-                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed">Allow partner companies to register job vacancy accounts prior to administrative verification.</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSecurityConfig({...securityConfig, allowEmployerSelfReg: !securityConfig.allowEmployerSelfReg})}
-                    className="text-slate-700 cursor-pointer"
-                  >
-                    {securityConfig.allowEmployerSelfReg ? <ToggleRight className="w-9 h-9 text-emerald-600" /> : <ToggleLeft className="w-9 h-9 text-slate-400" />}
-                  </button>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-slate-800 block">Enforce Complex Password Credentials</span>
-                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed">Require passwords to contain at least 8 characters, capital letters, numeric digits, and special characters.</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSecurityConfig({...securityConfig, enforceComplexity: !securityConfig.enforceComplexity})}
-                    className="text-slate-700 cursor-pointer"
-                  >
-                    {securityConfig.enforceComplexity ? <ToggleRight className="w-9 h-9 text-emerald-600" /> : <ToggleLeft className="w-9 h-9 text-slate-400" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: User Accounts Directory */}
-          {activeSettingsTab === 'users' && (
-            <div className="space-y-6">
-              
-              {/* Invite User Workspace */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-xs">
-                <div className="border-b border-slate-50 pb-3">
-                  <h3 className="text-sm font-bold text-slate-800">Invite New Administrative / Graduate User</h3>
-                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Send login credentials and assign appropriate system level access.</p>
-                </div>
-
-                <form onSubmit={handleInviteSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end text-xs font-semibold text-slate-600">
+              <form onSubmit={handleProfileSave} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600">
                   <div className="space-y-1">
-                    <label className="text-slate-500 block">Target Email Address</label>
+                    <label className="text-slate-500 block">Full Name</label>
+                    <input
+                      type="text"
+                      value={profileForm.name}
+                      onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-500 block">Email Address</label>
                     <input
                       type="email"
-                      required
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="e.g., chairperson@bsc.edu.ph"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:ring-1 focus:ring-slate-900"
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-slate-500 block">Assign Security Role</label>
+                    <label className="text-slate-500 block">Contact Phone Number</label>
+                    <input
+                      type="text"
+                      value={profileForm.phone}
+                      onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-500 block">Portal Security Role</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={activeUser?.role || 'Guest'}
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-slate-500 font-bold cursor-not-allowed select-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-500 block">Preferred Language</label>
                     <select
-                      value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-700"
+                      value={profileForm.language}
+                      onChange={(e) => setProfileForm({...profileForm, language: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white transition"
                     >
-                      {activeUser?.role === 'Super Admin' && (
-                        <>
-                          <option value="Super Admin">Super Administrator (Overseer)</option>
-                          <option value="Administrator">Administrator (Portal Manager)</option>
-                        </>
-                      )}
-                      <option value="Alumni">Graduate Alumnus (Tracer Profile)</option>
-                      <option value="Department Chairperson">Department Chairperson</option>
-                      <option value="Employer">Partner Employer (Hiring Manager)</option>
+                      <option value="English">English (Global)</option>
+                      <option value="Tagalog">Filipino / Tagalog</option>
+                      <option value="Ivatan">Ivatán (Batanes)</option>
                     </select>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isInviting}
-                    className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl transition uppercase flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    {isInviting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
-                    Generate Credentials
-                  </button>
-                </form>
-              </div>
-
-              {/* Users Directory Table */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-xs">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-50">
-                  <div className="space-y-0.5">
-                    <h3 className="text-sm font-bold text-slate-800">System Users Accounts Directory</h3>
-                    <p className="text-xs text-slate-400 font-semibold">Verify login status, search active directories, or delete users.</p>
-                  </div>
-                  
-                  {/* Search Input */}
-                  <div className="relative w-full sm:w-64">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="w-3.5 h-3.5 text-slate-400" />
-                    </span>
+                  <div className="space-y-1">
+                    <label className="text-slate-500 block">Local Timezone</label>
                     <input
                       type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search users, emails, roles..."
-                      className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-slate-900 focus:bg-white text-slate-800 transition"
+                      disabled
+                      value={profileForm.timezone}
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-slate-500 font-bold cursor-not-allowed select-none"
                     />
                   </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-slate-100">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
-                        <th className="p-3">User ID</th>
-                        <th className="p-3">Name</th>
-                        <th className="p-3">Email Address</th>
-                        <th className="p-3">System Role</th>
-                        <th className="p-3">Password Credentials</th>
-                        <th className="p-3 text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                      {filteredUsers.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="p-6 text-center text-slate-450 font-bold">
-                            No system users found matching your search.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredUsers.map((user) => (
-                          <tr key={user.id} className="hover:bg-slate-50/50 transition">
-                            <td className="p-3 font-mono font-bold text-[#7c191e]">{user.userId}</td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <img
-                                  src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'}
-                                  alt={user.name}
-                                  className="w-6 h-6 rounded-full object-cover border border-slate-100"
-                                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'; }}
-                                />
-                                <span className="font-bold text-slate-800">{user.name}</span>
-                              </div>
-                            </td>
-                            <td className="p-3 text-slate-500">{user.email || 'N/A'}</td>
-                            <td className="p-3">
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide ${
-                                user.role === 'Super Admin' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
-                                user.role === 'Administrator' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                                user.role === 'Department Chairperson' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                                user.role === 'Employer' ? 'bg-sky-50 text-sky-700 border border-sky-200' :
-                                'bg-emerald-50 text-[#1e4620] border border-emerald-200'
-                              }`}>
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="p-3">
-                              {user.isInitialPasswordNeeded ? (
-                                <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-amber-100 flex items-center gap-1 w-max">
-                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                                  Default (Unchanged)
-                                </span>
-                              ) : (
-                                <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-100 flex items-center gap-1 w-max">
-                                  <Check className="w-3.5 h-3.5 text-emerald-550 shrink-0" />
-                                  Set / Private
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3 text-center">
-                              <button
-                                onClick={() => handleDeleteUserClick(user)}
-                                disabled={user.id === activeUser.id}
-                                className={`p-1.5 rounded-lg border transition ${
-                                  user.id === activeUser.id
-                                    ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                                    : 'bg-red-50 hover:bg-red-100 border-red-200 text-red-700 cursor-pointer'
-                                }`}
-                                title={user.id === activeUser.id ? 'Cannot delete your own account' : 'Permanently delete user'}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition cursor-pointer disabled:opacity-55"
+                  >
+                    {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    Save Profile Settings
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* TAB 2: Security & Password */}
+          {activeSubTab === 'security' && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 shadow-xs">
+              <div className="border-b border-slate-50 pb-3">
+                <h3 className="text-sm font-bold text-slate-800">Login Security &amp; Credentials</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Ensure your portal account remains secure by updating security passes.</p>
+              </div>
+
+              <form onSubmit={handleSecuritySave} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 text-xs font-semibold text-slate-600">
+                  
+                  {/* Old Password */}
+                  <div className="space-y-1 relative">
+                    <label className="text-slate-500 block">Current Account Password</label>
+                    <div className="relative">
+                      <input
+                        type={showOldPass ? 'text' : 'password'}
+                        required
+                        value={passwordForm.oldPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowOldPass(!showOldPass)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-450 hover:text-slate-650 cursor-pointer"
+                      >
+                        {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New Password */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1 relative">
+                      <label className="text-slate-500 block">New Password Code</label>
+                      <div className="relative">
+                        <input
+                          type={showNewPass ? 'text' : 'password'}
+                          required
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPass(!showNewPass)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-450 hover:text-slate-650 cursor-pointer"
+                        >
+                          {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      
+                      {/* Password strength meter */}
+                      {passwordForm.newPassword && (
+                        <div className="pt-2 space-y-1">
+                          <div className="flex justify-between items-center text-[10px] font-bold">
+                            <span className="text-slate-400">Password Strength:</span>
+                            <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-extrabold ${
+                              strength.score <= 1 ? 'text-red-700 bg-red-50' :
+                              strength.score === 2 ? 'text-amber-700 bg-amber-50' :
+                              strength.score === 3 ? 'text-sky-700 bg-sky-50' :
+                              'text-emerald-700 bg-emerald-50'
+                            }`}>{strength.label}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score + 1) * 20}%` }}></div>
+                          </div>
+                        </div>
                       )}
-                    </tbody>
-                  </table>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-slate-500 block">Confirm New Password</label>
+                      <input
+                        type="password"
+                        required
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:ring-1 focus:ring-slate-900 focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Two Factor Authentication */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between mt-4">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <span className="text-xs font-bold text-slate-800 block flex items-center gap-1">
+                      <Smartphone className="w-4 h-4 text-slate-450" /> Two-Factor Authentication (2FA)
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block">
+                      Enforce verification codes sent to your registered phone or email when logging in from unknown devices.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handlePreferencesSave('Two-Factor Authentication')}
+                    className="px-3 py-1.5 bg-slate-150 hover:bg-slate-200 border border-slate-250 text-slate-700 font-extrabold text-[10px] rounded-lg transition uppercase cursor-pointer"
+                  >
+                    Setup 2FA
+                  </button>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-4 py-2.5 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition cursor-pointer disabled:opacity-55"
+                  >
+                    {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
+                    Update Password Key
+                  </button>
+                </div>
+              </form>
+
+              {/* Active Sessions Trail */}
+              <div className="space-y-3 pt-4 border-t border-slate-50">
+                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Active Login Sessions History</span>
+                <div className="space-y-2 text-xs font-semibold text-slate-600">
+                  <div className="p-3 border border-slate-100 rounded-xl bg-slate-50 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Monitor className="w-4 h-4 text-emerald-600" />
+                      <div>
+                        <span className="font-bold text-slate-800 block">Vite client / Google Chrome (Windows 11)</span>
+                        <span className="text-[9px] text-slate-400 font-mono">IP: 192.168.1.45 &bull; Basco, Batanes (Current Session)</span>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 bg-emerald-55 text-emerald-800 text-[9px] font-extrabold uppercase rounded-full">Online</span>
+                  </div>
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* TAB 3: Notifications */}
+          {activeSubTab === 'notifications' && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 shadow-xs">
+              <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Notification Alerts Preferences</h3>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Control how you prefer to be notified about career updates and audits.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handlePreferencesSave('Notification Preferences')}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" /> Save Alerts
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs font-semibold text-slate-700">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="block font-bold text-slate-800">Direct Email Alerts</span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block mt-0.5">Receive immediate SMTP emails regarding credential assignments or announcements.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={notifyPrefs.emailAlerts}
+                    onChange={(e) => setNotifyPrefs({...notifyPrefs, emailAlerts: e.target.checked})}
+                    className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-900"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="block font-bold text-slate-800">Job Vacancy Matching Updates</span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block mt-0.5">Get notified instantly when partner employers post vacancies matching your core skills.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={notifyPrefs.jobVacancies}
+                    onChange={(e) => setNotifyPrefs({...notifyPrefs, jobVacancies: e.target.checked})}
+                    className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-900"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="block font-bold text-slate-800">Tracer Surveys &amp; Reviews Announcements</span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block mt-0.5">Receive alert cues when new tracer studies or feedback surveys are deployed by chairpersons.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={notifyPrefs.surveyInvites}
+                    onChange={(e) => setNotifyPrefs({...notifyPrefs, surveyInvites: e.target.checked})}
+                    className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-900"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: Appearance & UI Customizations */}
+          {activeSubTab === 'appearance' && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 shadow-xs">
+              <div className="border-b border-slate-50 pb-3 flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">User Interface Customization</h3>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Adjust dashboard display layout, dark themes, and color preferences.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handlePreferencesSave('Appearance')}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" /> Save Theme
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs font-semibold text-slate-700">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="block font-bold text-slate-800">Dark Mode Interface</span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block mt-0.5">Invert page layout brightness to ease eye straining in dark conditions.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={themePrefs.darkMode}
+                    onChange={(e) => setThemePrefs({...themePrefs, darkMode: e.target.checked})}
+                    className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-900"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="block font-bold text-slate-800">Compact Sidebar Menu</span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block mt-0.5">Minimize the desktop navigation sidebar to display only icon layouts.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={themePrefs.compactSidebar}
+                    onChange={(e) => setThemePrefs({...themePrefs, compactSidebar: e.target.checked})}
+                    className="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-900"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="block font-bold text-slate-800">System Color Accent Theme</span>
+                    <span className="text-[10px] text-slate-400 font-semibold leading-relaxed block mt-0.5">Select a highlighting brand color for dashboard navigation headers.</span>
+                  </div>
+                  <select
+                    value={themePrefs.colorAccent}
+                    onChange={(e) => setThemePrefs({...themePrefs, colorAccent: e.target.value})}
+                    className="bg-white border border-slate-200 rounded-xl p-2 font-bold text-slate-700 text-xs focus:ring-1 focus:ring-slate-900"
+                  >
+                    <option value="BSC Crimson">BSC Crimson (Standard)</option>
+                    <option value="BSC Forest Green">Forest Green</option>
+                    <option value="Ocean Teal">Ocean Teal</option>
+                    <option value="Slate Steel">Slate Steel</option>
+                  </select>
+                </div>
+              </div>
             </div>
           )}
 

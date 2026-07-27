@@ -448,10 +448,10 @@ export function useCareerPath() {
         { id: 'Activity Log', name: 'Activity Logs', icon: <Activity className="w-4 h-4" /> },
         ...((activeUser.role === 'Administrator' || activeUser.role === 'Super Admin')
           ? [
-              { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> },
-              { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
+              { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> }
             ]
-          : [])
+          : []),
+        { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : activeUser?.role === 'Alumni'
     ? [
@@ -462,13 +462,15 @@ export function useCareerPath() {
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
         { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
-        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length }
+        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length },
+        { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : [
         { id: 'Dashboard', name: 'Dashboard', icon: <Layers className="w-4 h-4" /> },
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
-        { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> }
+        { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ];
 
   return {

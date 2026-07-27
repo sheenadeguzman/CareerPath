@@ -297,14 +297,10 @@ export default function App() {
               />
             )}
 
-            {/* Settings: Security settings, SMTP settings, portal variables, at account directory */}
-            {currentTab === 'Settings' && (activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin') && (
+            {/* Settings: Personal settings, security preferences, alerts, and theme preferences */}
+            {currentTab === 'Settings' && (
               <SettingsView
-                alumniList={alumniList}
                 activeUser={activeUser}
-                users={users}
-                onInviteUserByEmail={handleInviteUserByEmail}
-                onDeleteUser={handleDeleteUser}
               />
             )}
 

@@ -101,18 +101,15 @@ export default function Header({
                 <p className="font-bold text-slate-800 truncate">{activeUser.name}</p>
                 <p className="text-[10px] text-slate-400 truncate mt-0.5">{activeUser.email}</p>
               </div>
-              {/* NOTE: Binago natin ito para tanging Administrator at Super Admin lamang ang makakakita at makaka-access sa 'Portal Settings' mula sa dropdown (tinanggal natin ito para sa mga employer, alumni, at chairperson). */}
-              {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
-                <button
-                  onClick={() => {
-                    setCurrentTab('Settings');
-                    setProfileDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-700 font-bold flex items-center gap-2 transition"
-                >
-                  <Settings className="w-4 h-4 text-slate-400" /> Portal Settings
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setCurrentTab('Settings');
+                  setProfileDropdownOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-700 font-bold flex items-center gap-2 transition"
+              >
+                <Settings className="w-4 h-4 text-slate-400" /> Account Settings
+              </button>
               <button
                 onClick={() => {
                   setCurrentTab('Notifications');
