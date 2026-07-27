@@ -73,10 +73,10 @@ export default function Header({
             className="flex items-center gap-2.5 hover:bg-slate-50 p-1 px-2.5 rounded-xl transition text-left cursor-pointer"
           >
             {activeUser.avatar ? (
-              <img 
-                src={activeUser.avatar} 
-                alt="Profile Avatar" 
-                className="w-8 h-8 rounded-full object-cover shadow-sm border border-amber-400/50 uppercase shrink-0" 
+              <img
+                src={activeUser.avatar}
+                alt="Profile Avatar"
+                className="w-8 h-8 rounded-full object-cover shadow-sm border border-amber-400/50 uppercase shrink-0"
               />
             ) : (
               <div className="w-8 h-8 bg-[#7c191e] rounded-full flex items-center justify-center font-extrabold text-xs text-white shadow-sm border border-amber-400/50 uppercase shrink-0">

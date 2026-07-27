@@ -17,7 +17,7 @@ if (localStorage.getItem('careerpath_dark_mode') === 'true') {
 
 function applyAccentTheme(themeName) {
   let css = '';
-  
+
   if (themeName === 'BSC Forest Green') {
     css = `
       .bg-\\[\\#1e4620\\] { background-color: #1e4620 !important; }
@@ -167,7 +167,7 @@ export default function App() {
   // Apply saved global appearance settings on mount & activeUser changes
   useEffect(() => {
     if (!activeUser) return;
-    
+
     // 1. Apply Dark Mode
     const isDark = localStorage.getItem('careerpath_dark_mode') === 'true';
     document.documentElement.classList.toggle('dark', isDark);
@@ -427,7 +427,7 @@ export default function App() {
 
       {/* CONFIRMATION OR WARNING TOAST POPUP: Ipinapakita kapag nagtagumpay ang isang operasyon, update, o alert */}
       {toastMessage && (() => {
-        const isWarning = 
+        const isWarning =
           toastMessage.toLowerCase().includes('error') ||
           toastMessage.toLowerCase().includes('fail') ||
           toastMessage.toLowerCase().includes('cannot') ||
@@ -439,21 +439,18 @@ export default function App() {
           toastMessage.toLowerCase().includes('warning');
 
         return (
-          <div 
-            id="save-success-toast" 
-            className={`fixed bottom-6 right-6 ${
-              isWarning ? 'bg-rose-950 border-rose-500/80' : 'bg-[#7c191e] border-amber-400'
-            } text-white border shadow-2xl px-4 py-3 rounded-xl flex items-center gap-3 z-50 animate-bounce font-sans max-w-sm`}
+          <div
+            id="save-success-toast"
+            className={`fixed bottom-6 right-6 ${isWarning ? 'bg-rose-950 border-rose-500/80' : 'bg-[#7c191e] border-amber-400'
+              } text-white border shadow-2xl px-4 py-3 rounded-xl flex items-center gap-3 z-50 animate-bounce font-sans max-w-sm`}
           >
-            <div className={`w-5 h-5 ${
-              isWarning ? 'bg-rose-500 text-white' : 'bg-amber-400 text-slate-900'
-            } rounded-full flex items-center justify-center font-black text-xs shrink-0 select-none`}>
+            <div className={`w-5 h-5 ${isWarning ? 'bg-rose-500 text-white' : 'bg-amber-400 text-slate-900'
+              } rounded-full flex items-center justify-center font-black text-xs shrink-0 select-none`}>
               {isWarning ? '!' : '✓'}
             </div>
             <div className="space-y-0.5">
-              <span className={`block text-[10px] font-extrabold uppercase tracking-widest ${
-                isWarning ? 'text-rose-400' : 'text-amber-400'
-              }`}>
+              <span className={`block text-[10px] font-extrabold uppercase tracking-widest ${isWarning ? 'text-rose-400' : 'text-amber-400'
+                }`}>
                 {isWarning ? 'Warning Alert' : 'Confirmation Alert'}
               </span>
               <span className="block text-[11px] font-semibold text-white leading-relaxed">{toastMessage}</span>
