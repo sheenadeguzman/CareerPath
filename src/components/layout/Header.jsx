@@ -73,7 +73,7 @@ export default function Header({
               </div>
             )}
             <div className="hidden sm:block">
-              <span className="block text-xs font-bold text-slate-800 leading-none lowercase">
+              <span className="block text-xs font-bold text-slate-800 leading-none">
                 {activeUser.name.split(' ')[0]}
               </span>
               <span className="block text-[10px] text-slate-400 font-semibold mt-0.5 capitalize">

@@ -70,7 +70,7 @@ export default function AdminDashboard({
   const time1to6 = registeredAlumni.filter(a => a.timeToFirstJob === '1 to 6 months').length;
   const time7to11 = registeredAlumni.filter(a => a.timeToFirstJob === '7 to 11 months').length;
   const time1YearPlus = registeredAlumni.filter(a => a.timeToFirstJob === '1 year or longer').length;
-   const timeDenominator = totalAlumni || 1;
+  const timeDenominator = totalAlumni || 1;
   const timeImmediatePct = Math.round((timeImmediate / timeDenominator) * 100);
   const time1to6Pct = Math.round((time1to6 / timeDenominator) * 100);
   const time7to11Pct = Math.round((time7to11 / timeDenominator) * 100);
@@ -229,7 +229,7 @@ export default function AdminDashboard({
       {/* Banner para sa pagsalubong sa Admin */}
       <div className="bg-[#7c191e]/5 border border-[#7c191e]/15 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Welcome back, {userName.split(' ')[0].toLowerCase()}</h1>
+          <h1 className="text-xl font-bold text-slate-800">Welcome back, {userName.split(' ')[0]}</h1>
           <p className="text-xs text-slate-500 mt-1">
             Batanes State College &mdash; Graduate Tracer and Employability Analytics Program
           </p>
@@ -621,7 +621,7 @@ export default function AdminDashboard({
                   <div className="h-full bg-rose-500 rounded-full" style={{ width: `${relevanceNoPct}%` }} />
                 </div>
               </div>
-               {/* Unregistered / No response */}
+              {/* Unregistered / No response */}
               {unregisteredAlumni > 0 && (
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
@@ -659,7 +659,7 @@ export default function AdminDashboard({
                 <div className="text-lg font-black text-slate-800">{time1YearPlus}</div>
                 <span className="text-[10px] text-rose-500 font-bold block">{time1YearPlusPct}% of cohort</span>
               </div>
-               {unregisteredAlumni > 0 && (
+              {unregisteredAlumni > 0 && (
                 <div className="p-3 bg-slate-50/70 border border-slate-200/60 rounded-lg text-center space-y-1 col-span-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Unregistered / No Response</span>
                   <div className="text-lg font-black text-slate-505">{unregisteredAlumni}</div>
