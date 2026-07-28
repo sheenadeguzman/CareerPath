@@ -7,6 +7,7 @@ import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from './middleware.js';
 import { mapUserFromDB, mapSurveyFromDB, mapSurveyResponseFromDB } from '../mappers.js';
+import { transporter } from './mailer.js';
 
 const router = express.Router();
 
@@ -28,6 +29,9 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
     const startDate = survey.startDate ? survey.startDate : null;
     const endDate = survey.endDate ? survey.endDate : null;
 
+    const [existingSurvey] = await pool.query('SELECT id FROM surveys WHERE id = ?', [surveyId]);
+    const isNew = existingSurvey.length === 0;
+
     await pool.query(
       `INSERT INTO surveys (id, title, description, start_date, end_date, status, questions, responses_count) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
@@ -40,6 +44,42 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
         survey.status || 'Draft', qStr, survey.responsesCount || 0
       ]
     );
+
+    // If it's a new active survey, notify all alumni
+    if (isNew && (survey.status || 'Draft') === 'Active') {
+      try {
+        const [alumniUsers] = await pool.query("SELECT * FROM users WHERE role = 'Alumni'");
+        for (const u of alumniUsers) {
+          // Create an individual web notification record for each alumnus
+          const notifyId = `notify-survey-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+          const notifyTitle = `New Tracer Survey Deployed`;
+          const notifyText = `Hi ${u.name}, a new CHED Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
+
+          await pool.query(
+            `INSERT INTO notifications (id, title, text, date, \`read\`) 
+             VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
+            [notifyId, notifyTitle, notifyText]
+          );
+
+          // Dispatch email notification via SMTP if configured
+          if (transporter && u.email) {
+            try {
+              await transporter.sendMail({
+                from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
+                to: u.email,
+                subject: `New Tracer Survey: ${survey.title}`,
+                text: `Hello ${u.name},\n\nA new graduate tracer survey "${survey.title}" has been deployed on the Batanes State College CareerPath portal.\n\nDescription: ${survey.description}\nDeadline: ${endDate}\n\nPlease log in to your account at http://localhost:3000/ to fill out the questionnaire.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`
+              });
+              console.log(`[Survey Email Alert] Dispatched notification email to ${u.email}`);
+            } catch (mailErr) {
+              console.error(`[Survey Email Alert Error] Failed to send email to ${u.email}:`, mailErr);
+            }
+          }
+        }
+      } catch (notifyErr) {
+        console.error('Error dispatching survey notifications:', notifyErr);
+      }
+    }
 
     // I-audit ang survey configuration details
     const newLog = {
