@@ -557,7 +557,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, jobIndustry: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
-                    <option value="">Select Industry</option>
+                    <option  text-slate-400 value="">Select Industry</option>
                     <option value="Information Technology">Information Technology / CS</option>
                     <option value="Education / Academia">Education / Academia</option>
                     <option value="Agriculture / Forestry / Fisheries">Agriculture / Forestry / Fisheries</option>
@@ -590,7 +590,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, findFirstJob: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
-                    <option value="">Select Option</option>
+                    <option  text-slate-400 value="">Select Option</option>
                     <option value="Walk-in application">Walk-in application</option>
                     <option value="Job Fair / Campus Recruitment">Job Fair / Campus Recruitment</option>
                     <option value="Online Job Board (e.g. LinkedIn, JobStreet)">Online Job Board</option>
@@ -606,7 +606,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsAcceptingJob: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
-                    <option value="">Select Reason</option>
+                    <option text-slate-400 value="">Select Reason</option>
                     <option value="High Salary &amp; Benefits">High Salary &amp; Benefits</option>
                     <option value="Career Growth &amp; Promotion Prospects">Career Growth &amp; Promotion Prospects</option>
                     <option value="Proximity to Residence (Location)">Proximity to Residence (Location)</option>
