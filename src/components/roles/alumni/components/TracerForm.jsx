@@ -1,3 +1,10 @@
+/**
+ * @file TracerForm.jsx
+ * @description Sub-component na nagpapakita ng Graduate Tracer Intake Sheet form.
+ * Dito input ng alumni ang kanilang demographic variables, academic variables,
+ * CHED employment metrics, career history timeline, at core skills.
+ */
+
 import React from 'react';
 import { 
   GraduationCap, 
@@ -9,29 +16,42 @@ import {
 import { BSC_PROGRAMS } from '../../../../bscData';
 
 export default function TracerForm({
-  selfEditForm,
-  setSelfEditForm,
-  selectedBaseProg,
-  setSelectedBaseProg,
-  selectedMajor,
-  setSelectedMajor,
-  newSkillToken,
-  setNewSkillToken,
-  customUsefulSkill,
-  setCustomUsefulSkill,
-  addSkillToken,
-  removeSkillToken,
-  addCustomUsefulSkillDirectly,
-  removeUsefulSkill,
-  handleSelfFormSubmit,
-  calculateAge
+  selfEditForm,                 // State object na naglalaman ng mga pansamantalang field ng profile form
+  setSelfEditForm,             // Handler para baguhin ang data sa state ng parent component
+  selectedBaseProg,            // Kasalukuyang napiling base program (e.g. BSIT)
+  setSelectedBaseProg,         // Kumokontrol sa base program state ng parent
+  selectedMajor,               // Kasalukuyang napiling major (e.g. Web Development)
+  setSelectedMajor,            // Kumokontrol sa major state ng parent
+  newSkillToken,               // Pansamantalang input para sa bagong core skill
+  setNewSkillToken,            // Handler para sa text input ng newSkillToken
+  customUsefulSkill,           // Pansamantalang input para sa custom useful skill
+  setCustomUsefulSkill,        // Handler para sa text input ng customUsefulSkill
+  addSkillToken,               // Function para idagdag ang skill tag
+  removeSkillToken,            // Function para alisin ang skill tag
+  addCustomUsefulSkillDirectly,// Function para direktang idagdag ang custom useful skill
+  removeUsefulSkill,           // Function para tanggalin ang useful skill
+  handleSelfFormSubmit,        // Function na tatawagin kapag nag-submit ang form
+  calculateAge                 // Helper function para kalkulahin ang edad base sa DOB
 }) {
+
+  /**
+   * Pagbabago ng base course (e.g. BSIT).
+   * Pinagsasama ang base program name at ang major sa iisang text field (`program`) para i-save sa database.
+   * 
+   * @param {string} val - Ang napiling base program mula sa select element.
+   */
   const handleBaseProgChange = (val) => {
     setSelectedBaseProg(val);
     const finalProg = selectedMajor.trim() ? `${val} Major in ${selectedMajor.trim()}` : val;
     setSelfEditForm(prev => ({ ...prev, program: finalProg }));
   };
 
+  /**
+   * Pagbabago ng major (e.g. Web Development).
+   * Pinagsasama rin ang napiling base program at bagong major string para sa `program` field.
+   * 
+   * @param {string} val - Ang isinulat na major.
+   */
   const handleMajorChange = (val) => {
     setSelectedMajor(val);
     const finalProg = val.trim() ? `${selectedBaseProg} Major in ${val.trim()}` : selectedBaseProg;
@@ -40,6 +60,8 @@ export default function TracerForm({
 
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-100 animate-fade-in no-print-resume flex flex-col max-h-[72vh] overflow-hidden">
+      
+      {/* Header Section: Nagpapakita ng pamagat ng sheet at ang kasalukuyang Profile Completeness Rate */}
       <div className="p-6 pb-4 border-b border-slate-100 flex justify-between items-center shrink-0 bg-white rounded-t-xl">
         <div>
           <h2 className="text-sm font-extrabold text-[#7c191e] uppercase tracking-wider">Graduate Tracer intake sheet</h2>
@@ -51,8 +73,10 @@ export default function TracerForm({
         </div>
       </div>
 
+      {/* Main Scrollable Form Area */}
       <form onSubmit={handleSelfFormSubmit} className="flex-1 overflow-y-auto px-6 pt-6 pb-0 space-y-6 text-xs font-semibold text-slate-655">
-        {/* Profile Picture Upload Section */}
+        
+        {/* Profile Picture Upload Section: Dito pwedeng pumili ng file o mag-paste ng URL */}
         <div className="bg-slate-55 p-4 rounded-xl border border-slate-100 flex flex-col sm:flex-row items-center gap-4">
           <div className="relative shrink-0">
             {selfEditForm.avatar ? (
@@ -62,10 +86,12 @@ export default function TracerForm({
                 className="w-20 h-20 rounded-full object-cover border-2 border-[#7c191e] shadow-md animate-fade-in"
               />
             ) : (
+              // Default avatar placeholder (Initial ng First Name)
               <div className="w-20 h-20 bg-[#7c191e]/10 rounded-full flex items-center justify-center border-2 border-dashed border-[#7c191e]/30 text-2xl font-bold text-[#7c191e] uppercase select-none">
                 {selfEditForm.firstName ? selfEditForm.firstName.charAt(0) : 'A'}
               </div>
             )}
+            {/* Button para tanggalin ang kasalukuyang larawan */}
             {selfEditForm.avatar && (
               <button
                 type="button"
@@ -83,6 +109,7 @@ export default function TracerForm({
               Upload an image file (PNG, JPG, max 500KB) to display as your portal avatar. It will be converted and stored securely.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              {/* File Input: Nililimitahan sa images at may check na 500KB size limit */}
               <label className="inline-flex items-center justify-center px-3 py-1.5 bg-[#7c191e] hover:bg-[#5b1216] text-white text-[10px] font-extrabold uppercase rounded-lg cursor-pointer transition select-none shadow-3xs">
                 Choose Image File
                 <input
@@ -96,6 +123,7 @@ export default function TracerForm({
                         alert('Image is too large! Please upload a file smaller than 500KB.');
                         return;
                       }
+                      // Gamit ang FileReader para i-convert ang local image file sa Base64 string data URL
                       const reader = new FileReader();
                       reader.onload = (event) => {
                         setSelfEditForm({ ...selfEditForm, avatar: event.target.result });
@@ -105,6 +133,7 @@ export default function TracerForm({
                   }}
                 />
               </label>
+              {/* Pwede ring gumamit ng direct image URL kung mayroon nang hosted image */}
               <input
                 type="text"
                 placeholder="Or paste direct image URL..."
@@ -116,13 +145,14 @@ export default function TracerForm({
           </div>
         </div>
 
-        {/* Section para sa Demographic Variables */}
+        {/* Seksyon 1: Mga Impormasyong Personal at Pang-akademiko (Demographic & Academic) */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
             <GraduationCap className="w-4 h-4 text-[#7c191e]" /> 1. Demographic &amp; Academic variables
           </h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Student ID - Protektado at hindi maaaring baguhin ng user (Read-only) */}
             <div>
               <label className="block text-slate-400 mb-1">Student ID (Read-only)</label>
               <input
@@ -132,6 +162,7 @@ export default function TracerForm({
                 className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-500 cursor-not-allowed select-none"
               />
             </div>
+            {/* Pangalan at mga Extensyon ng Pangalan */}
             <div>
               <label className="block text-slate-400 mb-1">First Name</label>
               <input
@@ -139,7 +170,7 @@ export default function TracerForm({
                 required
                 value={selfEditForm.firstName || ''}
                 onChange={(e) => setSelfEditForm({ ...selfEditForm, firstName: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+                className="w-full bg-slate-55 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
             <div>
@@ -170,6 +201,7 @@ export default function TracerForm({
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
+            {/* Kursong Tinapos (Degree Program at Major) */}
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-400 mb-1">Degree Program Completed</label>
@@ -194,6 +226,7 @@ export default function TracerForm({
                 />
               </div>
             </div>
+            {/* Taon ng Pag-enroll at Pag-graduate */}
             <div>
               <label className="block text-slate-400 mb-1">Year Enrolled / Started</label>
               <input
@@ -213,6 +246,7 @@ export default function TracerForm({
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
+            {/* Mga Contact details at kapanganakan */}
             <div>
               <label className="block text-slate-400 mb-1">Primary Email Address</label>
               <input
@@ -224,7 +258,7 @@ export default function TracerForm({
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">Mobile Phone Coordinate</label>
+              <label className="block text-slate-400 mb-1">Mobile Phone</label>
               <input
                 type="text"
                 placeholder="e.g. 0917-123-4567"
@@ -235,7 +269,7 @@ export default function TracerForm({
             </div>
             {/* Input box para sa Birth Date Coordinate ng Alumnus */}
             <div>
-              <label className="block text-slate-400 mb-1">Birth Date Coordinate</label>
+              <label className="block text-slate-400 mb-1">Birth Date</label>
               <input
                 type="date"
                 value={selfEditForm.dateOfBirth}
@@ -254,6 +288,7 @@ export default function TracerForm({
                 className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-slate-700 font-bold select-none cursor-not-allowed focus:outline-none"
               />
             </div>
+            {/* Kasarian at Civil Status */}
             <div>
               <label className="block text-slate-400 mb-1">Gender Identification</label>
               <select
@@ -267,7 +302,7 @@ export default function TracerForm({
               </select>
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">Civil Status Profile</label>
+              <label className="block text-slate-400 mb-1">Civil Status</label>
               <select
                 value={selfEditForm.civilStatus}
                 onChange={(e) => setSelfEditForm({ ...selfEditForm, civilStatus: e.target.value })}
@@ -277,8 +312,10 @@ export default function TracerForm({
                 <option value="Married">Married</option>
                 <option value="Separated">Separated</option>
                 <option value="Widowed">Widowed</option>
+                <option value="Widowed">Divorced / Annulled</option>
               </select>
             </div>
+            {/* Lokasyon (Lokal, Pambansa, o Internasyonal) at Karangalan */}
             <div>
               <label className="block text-slate-400 mb-1">Geographic Location Region</label>
               <select
@@ -303,6 +340,7 @@ export default function TracerForm({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-slate-400 mb-1">Current Residential Address</label>
             <input
@@ -312,6 +350,7 @@ export default function TracerForm({
               onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
             />
+          </div>
           </div>
 
           <div>
@@ -325,6 +364,7 @@ export default function TracerForm({
             />
           </div>
 
+          {/* Seksyon para sa Licensure Exam Details kung mayroon */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-slate-400 mb-1">Is Board Exam Passer?</label>
@@ -360,6 +400,7 @@ export default function TracerForm({
             </div>
           </div>
 
+          {/* Alumni Association membership at dahilan sa pagpili ng kurso */}
           <div>
             <label className="block text-slate-400 mb-1">Alumni Association Membership Status</label>
             <select
@@ -381,12 +422,13 @@ export default function TracerForm({
               onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsPursuingProgram: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
             >
-              <option value="">-- Select Reason --</option>
+              <option value="">Select Reason</option>
               <option value="Personal Interest">Personal Interest</option>
               <option value="Influence of Parents / Relatives">Influence of Parents / Relatives</option>
               <option value="Influence of Peers / Friends">Influence of Peers / Friends</option>
               <option value="High Employment Prospects / Demand">High Employment Prospects / Demand</option>
               <option value="No other choice">No other choice (course of least resistance)</option>
+              <option value="Others">Prefer not to say</option>
               <option value="Others">Others</option>
             </select>
           </div>
@@ -394,7 +436,7 @@ export default function TracerForm({
 
         <hr className="border-slate-100" />
 
-        {/* Section para sa Employment Parameters (mga detalye ng trabaho) */}
+        {/* Seksyon 2: Employment Metrics na nakabatay sa standard parameter ng CHED */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
             <Briefcase className="w-4 h-4 text-[#7c191e]" /> 2. Employment Tracer metrics (CHED parameters)
@@ -416,6 +458,7 @@ export default function TracerForm({
               </select>
             </div>
 
+            {/* Conditional Rendering: Ipakita lamang ang mga field ng trabaho kung HINDI unemployed ang user */}
             {selfEditForm.employmentStatus !== 'Unemployed' && (
               <>
                 <div>
@@ -482,6 +525,7 @@ export default function TracerForm({
                     <option value="Above 40,000">Above 40,000</option>
                   </select>
                 </div>
+                {/* Linya at koneksyon ng trabaho sa natapos na kurso */}
                 <div>
                   <label className="block text-slate-400 mb-1">Is job related to degree completed?</label>
                   <select
@@ -513,7 +557,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, jobIndustry: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
-                    <option value="">-- Select Industry --</option>
+                    <option value="">Select Industry</option>
                     <option value="Information Technology">Information Technology / CS</option>
                     <option value="Education / Academia">Education / Academia</option>
                     <option value="Agriculture / Forestry / Fisheries">Agriculture / Forestry / Fisheries</option>
@@ -525,6 +569,7 @@ export default function TracerForm({
                     <option value="Others">Others</option>
                   </select>
                 </div>
+                {/* Detalye kung gaano kabilis nakahanap ng trabaho at paano ito nahanap */}
                 <div>
                   <label className="block text-slate-400 mb-1">Time to find first post-grad job</label>
                   <select
@@ -545,7 +590,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, findFirstJob: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
-                    <option value="">-- Select Option --</option>
+                    <option value="">Select Option</option>
                     <option value="Walk-in application">Walk-in application</option>
                     <option value="Job Fair / Campus Recruitment">Job Fair / Campus Recruitment</option>
                     <option value="Online Job Board (e.g. LinkedIn, JobStreet)">Online Job Board</option>
@@ -561,7 +606,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsAcceptingJob: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
-                    <option value="">-- Select Reason --</option>
+                    <option value="">Select Reason</option>
                     <option value="High Salary &amp; Benefits">High Salary &amp; Benefits</option>
                     <option value="Career Growth &amp; Promotion Prospects">Career Growth &amp; Promotion Prospects</option>
                     <option value="Proximity to Residence (Location)">Proximity to Residence (Location)</option>
@@ -574,6 +619,7 @@ export default function TracerForm({
             )}
           </div>
 
+          {/* Conditional Rendering: Ipakita lamang ang dahilan ng Unemployment kung piliin ng user ang 'Unemployed' status */}
           {selfEditForm.employmentStatus === 'Unemployed' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -583,7 +629,7 @@ export default function TracerForm({
                   onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsUnemployment: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                 >
-                  <option value="">-- Select Reason --</option>
+                  <option value="">Select Reason</option>
                   <option value="Family Concerns / Duties">Family Concerns / Duties</option>
                   <option value="Health reasons">Health reasons</option>
                   <option value="Pursuing Further Studies">Pursuing Further Studies</option>
@@ -596,6 +642,7 @@ export default function TracerForm({
             </div>
           )}
 
+          {/* Description ng Trabaho */}
           {selfEditForm.employmentStatus !== 'Unemployed' && (
             <div>
               <label className="block text-slate-400 mb-1">Detailed Job Description &amp; Core Tasks</label>
@@ -609,7 +656,7 @@ export default function TracerForm({
             </div>
           )}
 
-          {/* Career Timeline History Editor */}
+          {/* Career Timeline History Editor: Listahan ng mga naging trabaho ng alumni sa paglipas ng panahon */}
           <div className="space-y-4 pt-2">
             <span className="block text-[11px] font-extrabold text-[#7c191e] uppercase tracking-wider">Career Path Timeline History</span>
             
@@ -642,6 +689,7 @@ export default function TracerForm({
                 />
               </div>
               <div className="sm:col-span-2">
+                {/* Button para magdagdag ng bagong career timeline item sa listahan ng database local copy */}
                 <button
                   type="button"
                   onClick={() => {
@@ -664,6 +712,7 @@ export default function TracerForm({
                       careerHistory: [...(selfEditForm.careerHistory || []), newEvent]
                     });
                     
+                    // I-reset ang mga input field matapos magdagdag
                     titleInput.value = '';
                     companyInput.value = '';
                     yearsInput.value = '';
@@ -675,6 +724,7 @@ export default function TracerForm({
               </div>
             </div>
 
+            {/* Listahan ng kasalukuyang naitalang Timeline Events */}
             <div className="space-y-2">
               {selfEditForm.careerHistory && selfEditForm.careerHistory.length > 0 ? (
                 selfEditForm.careerHistory.map((item, idx) => (
@@ -683,6 +733,7 @@ export default function TracerForm({
                       <span className="block font-bold text-slate-800 text-xs">{item.title}</span>
                       <span className="text-[10px] text-slate-500 font-semibold">{item.company} &bull; {item.years}</span>
                     </div>
+                    {/* Button para alisin ang timeline entry */}
                     <button
                       type="button"
                       onClick={() => {
@@ -707,7 +758,7 @@ export default function TracerForm({
 
         <hr className="border-slate-100" />
 
-        {/* Pagdaragdag ng mga Core Competencies/Skills */}
+        {/* Seksyon 3: Core Competencies at Technical Skills */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
             <Building className="w-4 h-4 text-[#7c191e]" /> 3. Core Competencies &amp; Technical Skills
@@ -721,6 +772,7 @@ export default function TracerForm({
               onChange={(e) => setNewSkillToken(e.target.value)}
               className="flex-1 bg-slate-55 border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-[#7c191e] min-w-0"
             />
+            {/* Button na nagdaragdag ng skill tag taglay ang addSkillToken prop callback */}
             <button
               onClick={addSkillToken}
               className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg transition uppercase tracking-wider w-full sm:w-auto cursor-pointer"
@@ -729,6 +781,7 @@ export default function TracerForm({
             </button>
           </div>
 
+          {/* Ipakita ang bawat skill bilang clickable o removable badge pill */}
           <div className="flex flex-wrap gap-1.5 pt-1.5">
             {selfEditForm.skills && selfEditForm.skills.length > 0 ? (
               selfEditForm.skills.map((skill) => (
@@ -755,14 +808,14 @@ export default function TracerForm({
 
         <hr className="border-slate-100" />
 
-        {/* Acquired Skills at BSC section */}
+        {/* Seksyon 4: Mga Kasanayang Nakuha sa BSC (Batanes State College) na kapaki-pakinabang sa Trabaho */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
             <Check className="w-4 h-4 text-[#7c191e]" /> 4. Acquired skills at BSC found most useful in employment
           </h3>
           <p className="text-[10px] text-slate-400 font-bold block">Pumili ng mga kasanayang nakuha sa BSC na kapaki-pakinabang sa iyong trabaho (I-click para i-toggle):</p>
           
-          {/* Grid ng standard skill buttons */}
+          {/* Listahan ng default CHED/BSC variables */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {[
               'Technical / Practical Skills',
@@ -800,7 +853,7 @@ export default function TracerForm({
             })}
           </div>
 
-          {/* Custom 'Others' Input Section */}
+          {/* Section para sa Custom 'Others' Input at listahan ng custom useful skills */}
           <div className="space-y-3 pt-2">
             <label className="block text-[10px] text-slate-405 font-bold uppercase">Others (May iba pa bang kasanayan? Isulat at i-dagdag dito):</label>
             
@@ -816,7 +869,7 @@ export default function TracerForm({
                     addCustomUsefulSkillDirectly();
                   }
                 }}
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e] font-sans text-xs font-bold text-slate-705"
+                className="flex-1 bg-slate-55 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e] font-sans text-xs font-bold text-slate-705"
               />
               <button
                 type="button"
@@ -827,7 +880,7 @@ export default function TracerForm({
               </button>
             </div>
 
-            {/* Display custom skills as inline tag pills */}
+            {/* Inline tag list para sa custom useful skills lamang */}
             {(() => {
               const currentSkills = selfEditForm.usefulSkills || [];
               const standardSkills = [
@@ -865,7 +918,7 @@ export default function TracerForm({
           </div>
         </div>
 
-        {/* Paalala o notice tungkol sa mga alituntunin (Guidelines notice) */}
+        {/* Guideline Notice: Paalala sa layunin at gamit ng nakolektang Tracer statistics para sa CHED audits */}
         <div className="bg-[#7c191e]/5 rounded-xl border border-[#7c191e]/15 p-4 flex gap-3 text-[11px] font-semibold text-slate-655 leading-relaxed">
           <div className="w-5 h-5 bg-[#7c191e]/10 text-[#7c191e] rounded-full flex items-center justify-center shrink-0 font-bold">i</div>
           <div className="space-y-1">
@@ -876,6 +929,7 @@ export default function TracerForm({
           </div>
         </div>
 
+        {/* Submit Button na naka-sticky sa ibaba ng overlay sheet */}
         <div className="sticky bottom-0 bg-white pt-4 border-t border-slate-100 -mx-6 px-6 pb-6 rounded-b-xl z-10 flex justify-end">
           <button
             type="submit"

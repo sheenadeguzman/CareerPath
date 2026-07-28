@@ -46,17 +46,15 @@ export default function AlumniDashboard({
     
     // Tinitingnan ang mga partikular na program affiliations ng alumnus gamit ang bagong opisyal na degree names at fallbacks
     const isIT = myAlumni.program === 'Bachelor of Science in Information Technology' || myAlumni.program === 'BS Information Technology';
-    const isHM = myAlumni.program === 'Bachelor of Science in Hospitality Management' || myAlumni.program === 'BS Hospitality Management';
+    const isHTM = myAlumni.program === 'Bachelor of Science in Hospitality and Tourism Management' || myAlumni.program === 'BS Hospitality and Tourism Management';
     const isEduc = myAlumni.program === 'Bachelor of Elementary Education' || myAlumni.program === 'Bachelor of Secondary Education' || myAlumni.program === 'BS Elementary Education';
     const isAgri = myAlumni.program === 'Bachelor of Science in Agriculture' || myAlumni.program === 'BS Agriculture';
-    const isTourism = myAlumni.program === 'Bachelor of Science in Tourism Management' || myAlumni.program === 'BS Tourism Management';
     const isIndTech = myAlumni.program === 'Bachelor of Science in Industrial Technology' || myAlumni.program === 'BS Industrial Technology';
     
-    if (isIT && (titleLower.includes('tech') || titleLower.includes('it') || titleLower.includes('developer') || titleLower.includes('programmer') || titleLower.includes('network') || titleLower.includes('system') || descLower.includes('software') || descLower.includes('web'))) return true;
-    if (isHM && (titleLower.includes('hotel') || titleLower.includes('hospitality') || titleLower.includes('chef') || titleLower.includes('restaurant') || titleLower.includes('service') || descLower.includes('hospitality') || titleLower.includes('kitchen') || titleLower.includes('cook'))) return true;
+    if (isIT && (titleLower.includes('tech') || titleLower.includes('it') || titleLower.includes('developer') || titleLower.includes('programmer') || titleLower.includes('network') || titleLower.includes('system') || descLower.includes('software') || descLower.includes('web') )) return true;
+    if (isHTM && (titleLower.includes('hotel') || titleLower.includes('hospitality') || titleLower.includes('chef') || titleLower.includes('restaurant') || titleLower.includes('service') || descLower.includes('hospitality') || titleLower.includes('kitchen') || titleLower.includes('cook') || titleLower.includes('travel') || titleLower.includes('flight') || titleLower.includes('resort') || titleLower.includes('guide') || descLower.includes('tourism'))) return true;
     if (isEduc && (titleLower.includes('teacher') || titleLower.includes('instructor') || titleLower.includes('school') || titleLower.includes('education') || titleLower.includes('tutor') || titleLower.includes('professor'))) return true;
     if (isAgri && (titleLower.includes('agri') || titleLower.includes('farm') || titleLower.includes('crop') || titleLower.includes('plant') || titleLower.includes('vet') || descLower.includes('agriculture') || titleLower.includes('soil') || titleLower.includes('livestock'))) return true;
-    if (isTourism && (titleLower.includes('tour') || titleLower.includes('travel') || titleLower.includes('flight') || titleLower.includes('resort') || titleLower.includes('guide') || descLower.includes('tourism'))) return true;
     if (isIndTech && (titleLower.includes('industrial') || titleLower.includes('machine') || titleLower.includes('operator') || titleLower.includes('electric') || titleLower.includes('tech') || descLower.includes('factory') || titleLower.includes('welder') || titleLower.includes('mechanic'))) return true;
     
     // Fallback matching logic gamit ang mga skill tags
