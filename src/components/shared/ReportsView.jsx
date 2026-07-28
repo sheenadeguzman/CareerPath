@@ -96,7 +96,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const localCount = filteredAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
   const nationalCount = filteredAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
   const internationalCount = filteredAlumni.filter(a => a.locationRegion === 'International').length;
-  
+
   // State para sa geographic region hover tooltip
   const [hoveredRegion, setHoveredRegion] = useState(null);
 
@@ -116,6 +116,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const alignmentIndex = total > 0 ? Math.round((alignedCount / total) * 100) : 0;
   const immediateOrUnder6m = filteredAlumni.filter(a => a.isRegistered && ['Immediate', '1 to 6 months'].includes(a.timeToFirstJob)).length;
   const placementUnder6MonthsRate = total > 0 ? Math.round((immediateOrUnder6m / total) * 100) : 0;
+
   // Initialize and update the map layer
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -233,7 +234,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       const radiusBase = spot.type === 'local' ? 250 : spot.type === 'national' ? 45000 : 150000;
       // Scale radius slightly based on relative count
       const countWeight = Math.min(spot.count / 10, 1.5);
-      
+
       const outerRad = radiusBase * (1.6 + countWeight);
       const midRad = radiusBase * (1.1 + countWeight);
       const cRad = radiusBase * (0.6 + countWeight);
@@ -292,7 +293,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       });
 
       const marker = L.marker(spot.coords, { icon: customIcon }).addTo(map);
-      
+
       // Bind descriptive popup on hover & click
       const popupContent = `
         <div style="font-family: sans-serif; font-size: 11px; padding: 4px; color: #1e293b; line-height: 1.4;">
@@ -302,7 +303,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
       `;
       marker.bindPopup(popupContent, { closeButton: false });
-      
+
       marker.on('mouseover', function () {
         this.openPopup();
       });
@@ -348,11 +349,11 @@ export default function ReportsView({ alumniList, activeUser }) {
 
   // 3. Pag-grupo ng monthly income sa kani-kanilang salary brackets ng mga alumni
   const salaries = {
-    '10,000 - 20,000': registeredAlumni.filter(a => a.monthlyIncome === '10,000 - 20,000').length,
-    '20,001 - 30,000': registeredAlumni.filter(a => a.monthlyIncome === '20,001 - 30,000').length,
-    '30,001 - 40,000': registeredAlumni.filter(a => a.monthlyIncome === '30,001 - 40,000').length,
     'Above 40,000': registeredAlumni.filter(a => a.monthlyIncome === 'Above 40,000').length,
-     ...(unregistered > 0 ? { 'Unregistered / No Response': unregistered } : {})
+    '30,001 - 40,000': registeredAlumni.filter(a => a.monthlyIncome === '30,001 - 40,000').length,
+    '20,001 - 30,000': registeredAlumni.filter(a => a.monthlyIncome === '20,001 - 30,000').length,
+    '10,000 - 20,000': registeredAlumni.filter(a => a.monthlyIncome === '10,000 - 20,000').length,
+    ...(unregistered > 0 ? { 'Unregistered / No Response': unregistered } : {})
   };
 
   // 4. Competency mapping: kinakalkula kung ilang beses lumabas ang bawat skill at ang employment ratio nito
@@ -382,7 +383,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
   // 5. Listahan ng program analytics na nagpapakita ng kabuuang bilang laban sa active placements kada academic program
   const programPerformanceArray = BSC_PROGRAMS.map(progName => {
-    const subset = alumniList.filter(a => 
+    const subset = alumniList.filter(a =>
       a.program && (
         a.program.toLowerCase() === progName.toLowerCase() ||
         a.program.toLowerCase().includes(progName.toLowerCase()) ||
@@ -400,7 +401,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
   // Dynamic calculation of historical employability trend data based on database records
   const uniqueGraduationYears = Array.from(new Set(alumniList.map(a => a.yearGraduated))).sort((a, b) => a - b);
-  
+
   let yearsToDisplay = uniqueGraduationYears.map(y => y.toString());
   if (yearsToDisplay.length === 0) {
     yearsToDisplay = ['2023', '2024', '2025', '2026'];
@@ -411,15 +412,24 @@ export default function ReportsView({ alumniList, activeUser }) {
   const getCy = (rate) => 170 - (rate * 1.4);
 
   const trendPoints = yearsToDisplay.map((yearStr, idx) => {
-    const cohort = alumniList.filter(a => a.yearGraduated.toString() === yearStr);
+    const cohort = alumniList.filter(a => 
+      a.yearGraduated.toString() === yearStr &&
+      (selectedProgram === 'All' || (
+        a.program && (
+          a.program.toLowerCase() === selectedProgram.toLowerCase() ||
+          a.program.toLowerCase().includes(selectedProgram.toLowerCase()) ||
+          selectedProgram.toLowerCase().includes(a.program.toLowerCase())
+        )
+      ))
+    );
     let rate = 0;
-    let count = 0;
-    
+    let employedCount = 0;
+    let totalCount = 0;
+
     if (cohort.length > 0) {
-      const totalCohortCount = cohort.length;
-      const employedCohortCount = cohort.filter(a => a.isRegistered && a.employmentStatus !== 'Unemployed').length;
-      rate = Math.round((employedCohortCount / totalCohortCount) * 100);
-      count = totalCohortCount;
+      totalCount = cohort.length;
+      employedCount = cohort.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
+      rate = Math.round((employedCount / totalCount) * 100);
     } else {
       const defaults = {
         '2023': { rate: 76, count: 240 },
@@ -429,22 +439,22 @@ export default function ReportsView({ alumniList, activeUser }) {
       };
       const defVal = defaults[yearStr] || { rate: 80, count: 250 };
       rate = defVal.rate;
-      count = defVal.count;
+      totalCount = defVal.count;
+      employedCount = Math.round((defVal.rate / 100) * defVal.count);
     }
 
     const n = yearsToDisplay.length;
     const cx = n > 1 ? 50 + idx * (500 / (n - 1)) : 300;
-    return { cx, cy: getCy(rate), year: yearStr, rate, count };
+    return { cx, cy: getCy(rate), year: yearStr, rate, employedCount, totalCount };
   });
 
   // Flag para malaman kung ang kasalukuyang session ay naka-lock sa partikular na Department Chairperson
   const isChairperson = activeUser?.role === 'Department Chairperson';
 
 
-
   return (
     <div className="space-y-6 font-sans pb-10 reports-container">
-      
+
       {/* Intro Header at mabilisang button para sa data export o pag-print */}
       <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -461,9 +471,8 @@ export default function ReportsView({ alumniList, activeUser }) {
           <h2 className="text-base font-extrabold text-slate-800 uppercase tracking-tight mt-1">Tracer Reports and Analytics Module</h2>
           <p className="text-[11px] text-slate-405 mt-0.5">Standard aggregate statistics measuring graduate landing timelines, salary indices, and syllabus-to-career alignments.</p>
         </div>
-        
+
         <div className="flex gap-2 shrink-0 no-print" data-html2canvas-ignore="true">
-          
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
@@ -474,15 +483,15 @@ export default function ReportsView({ alumniList, activeUser }) {
             onClick={() => {
               // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
               let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Alumni_Association_Status,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
-              
-               let csvContent = filteredAlumni.map((a, idx) => {
+
+              let csvContent = filteredAlumni.map((a, idx) => {
                 const first = a.firstName || a.name?.split(' ')[0] || '';
                 const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
                 const middle = a.middleName || '';
                 const suffix = a.suffix || '';
                 const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
                 const skillsStr = (a.skills || []).join('; ');
-                
+
                 return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'Unemployed'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
               }).join('\n');
 
@@ -511,7 +520,7 @@ export default function ReportsView({ alumniList, activeUser }) {
           <Filter className="w-4 h-4" />
           <span>Interactive Dataset Filters:</span>
         </div>
-        
+
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           {/* Selector para sa Taon ng Pagtatapos */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
@@ -588,11 +597,11 @@ export default function ReportsView({ alumniList, activeUser }) {
           </h3>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CHED Tracer Benchmark</span>
         </div>
-        
+
         <div className="relative w-full h-64 bg-slate-50/50 rounded-lg">
           <div className="absolute inset-4">
             {/* NOTE: Upang maiwasan ang horizontal font stretching sa SVG text kapag gumagamit ng preserveAspectRatio="none", ginawa nating regular HTML absolute divs ang X at Y axis labels na nakapatong sa SVG. */}
-            
+
             {/* Y-axis Benchmarks (HTML absolute positioned) */}
             <div className="absolute left-[1.5%] top-[13.64%] -translate-y-1/2 text-[10px] text-slate-400 font-extrabold font-mono select-none pointer-events-none">100%</div>
             <div className="absolute left-[1.5%] top-[29.55%] -translate-y-1/2 text-[10px] text-slate-400 font-extrabold font-mono select-none pointer-events-none">75%</div>
@@ -603,8 +612,8 @@ export default function ReportsView({ alumniList, activeUser }) {
             {/* X-axis graduation classes labels (HTML absolute positioned) */}
             <div className="absolute top-[96.36%] left-0 right-0 text-[10px] text-slate-500 font-extrabold font-mono select-none pointer-events-none">
               {trendPoints.map(pt => (
-                <span 
-                  key={pt.year} 
+                <span
+                  key={pt.year}
                   className="absolute inline-block transform -translate-x-1/2 whitespace-nowrap"
                   style={{ left: `${(pt.cx / 600) * 100}%` }}
                 >
@@ -615,91 +624,92 @@ export default function ReportsView({ alumniList, activeUser }) {
 
             {/* SVG Line Graph para sa visual trend line */}
             <svg className="w-full h-full" viewBox="0 0 600 220" preserveAspectRatio="none">
-            {/* Mga gradient na ginagamit para sa background fill ng trend graph */}
-            <defs>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7c191e" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#7c191e" stopOpacity="0.00" />
-              </linearGradient>
-            </defs>
+              {/* Mga gradient na ginagamit para sa background fill ng trend graph */}
+              <defs>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#7c191e" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#7c191e" stopOpacity="0.00" />
+                </linearGradient>
+              </defs>
 
-            {/* Mga linya sa Y-axis ng grid para sa porsyento (Benchmarks) */}
-            <line x1="50" y1="30" x2="550" y2="30" stroke="#e2e8f0" strokeDasharray="3" />
-            <line x1="50" y1="65" x2="550" y2="65" stroke="#e2e8f0" strokeDasharray="3" />
-            <line x1="50" y1="100" x2="550" y2="100" stroke="#e2e8f0" strokeDasharray="3" />
-            <line x1="50" y1="135" x2="550" y2="135" stroke="#e2e8f0" strokeDasharray="3" />
-            <line x1="50" y1="170" x2="550" y2="170" stroke="#e2e8f0" strokeDasharray="3" />
+              {/* Mga linya sa Y-axis ng grid para sa porsyento (Benchmarks) */}
+              <line x1="50" y1="30" x2="550" y2="30" stroke="#e2e8f0" strokeDasharray="3" />
+              <line x1="50" y1="65" x2="550" y2="65" stroke="#e2e8f0" strokeDasharray="3" />
+              <line x1="50" y1="100" x2="550" y2="100" stroke="#e2e8f0" strokeDasharray="3" />
+              <line x1="50" y1="135" x2="550" y2="135" stroke="#e2e8f0" strokeDasharray="3" />
+              <line x1="50" y1="170" x2="550" y2="170" stroke="#e2e8f0" strokeDasharray="3" />
 
-            {/* Area Path na may shading sa ilalim ng trend line */}
-            {/* Area Path na may shading sa ilalim ng trend line */}
-            {trendPoints.length > 1 && (
-              <path 
-                d={`M ${trendPoints[0].cx} 200 L ` + trendPoints.map(pt => `${pt.cx} ${pt.cy}`).join(' L ') + ` L ${trendPoints[trendPoints.length - 1].cx} 200 Z`} 
-                fill="url(#areaGrad)" 
-              />
+              {/* Area Path na may shading sa ilalim ng trend line */}
+              {/* Area Path na may shading sa ilalim ng trend line */}
+              {trendPoints.length > 1 && (
+                <path
+                  d={`M ${trendPoints[0].cx} 200 L ` + trendPoints.map(pt => `${pt.cx} ${pt.cy}`).join(' L ') + ` L ${trendPoints[trendPoints.length - 1].cx} 200 Z`}
+                  fill="url(#areaGrad)"
+                />
+              )}
+
+              {/* Ang pangunahing linya para sa visual trend line ng employability */}
+              {trendPoints.length > 1 && (
+                <path
+                  d={`M ${trendPoints[0].cx} ${trendPoints[0].cy} L ` + trendPoints.slice(1).map(pt => `${pt.cx} ${pt.cy}`).join(' L ')}
+                  fill="none"
+                  stroke="#7c191e"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Mga interactive dots na kumakatawan sa bawat taon ng pagtatapos */}
+              {trendPoints.map((pt, idx) => (
+                <circle
+                  key={idx}
+                  cx={pt.cx}
+                  cy={pt.cy}
+                  r="6.5"
+                  fill="#cca43b"
+                  stroke="#7c191e"
+                  strokeWidth="2.5"
+                  /* NOTE: Nilagyan ng dynamic transformOrigin base sa center coordinates ng bilog (pt.cx, pt.cy) para maging steady ang scale animation at hindi mag-glitch/shake kapag hino-hover ng cursor. */
+                  style={{ transformOrigin: `${pt.cx}px ${pt.cy}px` }}
+                  className="cursor-pointer transition-all hover:scale-150 duration-200"
+                  onMouseEnter={(e) => {
+                    setHoveredPoint({
+                      x: e.clientX,
+                      y: e.clientY,
+                      year: pt.year,
+                      rate: pt.rate,
+                      employedCount: pt.employedCount,
+                      totalCount: pt.totalCount
+                    });
+                  }}
+                  onMouseMove={(e) => {
+                    setHoveredPoint(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                  }}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                />
+              ))}
+            </svg>
+
+            {/* Ang lumulutang na tooltip kapag tinututukan ng mouse ang interactive dots */}
+            {hoveredPoint && (
+              <div
+                className="fixed bg-slate-900 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none z-50 border border-slate-800 font-sans"
+                style={{ left: `${hoveredPoint.x + 10}px`, top: `${hoveredPoint.y - 10}px`, transform: 'translate(-50%, -100%)' }}
+              >
+                <div className="text-amber-400 font-extrabold uppercase text-[9px] mb-0.5">Class of {hoveredPoint.year}</div>
+                <div>Employability: {hoveredPoint.rate}%</div>
+                <div>Employed: {hoveredPoint.employedCount} of {hoveredPoint.totalCount} Graduates</div>
+              </div>
             )}
-
-            {/* Ang pangunahing linya para sa visual trend line ng employability */}
-            {trendPoints.length > 1 && (
-              <path 
-                d={`M ${trendPoints[0].cx} ${trendPoints[0].cy} L ` + trendPoints.slice(1).map(pt => `${pt.cx} ${pt.cy}`).join(' L ')} 
-                fill="none" 
-                stroke="#7c191e" 
-                strokeWidth="4" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-              />
-            )}
-
-            {/* Mga interactive dots na kumakatawan sa bawat taon ng pagtatapos */}
-            {trendPoints.map((pt, idx) => (
-              <circle 
-                key={idx}
-                cx={pt.cx} 
-                cy={pt.cy} 
-                r="6.5" 
-                fill="#cca43b" 
-                stroke="#7c191e" 
-                strokeWidth="2.5" 
-                /* NOTE: Nilagyan ng dynamic transformOrigin base sa center coordinates ng bilog (pt.cx, pt.cy) para maging steady ang scale animation at hindi mag-glitch/shake kapag hino-hover ng cursor. */
-                style={{ transformOrigin: `${pt.cx}px ${pt.cy}px` }}
-                className="cursor-pointer transition-all hover:scale-150 duration-200"
-                onMouseEnter={(e) => {
-                  setHoveredPoint({
-                    x: e.clientX,
-                    y: e.clientY,
-                    year: pt.year,
-                    rate: pt.rate,
-                    count: pt.count
-                  });
-                }}
-                onMouseMove={(e) => {
-                  setHoveredPoint(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
-                }}
-                onMouseLeave={() => setHoveredPoint(null)}
-              />
-            ))}
-          </svg>
-          
-          {/* Ang lumulutang na tooltip kapag tinututukan ng mouse ang interactive dots */}
-          {hoveredPoint && (
-            <div 
-              className="fixed bg-slate-900 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none z-50 border border-slate-800 font-sans"
-              style={{ left: `${hoveredPoint.x + 10}px`, top: `${hoveredPoint.y - 10}px`, transform: 'translate(-50%, -100%)' }}
-            >
-              <div className="text-amber-400 font-extrabold uppercase text-[9px] mb-0.5">Class of {hoveredPoint.year}</div>
-              <div>Employability: {hoveredPoint.rate}%</div>
-              <div>Employed Alumni: {hoveredPoint.count}</div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Geographical Tracer Map (Geo-Tracer) */}
       {/* Geographical Placement & Network Reach (Geo-Tracer) */}
-      <div className="bg-white border border-slate-100 rounded-xl shadow-xs p-6 text-slate-800 space-y-6 transition-all duration-300">
-       <div data-html2canvas-ignore="true" className="bg-white border border-slate-100 rounded-xl shadow-xs p-6 text-slate-800 space-y-6 transition-all duration-300">
+      <div data-html2canvas-ignore="true" className="bg-white border border-slate-100 rounded-xl shadow-xs p-6 text-slate-800 space-y-6 transition-all duration-300">
+        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               <Compass className="w-4.5 h-4.5 text-[#7c191e] animate-spin-slow" /> Graduate Placement &amp; Network Reach Index
@@ -711,7 +721,8 @@ export default function ReportsView({ alumniList, activeUser }) {
           </span>
         </div>
 
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           @keyframes routeFlow {
             to {
               stroke-dashoffset: -20;
@@ -741,7 +752,7 @@ export default function ReportsView({ alumniList, activeUser }) {
           {/* Map wrapper */}
           <div className="w-full md:w-3/4 h-[440px] rounded-lg border border-slate-200 overflow-hidden relative shadow-3xs">
             <div ref={mapContainerRef} className="w-full h-full z-10" id="tracer-interactive-map" />
-            
+
             {/* Custom Map Control presets overlay */}
             <div className="absolute top-3 right-3 z-50 flex flex-col gap-1.5 bg-white/95 backdrop-blur-xs p-2 rounded-lg border border-slate-200 shadow-sm select-none">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-1 text-center font-sans">Zoom View Range</span>
@@ -773,7 +784,7 @@ export default function ReportsView({ alumniList, activeUser }) {
           <div className="w-full md:w-1/4 p-4.5 bg-white rounded-lg border border-slate-100 flex flex-col justify-between shadow-3xs">
             <div className="space-y-4">
               <span className="text-[9px] text-[#7c191e] font-extrabold uppercase tracking-wider block border-b border-slate-100 pb-1.5 font-sans">GIS-Network Interactive Hub</span>
-              
+
               <p className="text-[10px] text-slate-500 font-semibold leading-relaxed font-sans">
                 Interact with the map by panning and zooming, or hover over the density pins to view live distribution stats. Switch views quickly using the controller overlay.
               </p>
@@ -803,7 +814,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
       {/* Pangunahing lugar para sa mga charts at statistical indicators */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans">
-        
+
         {/* Visual na pagpapakita ng salary distribution ng mga rehistradong alumni */}
         <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 pb-2">
@@ -818,14 +829,14 @@ export default function ReportsView({ alumniList, activeUser }) {
               return (
                 <div key={bracket} className="space-y-1 group/row">
                   <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                   <span className="font-semibold group-hover/row:text-slate-700 transition-colors">
+                    <span className="font-semibold group-hover/row:text-slate-700 transition-colors">
                       {bracket}{bracket !== 'Unregistered / No Response' ? ' PHP' : ''}
                     </span>
                     {/* NOTE: Dynamic pluralization ng grads ( <= 1 ay 'grad' ) alinsunod sa bagong preference ng user. */}
                     <span className="text-[#1e4620] font-extrabold">{count} {count <= 1 ? 'grad' : 'grads'} ({totalPct}%)</span>
                   </div>
                   <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/row:border-slate-300 transition-colors">
-                    <div 
+                    <div
                       className={`h-full transition-all duration-500 rounded-full ${
                         bracket === 'Unregistered / No Response' 
                           ? 'bg-slate-400' 
@@ -858,8 +869,8 @@ export default function ReportsView({ alumniList, activeUser }) {
                 <span className="font-extrabold text-slate-800">{relatedYes} {relatedYes <= 1 ? 'grad' : 'grads'} ({Math.round((relatedYes / total) * 100)}%)</span>
               </div>
               <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-yes:border-slate-300 transition-colors">
-                <div 
-                  className="h-full bg-amber-500 transition-all duration-500 rounded-full" 
+                <div
+                  className="h-full bg-amber-500 transition-all duration-500 rounded-full"
                   style={{ width: `${Math.round((relatedYes / total) * 100)}%` }}
                 />
               </div>
@@ -875,8 +886,8 @@ export default function ReportsView({ alumniList, activeUser }) {
                 <span className="font-extrabold text-slate-800">{relatedPartial} {relatedPartial <= 1 ? 'grad' : 'grads'} ({Math.round((relatedPartial / total) * 100)}%)</span>
               </div>
               <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-partial:border-slate-300 transition-colors">
-                <div 
-                  className="h-full bg-emerald-600 transition-all duration-500 rounded-full" 
+                <div
+                  className="h-full bg-emerald-600 transition-all duration-500 rounded-full"
                   style={{ width: `${Math.round((relatedPartial / total) * 100)}%` }}
                 />
               </div>
@@ -892,14 +903,14 @@ export default function ReportsView({ alumniList, activeUser }) {
                 <span className="font-extrabold text-slate-800">{relatedNo} {relatedNo <= 1 ? 'grad' : 'grads'} ({Math.round((relatedNo / total) * 100)}%)</span>
               </div>
               <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-no:border-slate-300 transition-colors">
-                <div 
-                  className="h-full bg-rose-500 transition-all duration-500 rounded-full" 
+                <div
+                  className="h-full bg-rose-500 transition-all duration-500 rounded-full"
                   style={{ width: `${Math.round((relatedNo / total) * 100)}%` }}
                 />
               </div>
             </div>
 
-             {/* Unregistered / No Response */}
+            {/* Unregistered / No Response */}
             {unregistered > 0 && (
               <div className="space-y-1 group/alignment-unregistered">
                 <div className="flex justify-between text-[11px] font-bold text-slate-500">
@@ -922,7 +933,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
       </div>
 
- {/* ANNEX A: CHED / ALCU-COA GRADUATE PLACEMENT ACCREDITATION SUMMARY */}
+      {/* ANNEX A: CHED / ALCU-COA GRADUATE PLACEMENT ACCREDITATION SUMMARY */}
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">ANNEX A: CHED / AACCUP Accreditation Summary</h3>
@@ -1016,9 +1027,8 @@ export default function ReportsView({ alumniList, activeUser }) {
                       <td className="p-3">{p.total} {p.total <= 1 ? 'grad' : 'grads'} logged</td>
                       <td className="p-3 text-emerald-700 font-bold">{p.active} active placement{p.active <= 1 ? '' : 's'}</td>
                       <td className="p-3 pr-6 text-right">
-                        <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] ${
-                          p.ratio >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-805 border border-amber-300'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] ${p.ratio >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-805 border border-amber-300'
+                          }`}>
                           {p.ratio}% Ratio
                         </span>
                       </td>
