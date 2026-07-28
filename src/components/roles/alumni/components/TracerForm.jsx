@@ -170,7 +170,7 @@ export default function TracerForm({
                 required
                 value={selfEditForm.firstName || ''}
                 onChange={(e) => setSelfEditForm({ ...selfEditForm, firstName: e.target.value })}
-                className="w-full bg-slate-55 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
             <div>
@@ -341,6 +341,7 @@ export default function TracerForm({
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-slate-400 mb-1">Current Address</label>
@@ -371,7 +372,7 @@ export default function TracerForm({
               placeholder="e.g. LET (Licensure Exam for Teachers), Civil Service, TESDA NC II"
               value={selfEditForm.professionalExamPassed}
               onChange={(e) => setSelfEditForm({ ...selfEditForm, professionalExamPassed: e.target.value })}
-              className="w-full bg-slate-55 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
             />
           </div>
            </div>
@@ -412,7 +413,8 @@ export default function TracerForm({
               />
             </div>
           </div>
-
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {/* Alumni Association membership at dahilan sa pagpili ng kurso */}
           <div>
             <label className="block text-slate-400 mb-1">Alumni Association Membership Status</label>
@@ -447,6 +449,7 @@ export default function TracerForm({
               <option value="Others" className="text-slate-700 bg-white">Others</option>
             </select>
           </div>
+        </div>
         </div>
 
         <hr className="border-slate-100" />
