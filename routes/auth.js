@@ -278,4 +278,96 @@ router.post('/delete-user', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/update-username
+ */
+router.post('/update-username', authenticateToken, async (req, res) => {
+  try {
+    const { newUsername, activeUserId } = req.body;
+
+    if (!newUsername || !newUsername.trim()) {
+      return res.status(400).json({ error: 'Username cannot be empty.' });
+    }
+
+    const trimmedUsername = newUsername.trim();
+
+    // Check if the user exists
+    const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
+    if (userRows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = mapUserFromDB(userRows[0]);
+
+    // Check if username is actually changed
+    if (user.userId.toLowerCase() === trimmedUsername.toLowerCase()) {
+      return res.status(400).json({ error: 'New username must be different from current username.' });
+    }
+
+    // Check if the username is already taken
+    const [existingRows] = await pool.query('SELECT id FROM users WHERE LOWER(user_id) = ? AND id != ?', [trimmedUsername.toLowerCase(), activeUserId]);
+    if (existingRows.length > 0) {
+      return res.status(400).json({ error: 'Username is already taken.' });
+    }
+
+    // Check once-a-month constraint (30 days limit)
+    if (user.lastUsernameChange) {
+      const lastChange = new Date(user.lastUsernameChange);
+      const now = new Date();
+      const timeDiff = now.getTime() - lastChange.getTime();
+      const daysDiff = timeDiff / (1000 * 3600 * 24);
+      if (daysDiff < 30) {
+        const daysRemaining = Math.ceil(30 - daysDiff);
+        return res.status(400).json({ 
+          error: `You can only change your username once a month. Please wait ${daysRemaining} day(s) before trying again.` 
+        });
+      }
+    }
+
+    // Update the username and last change timestamp
+    await pool.query(
+      'UPDATE users SET user_id = ?, last_username_change = CURRENT_TIMESTAMP WHERE id = ?',
+      [trimmedUsername, activeUserId]
+    );
+
+    // Write activity log
+    const logId = `log-${Date.now()}`;
+    await pool.query(
+      'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        logId, 
+        new Date().toISOString().slice(0, 19).replace('T', ' '), 
+        user.id, 
+        user.email, 
+        user.name, 
+        user.role, 
+        'Changed Username', 
+        'Account Settings', 
+        `User changed username from '${user.userId}' to '${trimmedUsername}'`
+      ]
+    );
+
+    // Fetch and return the updated user object
+    const [updatedRows] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
+    const updatedUser = mapUserFromDB(updatedRows[0]);
+
+    // Sign new JWT token since userId (username) has changed
+    const token = jwt.sign(
+      { id: updatedUser.id, userId: updatedUser.userId, role: updatedUser.role, email: updatedUser.email },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Username updated successfully!', 
+      user: updatedUser,
+      token
+    });
+  } catch (err) {
+    console.error('Update username error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 export default router;

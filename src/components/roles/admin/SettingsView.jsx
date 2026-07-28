@@ -11,7 +11,7 @@ const MOCK_AVATARS = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120'
 ];
 
-export default function SettingsView({ activeUser, setActiveUser }) {
+export default function SettingsView({ activeUser, setActiveUser, onUpdateSession }) {
   // Navigation stack state
   const [currentView, setCurrentView] = useState('main');
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +22,15 @@ export default function SettingsView({ activeUser, setActiveUser }) {
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+
+  const [usernameInput, setUsernameInput] = useState(activeUser?.userId || '');
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+
+  useEffect(() => {
+    if (activeUser) {
+      setUsernameInput(activeUser.userId || '');
+    }
+  }, [activeUser]);
 
   // Help & Support Ticket State
   const [supportTicket, setSupportTicket] = useState({ subject: '', message: '' });
@@ -120,6 +129,58 @@ export default function SettingsView({ activeUser, setActiveUser }) {
       setTimeout(() => setShowStatus(''), 4500);
       setCurrentView('main');
     }, 1000);
+  };
+
+  const handleUpdateUsername = async (e) => {
+    e?.preventDefault();
+    if (!usernameInput || !usernameInput.trim()) {
+      alert("Username cannot be empty.");
+      return;
+    }
+    if (usernameInput.trim() === activeUser.userId) {
+      return;
+    }
+
+    setIsUpdatingUsername(true);
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const response = await fetch('/api/update-username', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          newUsername: usernameInput.trim(),
+          activeUserId: activeUser.id
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        if (onUpdateSession) {
+          onUpdateSession(result.user, result.token);
+        } else if (setActiveUser) {
+          setActiveUser(result.user);
+          sessionStorage.setItem('careerpath_user', JSON.stringify(result.user));
+          if (result.token) {
+            sessionStorage.setItem('careerpath_token', result.token);
+          }
+        }
+        setShowStatus(result.message || 'Username updated successfully!');
+        setTimeout(() => setShowStatus(''), 4500);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to update username.');
+    } finally {
+      setIsUpdatingUsername(false);
+    }
   };
 
   const handleSecuritySubmit = (e) => {
@@ -384,6 +445,40 @@ export default function SettingsView({ activeUser, setActiveUser }) {
                     color: isSystemDark ? '#f1f5f9' : '#1e293b'
                   }}
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-400 block font-bold">Username</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value)}
+                    className="flex-1 border rounded-xl p-2.5 font-bold transition focus:ring-1 focus:ring-slate-900"
+                    style={{ 
+                      backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUpdateUsername}
+                    disabled={isUpdatingUsername || usernameInput.trim() === (activeUser?.userId || '')}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:dark:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer dark:bg-slate-700 dark:hover:bg-slate-600 shrink-0"
+                  >
+                    {isUpdatingUsername ? 'Saving...' : 'Update'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-relaxed block mt-1">
+                  You can change your username once a month.
+                  {activeUser?.lastUsernameChange && (
+                    <span className="block text-amber-600 dark:text-amber-400 font-extrabold mt-0.5">
+                      Last updated: {new Date(activeUser.lastUsernameChange).toLocaleString()}
+                    </span>
+                  )}
+                </p>
               </div>
 
               <div className="space-y-1">

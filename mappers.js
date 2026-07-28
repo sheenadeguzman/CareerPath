@@ -20,7 +20,8 @@ export function mapUserFromDB(row) {
     isInitialPasswordNeeded: !!row.is_initial_password_needed,
     avatar: row.avatar,
     program: row.program,
-     companyId: row.company_id,
+    companyId: row.company_id,
+    lastUsernameChange: row.last_username_change,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -166,7 +167,7 @@ export function mapJobPostingFromDB(row) {
     location: row.location,
     slots: row.slots || 1,
     deadline: row.deadline ? new Date(row.deadline).toISOString().split('T')[0] : '',
-   status: row.status,
+    status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -195,7 +196,7 @@ export function mapSurveyFromDB(row) {
     endDate: row.end_date ? new Date(row.end_date).toISOString().split('T')[0] : '',
     status: row.status,
     questions: qs,
-     responsesCount: row.responses_count || 0,
+    responsesCount: row.responses_count || 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -245,7 +246,7 @@ export function mapFeedbackFromDB(row) {
     alumniStudentId: row.alumni_student_id,
     alumniName: row.alumni_name,
     companyName: row.company_name,
-   submittedAt: row.submitted_at,
+    submittedAt: row.submitted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -267,7 +268,7 @@ export function mapLogFromDB(row) {
     userRole: row.user_role,
     action: row.action,
     module: row.module,
-   details: row.details,
+    details: row.details,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -285,7 +286,7 @@ export function mapNotificationFromDB(row) {
     title: row.title,
     text: row.text,
     date: row.date,
-   read: !!row.read,
+    read: !!row.read,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };

@@ -163,6 +163,7 @@ export default function App() {
     handleTriggerSingleEmailNudge,
     handleMarkNotifyRead,
     handleTabChange,
+    handleUpdateUserSession,
     appendActivity
   } = useCareerPath();
 
@@ -420,6 +421,7 @@ export default function App() {
               <SettingsView
                 activeUser={activeUser}
                 setActiveUser={setActiveUser}
+                onUpdateSession={handleUpdateUserSession}
               />
             )}
 

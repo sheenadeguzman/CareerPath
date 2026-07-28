@@ -32,7 +32,13 @@ export async function initializeDatabase() {
       console.log('Database Migration: Modified users.avatar column to MEDIUMTEXT if not already.');
     } catch (e) {}
 
-     // MIGRATION: Update users.role to support 'Super Admin'
+    // MIGRATION: Add last_username_change to users if it doesn't exist
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN last_username_change TIMESTAMP NULL DEFAULT NULL');
+      console.log('Database Migration: Added last_username_change column to users table.');
+    } catch (e) {}
+
+    // MIGRATION: Update users.role to support 'Super Admin'
     try {
       await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('Super Admin', 'Administrator', 'Department Chairperson', 'Alumni', 'Employer') NOT NULL");
       console.log("Database Migration: Updated users.role column to support Super Admin role.");
@@ -259,7 +265,7 @@ export async function initializeDatabase() {
     } catch (err) {
       console.error('Database Migration Error: Failed to secure plaintext passwords:', err);
     }
-    
+
     // MIGRATION: Add standard created_at and updated_at columns to all tables if missing
     const tablesToMigrate = [
       { name: 'users', addCreated: false, addUpdated: true },

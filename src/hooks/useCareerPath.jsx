@@ -313,6 +313,15 @@ export function useCareerPath() {
     setMobileMenuOpen(false);
   };
 
+  const handleUpdateUserSession = (updatedUser, newToken) => {
+    setActiveUser(updatedUser);
+    sessionStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
+    if (newToken) {
+      setToken(newToken);
+      sessionStorage.setItem('careerpath_token', newToken);
+    }
+  };
+
   // =========================================================================
   // MGA DATA FILTER WRAPPER & PRIVACY SECURITIES
   // =========================================================================
@@ -514,6 +523,7 @@ export function useCareerPath() {
     handleTriggerSingleEmailNudge,
     handleMarkNotifyRead,
     handleTabChange,
+    handleUpdateUserSession,
     appendActivity
   };
 }
