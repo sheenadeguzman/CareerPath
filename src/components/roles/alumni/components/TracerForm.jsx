@@ -629,7 +629,7 @@ export default function TracerForm({
                   onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsUnemployment: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                 >
-                  <option value="">Select Reason</option>
+                  <option  text-slate-400 value="">Select Reason</option>
                   <option value="Family Concerns / Duties">Family Concerns / Duties</option>
                   <option value="Health reasons">Health reasons</option>
                   <option value="Pursuing Further Studies">Pursuing Further Studies</option>
