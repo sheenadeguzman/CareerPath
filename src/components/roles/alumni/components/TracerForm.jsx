@@ -296,6 +296,7 @@ export default function TracerForm({
                 onChange={(e) => setSelfEditForm({ ...selfEditForm, gender: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
               >
+                <option value="" className="text-slate-400 bg-white">Select Gender --</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Others">Others</option>
@@ -362,8 +363,6 @@ export default function TracerForm({
               className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
             />
           </div>
-          </div>
-
 
           <div>
             <label className="block text-slate-400 mb-1">Professional License / Exams Passed</label>
@@ -375,6 +374,7 @@ export default function TracerForm({
               className="w-full bg-slate-55 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
             />
           </div>
+           </div>
 
           {/* Seksyon para sa Licensure Exam Details kung mayroon */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -509,6 +509,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, employmentType: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
+                    <option value="" className="text-slate-400 bg-white">Select--</option>
                     <option value="Regular/Permanent">Regular / Permanent</option>
                     <option value="Temporary/Contractual">Temporary / Contractual</option>
                     <option value="Casual/Project-Based">Casual / Project-Based</option>
@@ -526,6 +527,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, sector: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
+                    <option value="" className="text-slate-400 bg-white">Select Sector--</option>
                     <option value="Private">Private Enterprise</option>
                     <option value="Public">Public / Government Agency</option>
                     <option value="NGO">NGO / Non-Profit Org</option>
@@ -539,6 +541,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, monthlyIncome: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
+                    <option value="" className="text-slate-400 bg-white">Select--</option>
                     <option value="Under 10,000">Under 10,000</option>
                     <option value="10,000 - 20,000">10,000 - 20,000</option>
                     <option value="20,001 - 30,000">20,001 - 30,000</option>
@@ -554,6 +557,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, jobRelatedToCourse: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
+                    <option value="" className="text-slate-400 bg-white">Select--</option>
                     <option value="Yes">Yes, directly aligned</option>
                     <option value="No">No, unrelated career</option>
                     <option value="Partially">Partially aligned</option>
@@ -566,6 +570,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, firstJobRelatedToCourse: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
+                    <option value="" className="text-slate-400 bg-white">Select--</option>
                     <option value="Yes">Yes, directly aligned</option>
                     <option value="No">No, unrelated career</option>
                     <option value="Partially">Partially aligned</option>
@@ -580,7 +585,7 @@ export default function TracerForm({
                       !selfEditForm.jobIndustry ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
                     }`}
                   >
-                    <option value="" className="text-slate-400 bg-white">Select Industry --</option>
+                    <option value="" className="text-slate-400 bg-white">Select Industry--</option>
                     <option value="Information Technology" className="text-slate-700 bg-white">Information Technology / CS</option>
                     <option value="Education / Academia" className="text-slate-700 bg-white">Education / Academia</option>
                     <option value="Agriculture / Forestry / Fisheries" className="text-slate-700 bg-white">Agriculture / Forestry / Fisheries</option>
@@ -600,6 +605,7 @@ export default function TracerForm({
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, timeToFirstJob: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
                   >
+                    <option value="" className="text-slate-400 bg-white">Select--</option>
                     <option value="Immediate">Immediate placement</option>
                     <option value="1 to 6 months">1 to 6 months</option>
                     <option value="7 to 11 months">7 to 11 months</option>
@@ -615,7 +621,7 @@ export default function TracerForm({
                       !selfEditForm.findFirstJob ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
                     }`}
                   >
-                    <option value="" className="text-slate-400 bg-white">Select Option --</option>
+                    <option value="" className="text-slate-400 bg-white">Select Option--</option>
                     <option value="Walk-in application" className="text-slate-700 bg-white">Walk-in application</option>
                     <option value="Job Fair / Campus Recruitment" className="text-slate-700 bg-white">Job Fair / Campus Recruitment</option>
                     <option value="Online Job Board (e.g. LinkedIn, JobStreet)" className="text-slate-700 bg-white">Online Job Board</option>
@@ -633,7 +639,7 @@ export default function TracerForm({
                       !selfEditForm.reasonsAcceptingJob ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
                     }`}
                   >
-                    <option value="" className="text-slate-400 bg-white">Select Reason --</option>
+                    <option value="" className="text-slate-400 bg-white">Select Reason--</option>
                     <option value="High Salary &amp; Benefits" className="text-slate-700 bg-white">High Salary &amp; Benefits</option>
                     <option value="Career Growth &amp; Promotion Prospects" className="text-slate-700 bg-white">Career Growth &amp; Promotion Prospects</option>
                     <option value="Proximity to Residence (Location)" className="text-slate-700 bg-white">Proximity to Residence (Location)</option>
@@ -658,7 +664,7 @@ export default function TracerForm({
                     !selfEditForm.reasonsUnemployment ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
                   }`}
                 >
-                  <option value="" className="text-slate-400 bg-white">Select Reason --</option>
+                  <option value="" className="text-slate-400 bg-white">Select Reason--</option>
                   <option value="Family Concerns / Duties" className="text-slate-700 bg-white">Family Concerns / Duties</option>
                   <option value="Health reasons" className="text-slate-700 bg-white">Health reasons</option>
                   <option value="Pursuing Further Studies" className="text-slate-700 bg-white">Pursuing Further Studies</option>

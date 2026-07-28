@@ -8,8 +8,7 @@
 // Listahan ng mga opisyal na kurso o degree programs na inaalok sa Batanes State College (BSC)
 export const BSC_PROGRAMS = [
   'Bachelor of Science in Information Technology',
-  'Bachelor of Science in Hospitality Management',
-  'Bachelor of Science in Tourism Management',
+  'Bachelor of Science in Hospitality and Tourism Management',
   'Bachelor of Science in Industrial Technology',
   'Bachelor of Science in Agriculture',
   'Bachelor of Elementary Education',
@@ -28,7 +27,7 @@ export const BSC_DEPARTMENTS = [
 // Mapa na nag-uugnay sa bawat Department sa kanilang kaukulang academic degree programs
 export const DEPARTMENT_TO_PROGRAMS = {
   'Information and Communication Technology Department': ['Bachelor of Science in Information Technology'],
-  'Hospitality and Tourism Management Department': ['Bachelor of Science in Hospitality Management', 'Bachelor of Science in Tourism Management'],
+  'Hospitality and Tourism Management Department': ['Bachelor of Science in Hospitality and Tourism Management'],
   'Teacher Education Department': ['Bachelor of Elementary Education', 'Bachelor of Secondary Education'],
   'Agriculture Department': ['Bachelor of Science in Agriculture'],
   'Industrial Technology Department': ['Bachelor of Science in Industrial Technology']
@@ -87,8 +86,8 @@ export const INITIAL_USERS = [
   },
 
   {
-    id: 'bsc-chair-tech',
-    userId: 'chair_tech',
+    id: 'bsc-chair-industech',
+    userId: 'chair_industech',
     name: 'Engr. Ronald Reyes',
     email: 'chair.tech@bsc.edu.ph',
     role: 'Department Chairperson',
