@@ -347,54 +347,47 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
         useCORS: true, 
         logging: true,
         onclone: (clonedDoc) => {
-          const iframeWin = clonedDoc.defaultView;
-          if (!iframeWin) return;
-          
-          const originalGetComputedStyle = iframeWin.getComputedStyle;
-          const oklchCache = {};
-          const oklchRegex = /oklch\([^)]+\)/g;
-
-          function convertOklchToRgb(oklchStr) {
-            if (oklchCache[oklchStr]) return oklchCache[oklchStr];
-            try {
-              const tempDiv = clonedDoc.createElement('div');
-              tempDiv.style.color = oklchStr;
-              clonedDoc.body.appendChild(tempDiv);
-              const computedColor = originalGetComputedStyle.call(iframeWin, tempDiv).color;
-              clonedDoc.body.removeChild(tempDiv);
-              oklchCache[oklchStr] = computedColor;
-              return computedColor;
-            } catch (err) {
-              return 'rgb(30, 41, 59)';
-            }
-          }
-
-          function translateOklchInString(str) {
-            if (typeof str !== 'string' || !str.includes('oklch')) return str;
-            return str.replace(oklchRegex, (match) => convertOklchToRgb(match));
-          }
-
-          iframeWin.getComputedStyle = function (el, pseudoEl) {
-            const style = originalGetComputedStyle.call(iframeWin, el, pseudoEl);
-            return new Proxy(style, {
-              get(target, prop) {
-                if (prop === 'getPropertyValue') {
-                  return function (propertyName) {
-                    const val = target.getPropertyValue(propertyName);
-                    return translateOklchInString(val);
-                  };
-                }
-                const val = target[prop];
-                if (typeof val === 'string' && val.includes('oklch')) {
-                  return translateOklchInString(val);
-                }
-                if (typeof val === 'function') {
-                  return val.bind(target);
-                }
-                return val;
-              }
+          // Redefine styleSheets getter on the cloned document to return an empty array
+          // so html2canvas completely skips stylesheet parsing (which triggers the oklch crash)
+          try {
+            Object.defineProperty(clonedDoc, 'styleSheets', {
+              get() { return []; },
+              configurable: true
             });
-          };
+          } catch (e) {
+            console.error('Failed to redefine clonedDoc.styleSheets:', e);
+          }
+
+          // Inline resolved color styles from the original elements to prevent any oklch leak
+          const container = clonedDoc.querySelector('.resume-container');
+          if (!container) return;
+
+          const originalContainer = document.querySelector('.resume-container');
+          if (!originalContainer) return;
+
+          const originalElements = [originalContainer, ...Array.from(originalContainer.querySelectorAll('*'))];
+          const clonedElements = [container, ...Array.from(container.querySelectorAll('*'))];
+
+          const propertiesToCopy = [
+            'color', 'backgroundColor', 'borderColor', 
+            'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+            'boxShadow', 'textShadow', 'opacity', 'backgroundImage'
+          ];
+
+          for (let i = 0; i < originalElements.length; i++) {
+            const origEl = originalElements[i];
+            const cloneEl = clonedElements[i];
+            if (!origEl || !cloneEl) continue;
+
+            const computedStyle = originalGetComputedStyle(origEl);
+            propertiesToCopy.forEach(prop => {
+              let val = computedStyle[prop];
+              if (typeof val === 'string' && val.includes('oklch')) {
+                val = translateOklchInString(val);
+              }
+              cloneEl.style[prop] = val;
+            });
+          }
         }
       },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
