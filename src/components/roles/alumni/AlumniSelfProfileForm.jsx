@@ -247,65 +247,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
   };
 
   /**
-   * Helper utility to temporarily clean stylesheets from OKLCH color definitions,
-   * avoiding html2canvas crash during PDF/Image generation. Restores them in a finally block.
-   */
-  const runWithCleanStyleSheets = async (callback) => {
-    let cleanCss = '';
-    const tempDiv = document.createElement('div');
-    document.body.appendChild(tempDiv);
-
-    // Kumuha at linisin ang lahat ng style rules
-    for (let i = 0; i < document.styleSheets.length; i++) {
-      const sheet = document.styleSheets[i];
-      try {
-        const rules = sheet.cssRules || sheet.rules;
-        if (!rules) continue;
-        for (let j = 0; j < rules.length; j++) {
-          let cssText = rules[j].cssText;
-          if (cssText.includes('oklch')) {
-            cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => {
-              try {
-                tempDiv.style.color = match;
-                return window.getComputedStyle(tempDiv).color || 'rgb(30, 41, 59)';
-              } catch (e) {
-                return 'rgb(30, 41, 59)';
-              }
-            });
-          }
-          cleanCss += cssText + '\n';
-        }
-      } catch (e) {
-        // Laktawan ang CORS stylesheet issues (kung meron)
-      }
-    }
-    document.body.removeChild(tempDiv);
-
-    // Gumawa ng temporary style element para sa malinis na CSS
-    const cleanStyleEl = document.createElement('style');
-    cleanStyleEl.id = 'html2canvas-clean-styles';
-    cleanStyleEl.textContent = cleanCss;
-    document.head.appendChild(cleanStyleEl);
-
-    const cleanSheet = cleanStyleEl.sheet;
-    const mockStyleSheets = [cleanSheet];
-
-    // Mock document.styleSheets
-    Object.defineProperty(document, 'styleSheets', {
-      get() { return mockStyleSheets; },
-      configurable: true
-    });
-
-    try {
-      await callback(mockStyleSheets);
-    } finally {
-      // Ibalik sa normal ang lahat ng style sheets
-      delete document.styleSheets;
-      cleanStyleEl.remove();
-    }
-  };
-
-  /**
    * Nag-da-download ng Resume/CV bilang PDF gamit ang 'html2pdf.js' library.
    * Nililinis nito ang mga oklch styles sa clone upang maiwasan ang pagka-crash ng parser.
    */
@@ -329,39 +270,79 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     else if (paperSize === 'legal') format = 'legal';
 
     console.log('Executing html2pdf pipeline with format:', format);
-    
-    runWithCleanStyleSheets(async (mockSheets) => {
-      const opt = {
-        margin: 0,
-        filename: `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          onclone: (clonedDoc) => {
-            // I-mock ang styleSheets sa cloned document
-            Object.defineProperty(clonedDoc, 'styleSheets', {
-              get() { return mockSheets; },
-              configurable: true
-            });
-            const clonedContainer = clonedDoc.querySelector('.resume-container');
-            if (clonedContainer) {
-              clonedContainer.style.margin = '0';
-              clonedContainer.style.border = 'none';
-              clonedContainer.style.boxShadow = 'none';
+
+    const opt = {
+      margin: 0,
+      filename: `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          // 1. Kumuha ng kopya ng lahat ng CSS rules sa active page at linisin ang oklch rules
+          const cleanStyle = clonedDoc.createElement('style');
+          let combinedCss = '';
+          const tempDiv = document.createElement('div');
+          document.body.appendChild(tempDiv);
+          
+          for (let i = 0; i < document.styleSheets.length; i++) {
+            const sheet = document.styleSheets[i];
+            try {
+              const rules = sheet.cssRules || sheet.rules;
+              if (!rules) continue;
+              for (let j = 0; j < rules.length; j++) {
+                let cssText = rules[j].cssText;
+                if (cssText.includes('oklch')) {
+                  cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => {
+                    try {
+                      tempDiv.style.color = match;
+                      return window.getComputedStyle(tempDiv).color || 'rgb(30, 41, 59)';
+                    } catch (e) {
+                      return 'rgb(30, 41, 59)';
+                    }
+                  });
+                }
+                combinedCss += cssText + '\n';
+              }
+            } catch (e) {
+              // Ignore cross-origin access blocks
             }
           }
-        },
-        jsPDF: { unit: 'in', format: format, orientation: 'portrait' }
-      };
+          document.body.removeChild(tempDiv);
+          cleanStyle.textContent = combinedCss;
 
-      await window.html2pdf().set(opt).from(element).save();
-      console.log('html2pdf pipeline executed successfully.');
-    }).catch(err => {
-      console.error('html2pdf promise rejection caught:', err);
-      alert('Failed to generate PDF. Please try exporting as Image or Word.');
-    });
+          // 2. Tanggalin ang lahat ng orihinal na link at style tags sa loob ng clone document upang maiwasan ang crash sa oklch
+          clonedDoc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
+
+          // 3. I-append ang bagong malinis na style block
+          clonedDoc.head.appendChild(cleanStyle);
+
+          // 4. Ayusin ang itsura ng container sa loob ng clone para sa eksaktong sukat ng page
+          const clonedContainer = clonedDoc.querySelector('.resume-container');
+          if (clonedContainer) {
+            clonedContainer.style.margin = '0';
+            clonedContainer.style.border = 'none';
+            clonedContainer.style.boxShadow = 'none';
+          }
+        }
+      },
+      jsPDF: { unit: 'in', format: format, orientation: 'portrait' }
+    };
+
+    try {
+      window.html2pdf().set(opt).from(element).save()
+        .then(() => {
+          console.log('html2pdf successfully generated and saved.');
+        })
+        .catch(err => {
+          console.error('html2pdf promise rejection caught:', err);
+          alert('Failed to generate PDF. Please try exporting as Image or Word.');
+        });
+    } catch (e) {
+      console.error('Synchronous exception during html2pdf invocation:', e);
+      alert('Error during PDF conversion: ' + e.message);
+    }
   };
 
   /**
@@ -810,26 +791,60 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
-    runWithCleanStyleSheets(async (mockSheets) => {
-      const canvas = await window.html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        onclone: (clonedDoc) => {
-          // I-mock ang styleSheets sa cloned document
-          Object.defineProperty(clonedDoc, 'styleSheets', {
-            get() { return mockSheets; },
-            configurable: true
-          });
-          const clonedContainer = clonedDoc.querySelector('.resume-container');
-          if (clonedContainer) {
-            clonedContainer.style.margin = '0';
-            clonedContainer.style.border = 'none';
-            clonedContainer.style.boxShadow = 'none';
+    const opt = {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      onclone: (clonedDoc) => {
+        // 1. Extract all active style rules and clean OKLCH colors
+        const cleanStyle = clonedDoc.createElement('style');
+        let combinedCss = '';
+        const tempDiv = document.createElement('div');
+        document.body.appendChild(tempDiv);
+        
+        for (let i = 0; i < document.styleSheets.length; i++) {
+          const sheet = document.styleSheets[i];
+          try {
+            const rules = sheet.cssRules || sheet.rules;
+            if (!rules) continue;
+            for (let j = 0; j < rules.length; j++) {
+              let cssText = rules[j].cssText;
+              if (cssText.includes('oklch')) {
+                cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => {
+                  try {
+                    tempDiv.style.color = match;
+                    return window.getComputedStyle(tempDiv).color || 'rgb(30, 41, 59)';
+                  } catch (e) {
+                    return 'rgb(30, 41, 59)';
+                  }
+                });
+              }
+              combinedCss += cssText + '\n';
+            }
+          } catch (e) {
+            // Ignore CORS
           }
         }
-      });
-      
+        document.body.removeChild(tempDiv);
+        cleanStyle.textContent = combinedCss;
+
+        // 2. Remove all link and style elements in the cloned document
+        clonedDoc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
+
+        // 3. Append our clean styles
+        clonedDoc.head.appendChild(cleanStyle);
+
+        // 4. Adjust container styles
+        const clonedContainer = clonedDoc.querySelector('.resume-container');
+        if (clonedContainer) {
+          clonedContainer.style.margin = '0';
+          clonedContainer.style.border = 'none';
+          clonedContainer.style.boxShadow = 'none';
+        }
+      }
+    };
+
+    window.html2canvas(element, opt).then(canvas => {
       const imgData = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = imgData;
