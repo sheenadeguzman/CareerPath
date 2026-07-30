@@ -263,6 +263,24 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added about_me column to alumni_profiles table.');
     } catch (e) {}
 
+    // MIGRATION: Add custom contact columns to job_postings table if missing
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN contact_person VARCHAR(100) DEFAULT NULL");
+      console.log('Database Migration: Added contact_person column to job_postings table.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN contact_email VARCHAR(100) DEFAULT NULL");
+      console.log('Database Migration: Added contact_email column to job_postings table.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN contact_phone VARCHAR(50) DEFAULT NULL");
+      console.log('Database Migration: Added contact_phone column to job_postings table.');
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN contact_website VARCHAR(255) DEFAULT NULL");
+      console.log('Database Migration: Added contact_website column to job_postings table.');
+    } catch (e) {}
+
     // MIGRATION: Add languages to alumni_profiles table if missing
     try {
       await pool.query("ALTER TABLE alumni_profiles ADD COLUMN languages TEXT DEFAULT NULL");

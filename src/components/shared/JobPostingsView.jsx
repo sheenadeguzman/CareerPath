@@ -23,7 +23,11 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     location: 'Basco, Batanes',
     slots: 1,
     deadline: '',
-    status: 'Open'
+    status: 'Open',
+    contactPerson: '',
+    contactEmail: '',
+    contactPhone: '',
+    contactWebsite: ''
   });
 
   const [reqInput, setReqInput] = useState('');
@@ -113,7 +117,11 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       location: 'Basco, Batanes',
       slots: 1,
       deadline: '',
-      status: 'Open'
+      status: 'Open',
+      contactPerson: '',
+      contactEmail: '',
+      contactPhone: '',
+      contactWebsite: ''
     });
     setReqInput('');
   };  const filteredJobs = jobPostings.filter(job => {
@@ -316,45 +324,63 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 </div>
 
                 {/* Employer Contact Details */}
-                {matchingEmployer && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 bg-slate-50/50 rounded-lg p-2.5 border border-slate-150">
-                    <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider block">Employer Contact &amp; Application Info:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] font-semibold text-slate-600">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate" title={`${matchingEmployer.contactPerson} (${matchingEmployer.position})`}>
-                          {matchingEmployer.contactPerson} <span className="text-[9px] text-slate-400 font-normal">({matchingEmployer.position})</span>
-                        </span>
+                {(() => {
+                  const jobContactPerson = job.contactPerson || matchingEmployer?.contactPerson;
+                  const jobContactEmail = job.contactEmail || matchingEmployer?.email;
+                  const jobContactPhone = job.contactPhone || matchingEmployer?.phone;
+                  const jobContactWebsite = job.contactWebsite || matchingEmployer?.website;
+                  const jobContactPosition = job.contactPerson ? '' : matchingEmployer?.position;
+
+                  if (!jobContactPerson && !jobContactEmail && !jobContactPhone && !jobContactWebsite) {
+                    return null;
+                  }
+
+                  return (
+                    <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 bg-slate-50/50 rounded-lg p-2.5 border border-slate-150">
+                      <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider block">Employer Contact &amp; Application Info:</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] font-semibold text-slate-600">
+                        {jobContactPerson && (
+                          <div className="flex items-center gap-1.5 truncate">
+                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate" title={`${jobContactPerson}${jobContactPosition ? ` (${jobContactPosition})` : ''}`}>
+                              {jobContactPerson} {jobContactPosition && <span className="text-[9px] text-slate-400 font-normal">({jobContactPosition})</span>}
+                            </span>
+                          </div>
+                        )}
+                        {jobContactEmail && (
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <a href={`mailto:${jobContactEmail}`} className="text-[#7c191e] hover:underline truncate font-bold" title={jobContactEmail}>
+                              {jobContactEmail}
+                            </a>
+                          </div>
+                        )}
+                        {jobContactPhone && (
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <a href={`tel:${jobContactPhone}`} className="text-slate-600 hover:underline truncate" title={jobContactPhone}>
+                              {jobContactPhone}
+                            </a>
+                          </div>
+                        )}
+                        {jobContactWebsite && (
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <a 
+                              href={jobContactWebsite.startsWith('http') ? jobContactWebsite : `https://${jobContactWebsite}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-[#cca43b] hover:underline truncate font-bold"
+                              title={jobContactWebsite}
+                            >
+                              {jobContactWebsite}
+                            </a>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1.5 truncate">
-                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <a href={`mailto:${matchingEmployer.email}`} className="text-[#7c191e] hover:underline truncate font-bold" title={matchingEmployer.email}>
-                          {matchingEmployer.email}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-1.5 truncate">
-                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <a href={`tel:${matchingEmployer.phone}`} className="text-slate-600 hover:underline truncate" title={matchingEmployer.phone}>
-                          {matchingEmployer.phone}
-                        </a>
-                      </div>
-                      {matchingEmployer.website && (
-                        <div className="flex items-center gap-1.5 truncate">
-                          <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <a 
-                            href={matchingEmployer.website.startsWith('http') ? matchingEmployer.website : `https://${matchingEmployer.website}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-[#cca43b] hover:underline truncate font-bold"
-                            title={matchingEmployer.website}
-                          >
-                            {matchingEmployer.website}
-                          </a>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
 
               {/* Row ng detalye sa Footer (Deadline at Slots) */}
@@ -519,6 +545,58 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                     onChange={(e) => setNewJob({ ...newJob, deadline: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
                   />
+                </div>
+
+                <div className="border-t border-slate-100 pt-4 mt-4 space-y-4">
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider text-slate-600">
+                    Custom Contact &amp; Application Details (Optional)
+                  </span>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-500 mb-1">Contact Person Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Jane Doe"
+                        value={newJob.contactPerson}
+                        onChange={(e) => setNewJob({ ...newJob, contactPerson: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-500 mb-1">Contact Email Coordinates</label>
+                      <input
+                        type="email"
+                        placeholder="e.g., hr@company.com"
+                        value={newJob.contactEmail}
+                        onChange={(e) => setNewJob({ ...newJob, contactEmail: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-500 mb-1">Contact Phone</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., 0912345678"
+                        value={newJob.contactPhone}
+                        onChange={(e) => setNewJob({ ...newJob, contactPhone: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-500 mb-1">Company Website</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., www.company.com"
+                        value={newJob.contactWebsite}
+                        onChange={(e) => setNewJob({ ...newJob, contactWebsite: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </form>

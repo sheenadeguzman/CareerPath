@@ -33,24 +33,28 @@ router.post('/save-job', authenticateToken, async (req, res) => {
         `UPDATE job_postings SET 
           job_title = ?, employer_name = ?, description = ?, requirements = ?, 
           employment_type = ?, salary_range = ?, location = ?, slots = ?, 
-          deadline = ?, status = ?
+          deadline = ?, status = ?, contact_person = ?, contact_email = ?,
+          contact_phone = ?, contact_website = ?
          WHERE id = ?`,
         [
           job.jobTitle, job.employerName, job.description, reqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
-          deadline, job.status, jobId
+          deadline, job.status, job.contactPerson || null, job.contactEmail || null,
+          job.contactPhone || null, job.contactWebsite || null, jobId
         ]
       );
     } else {
       await pool.query(
         `INSERT INTO job_postings (
           id, job_title, employer_name, description, requirements, 
-          employment_type, salary_range, location, slots, deadline, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          employment_type, salary_range, location, slots, deadline, status,
+          contact_person, contact_email, contact_phone, contact_website
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           jobId, job.jobTitle, job.employerName, job.description, reqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
-          deadline, job.status || 'Open'
+          deadline, job.status || 'Open', job.contactPerson || null, job.contactEmail || null,
+          job.contactPhone || null, job.contactWebsite || null
         ]
       );
     }

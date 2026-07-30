@@ -192,6 +192,10 @@ export function mapJobPostingFromDB(row) {
     slots: row.slots || 1,
     deadline: row.deadline ? new Date(row.deadline).toISOString().split('T')[0] : '',
     status: row.status,
+    contactPerson: row.contact_person || '',
+    contactEmail: row.contact_email || '',
+    contactPhone: row.contact_phone || '',
+    contactWebsite: row.contact_website || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
