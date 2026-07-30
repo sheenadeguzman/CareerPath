@@ -262,6 +262,50 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
+    // INTERCEPT OKLCH COLORS FOR HTML2CANVAS COMPATIBILITY
+    const originalGetComputedStyle = window.getComputedStyle;
+    const oklchCache = {};
+    function convertOklchToRgb(oklchStr) {
+      if (oklchCache[oklchStr]) return oklchCache[oklchStr];
+      try {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.color = oklchStr;
+        document.body.appendChild(tempDiv);
+        const computedColor = originalGetComputedStyle(tempDiv).color;
+        document.body.removeChild(tempDiv);
+        oklchCache[oklchStr] = computedColor;
+        return computedColor;
+      } catch (err) {
+        return 'rgb(30, 41, 59)';
+      }
+    }
+
+    // Mock window.getComputedStyle to translate oklch to rgb on the fly
+    window.getComputedStyle = function (el, pseudoEl) {
+      const style = originalGetComputedStyle(el, pseudoEl);
+      return new Proxy(style, {
+        get(target, prop) {
+          if (prop === 'getPropertyValue') {
+            return function (propertyName) {
+              const val = target.getPropertyValue(propertyName);
+              if (typeof val === 'string' && val.includes('oklch')) {
+                return convertOklchToRgb(val);
+              }
+              return val;
+            };
+          }
+          const val = target[prop];
+          if (typeof val === 'string' && val.includes('oklch')) {
+            return convertOklchToRgb(val);
+          }
+          if (typeof val === 'function') {
+            return val.bind(target);
+          }
+          return val;
+        }
+      });
+    };
+
     console.log('Found resume container element. Initializing html2pdf payload...', element);
     const opt = {
       margin:       0.2,
@@ -276,14 +320,17 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       window.html2pdf().set(opt).from(element).save()
         .then(() => {
           console.log('html2pdf output save promise resolved successfully.');
+          window.getComputedStyle = originalGetComputedStyle;
         })
         .catch(err => {
           console.error('html2pdf promise rejection caught:', err);
           alert('Failed to generate PDF. Check developer console.');
+          window.getComputedStyle = originalGetComputedStyle;
         });
     } catch (e) {
       console.error('Synchronous exception during html2pdf invocation:', e);
       alert('Error during PDF conversion: ' + e.message);
+      window.getComputedStyle = originalGetComputedStyle;
     }
   };
 
