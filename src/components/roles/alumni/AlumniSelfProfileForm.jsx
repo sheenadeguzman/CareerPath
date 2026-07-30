@@ -118,7 +118,7 @@ let tempCtx = null;
 
 const oklchToRgb = (colorStr) => {
   if (!colorStr || typeof colorStr !== 'string') return colorStr;
-  if (!colorStr.includes('oklch')) return colorStr;
+  if (!colorStr.toLowerCase().includes('oklch')) return colorStr;
   
   try {
     if (!tempCanvas) {
@@ -142,6 +142,32 @@ const oklchToRgb = (colorStr) => {
   } catch (e) {
     return oklchToRgbMath(colorStr);
   }
+};
+
+const makeStyleProxy = (style) => {
+  if (!style) return style;
+  return new Proxy(style, {
+    get(target, prop) {
+      if (prop === 'getPropertyValue') {
+        return function(name) {
+          const val = target.getPropertyValue(name);
+          if (val && typeof val === 'string' && val.toLowerCase().includes('oklch')) {
+            return val.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
+          }
+          return val;
+        };
+      }
+      
+      const val = target[prop];
+      if (typeof val === 'string' && val.toLowerCase().includes('oklch')) {
+        return val.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
+      }
+      if (typeof val === 'function') {
+        return val.bind(target);
+      }
+      return val;
+    }
+  });
 };
 
 export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, triggerToast }) {
@@ -383,6 +409,22 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
     console.log('Executing html2pdf pipeline with format:', format);
 
+    // Hijack getComputedStyle on window and prototype
+    const origWindowGCS = window.getComputedStyle;
+    const origProtoGCS = Window.prototype.getComputedStyle;
+
+    window.getComputedStyle = function(el, pseudoEl) {
+      return makeStyleProxy(origWindowGCS.call(this, el, pseudoEl));
+    };
+    Window.prototype.getComputedStyle = function(el, pseudoEl) {
+      return makeStyleProxy(origProtoGCS.call(this, el, pseudoEl));
+    };
+
+    const restoreGCS = () => {
+      window.getComputedStyle = origWindowGCS;
+      Window.prototype.getComputedStyle = origProtoGCS;
+    };
+
     const opt = {
       margin: 0,
       filename: `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.pdf`,
@@ -392,6 +434,13 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
         useCORS: true,
         logging: false,
         onclone: (clonedDoc) => {
+          if (clonedDoc.defaultView) {
+            const origClonedGCS = clonedDoc.defaultView.getComputedStyle;
+            clonedDoc.defaultView.getComputedStyle = function(el, pseudoEl) {
+              return makeStyleProxy(origClonedGCS.call(this, el, pseudoEl));
+            };
+          }
+
           // 1. Kumuha ng kopya ng lahat ng CSS rules sa active page at linisin ang oklch rules
           const cleanStyle = clonedDoc.createElement('style');
           let combinedCss = '';
@@ -403,8 +452,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
               if (!rules) continue;
               for (let j = 0; j < rules.length; j++) {
                 let cssText = rules[j].cssText;
-                if (cssText.includes('oklch')) {
-                  cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
+                if (cssText.toLowerCase().includes('oklch')) {
+                  cssText = cssText.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
                 }
                 combinedCss += cssText + '\n';
               }
@@ -430,8 +479,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
           // 5. Linisin ang mga inline styles na may oklch sa loob ng clone document upang maiwasan ang error sa html2canvas
           clonedDoc.querySelectorAll('*').forEach(el => {
-            if (el.style && el.style.cssText && el.style.cssText.includes('oklch')) {
-              el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
+            if (el.style && el.style.cssText && el.style.cssText.toLowerCase().includes('oklch')) {
+              el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
             }
           });
         }
@@ -443,13 +492,16 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       window.html2pdf().set(opt).from(element).save()
         .then(() => {
           console.log('html2pdf successfully generated and saved.');
+          restoreGCS();
         })
         .catch(err => {
           console.error('html2pdf promise rejection caught:', err);
+          restoreGCS();
           alert('Failed to generate PDF. Please try exporting as Image or Word.');
         });
     } catch (e) {
       console.error('Synchronous exception during html2pdf invocation:', e);
+      restoreGCS();
       alert('Error during PDF conversion: ' + e.message);
     }
   };
@@ -900,11 +952,34 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
+    // Hijack getComputedStyle on window and prototype
+    const origWindowGCS = window.getComputedStyle;
+    const origProtoGCS = Window.prototype.getComputedStyle;
+
+    window.getComputedStyle = function(el, pseudoEl) {
+      return makeStyleProxy(origWindowGCS.call(this, el, pseudoEl));
+    };
+    Window.prototype.getComputedStyle = function(el, pseudoEl) {
+      return makeStyleProxy(origProtoGCS.call(this, el, pseudoEl));
+    };
+
+    const restoreGCS = () => {
+      window.getComputedStyle = origWindowGCS;
+      Window.prototype.getComputedStyle = origProtoGCS;
+    };
+
     const opt = {
       scale: 2,
       useCORS: true,
       logging: false,
       onclone: (clonedDoc) => {
+        if (clonedDoc.defaultView) {
+          const origClonedGCS = clonedDoc.defaultView.getComputedStyle;
+          clonedDoc.defaultView.getComputedStyle = function(el, pseudoEl) {
+            return makeStyleProxy(origClonedGCS.call(this, el, pseudoEl));
+          };
+        }
+
         // 1. Extract all active style rules and clean OKLCH colors
         const cleanStyle = clonedDoc.createElement('style');
         let combinedCss = '';
@@ -916,8 +991,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             if (!rules) continue;
             for (let j = 0; j < rules.length; j++) {
               let cssText = rules[j].cssText;
-              if (cssText.includes('oklch')) {
-                cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
+              if (cssText.toLowerCase().includes('oklch')) {
+                cssText = cssText.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
               }
               combinedCss += cssText + '\n';
             }
@@ -943,8 +1018,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
         // 5. Linisin ang mga inline styles na may oklch sa loob ng clone document upang maiwasan ang error sa html2canvas
         clonedDoc.querySelectorAll('*').forEach(el => {
-          if (el.style && el.style.cssText && el.style.cssText.includes('oklch')) {
-            el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
+          if (el.style && el.style.cssText && el.style.cssText.toLowerCase().includes('oklch')) {
+            el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
           }
         });
       }
@@ -958,8 +1033,10 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      restoreGCS();
     }).catch(err => {
       console.error('Error generating image:', err);
+      restoreGCS();
       alert('Failed to generate image.');
     });
   };
