@@ -342,7 +342,61 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       margin:       0.2,
       filename:     `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}_2026.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: true },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        logging: true,
+        onclone: (clonedDoc) => {
+          const iframeWin = clonedDoc.defaultView;
+          if (!iframeWin) return;
+          
+          const originalGetComputedStyle = iframeWin.getComputedStyle;
+          const oklchCache = {};
+          const oklchRegex = /oklch\([^)]+\)/g;
+
+          function convertOklchToRgb(oklchStr) {
+            if (oklchCache[oklchStr]) return oklchCache[oklchStr];
+            try {
+              const tempDiv = clonedDoc.createElement('div');
+              tempDiv.style.color = oklchStr;
+              clonedDoc.body.appendChild(tempDiv);
+              const computedColor = originalGetComputedStyle.call(iframeWin, tempDiv).color;
+              clonedDoc.body.removeChild(tempDiv);
+              oklchCache[oklchStr] = computedColor;
+              return computedColor;
+            } catch (err) {
+              return 'rgb(30, 41, 59)';
+            }
+          }
+
+          function translateOklchInString(str) {
+            if (typeof str !== 'string' || !str.includes('oklch')) return str;
+            return str.replace(oklchRegex, (match) => convertOklchToRgb(match));
+          }
+
+          iframeWin.getComputedStyle = function (el, pseudoEl) {
+            const style = originalGetComputedStyle.call(iframeWin, el, pseudoEl);
+            return new Proxy(style, {
+              get(target, prop) {
+                if (prop === 'getPropertyValue') {
+                  return function (propertyName) {
+                    const val = target.getPropertyValue(propertyName);
+                    return translateOklchInString(val);
+                  };
+                }
+                const val = target[prop];
+                if (typeof val === 'string' && val.includes('oklch')) {
+                  return translateOklchInString(val);
+                }
+                if (typeof val === 'function') {
+                  return val.bind(target);
+                }
+                return val;
+              }
+            });
+          };
+        }
+      },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
