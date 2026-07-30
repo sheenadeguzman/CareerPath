@@ -248,32 +248,26 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
    * Kung wala pa ang library sa pahina, kukunin muna ito bago simulan ang pag-convert.
    */
   const handleDownloadCV = () => {
-    // Pangunahing logic para sa pag-generate ng PDF mula sa DOM element
-    const runHtml2Pdf = () => {
-      const element = document.querySelector('.resume-container');
-      const opt = {
-        margin:       0.2,
-        filename:     `BSC_Resume_${selfEditForm.firstName}_${selfEditForm.lastName}_2026.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-      // Patakbuhin ang html2pdf.js API
-      window.html2pdf().set(opt).from(element).save();
-    };
-
-    // Kung load na ang html2pdf sa global window scope, patakbuhin agad ito
-    if (window.html2pdf) {
-      runHtml2Pdf();
-    } else {
-      // Kung wala pa, mag-append ng script tag para i-load ang library mula sa public CDN
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-      
-      // Pagka-load ng script, patakbuhin ang PDF generator function
-      script.onload = runHtml2Pdf;
-      document.body.appendChild(script);
+    const element = document.querySelector('.resume-container');
+    if (!element) {
+      alert('Resume element not found.');
+      return;
     }
+
+    if (!window.html2pdf) {
+      alert('PDF generation library is still loading, please try again in a moment.');
+      return;
+    }
+
+    const opt = {
+      margin:       0.2,
+      filename:     `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}_2026.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    // Patakbuhin ang html2pdf.js API
+    window.html2pdf().set(opt).from(element).save();
   };
 
   return (
