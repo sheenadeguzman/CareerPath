@@ -88,6 +88,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
   
   // Mga checkbox options para sa pagpapakita/pagtatago ng mga partikular na seksyon sa Resume Preview
   const [cvOptions, setCvOptions] = useState({
+    showPhoto: true,         // Ipakita ang profile photo
     showSalary: false,       // Ipakita ang monthly income
     showCivilStatus: true,   // Ipakita ang civil status
     showPhone: true,         // Ipakita ang mobile number
@@ -329,6 +330,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             setCvOptions={setCvOptions}
             handleDownloadCV={handleDownloadCV}
             handlePrintCV={handlePrintCV}
+            selfEditForm={selfEditForm}
           />
           {/* ResumePreview: Nagpapakita ng live visual representation ng CV ng user */}
           <div className="lg:col-span-2 overflow-x-auto p-1 bg-slate-100 rounded-2xl border border-slate-200">

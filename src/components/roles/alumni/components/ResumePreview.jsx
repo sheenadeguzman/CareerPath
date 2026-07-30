@@ -20,6 +20,15 @@ export default function ResumePreview({
     return (
       <div className="resume-container w-full max-w-[800px] mx-auto bg-white shadow-lg p-8 border border-slate-200 text-slate-800 flex flex-col md:flex-row gap-6 font-sans antialiased my-2 min-h-[900px] select-text">
         <div className="w-full md:w-1/3 space-y-6 md:border-r md:border-slate-100 md:pr-6">
+          {cvOptions.showPhoto && selfEditForm?.avatar && (
+            <div className="flex justify-start mb-4">
+              <img 
+                src={selfEditForm.avatar} 
+                alt="Profile Avatar" 
+                className="w-24 h-24 rounded-lg object-cover border border-slate-200 shadow-xs"
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <h2 className="text-lg font-black text-[#7c191e] uppercase tracking-wide leading-tight">{fullName}</h2>
             <span className="text-xs font-bold text-slate-505 uppercase tracking-widest block">{programShort.replace('BS ', '')} Graduate</span>
@@ -118,6 +127,15 @@ export default function ResumePreview({
     return (
       <div className="resume-container w-full max-w-[800px] mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-800 font-serif antialiased my-2 min-h-[900px] space-y-8 select-text">
         <div className="text-center space-y-2 pb-4 border-b-2 border-[#cca43b]">
+          {cvOptions.showPhoto && selfEditForm?.avatar && (
+            <div className="flex justify-center mb-3">
+              <img 
+                src={selfEditForm.avatar} 
+                alt="Profile Avatar" 
+                className="w-24 h-24 rounded-full object-cover border-2 border-[#cca43b] p-0.5 shadow-xs"
+              />
+            </div>
+          )}
           <h2 className="text-2xl font-normal text-slate-900 uppercase tracking-widest leading-none">{fullName}</h2>
           <span className="text-[10px] font-bold text-[#cca43b] uppercase tracking-widest block font-sans">{programShort}</span>
         </div>
@@ -205,6 +223,15 @@ export default function ResumePreview({
   return (
     <div className="resume-container w-full max-w-[800px] mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-955 font-serif antialiased my-2 min-h-[900px] space-y-6 select-text">
       <div className="text-center space-y-1">
+        {cvOptions.showPhoto && selfEditForm?.avatar && (
+          <div className="flex justify-center mb-3">
+            <img 
+              src={selfEditForm.avatar} 
+              alt="Profile Avatar" 
+              className="w-24 h-24 rounded-full object-cover border border-slate-200 shadow-xs"
+            />
+          </div>
+        )}
         <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-wide leading-none">{fullName}</h2>
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block font-sans">{programShort}</span>
         <div className="text-[10px] font-sans font-semibold text-slate-505 space-x-1.5">

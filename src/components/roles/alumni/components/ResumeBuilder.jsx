@@ -11,7 +11,8 @@ export default function ResumeBuilder({
   cvOptions,
   setCvOptions,
   handleDownloadCV,
-  handlePrintCV
+  handlePrintCV,
+  selfEditForm
 }) {
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-5 h-fit no-print-resume">
@@ -56,6 +57,22 @@ export default function ResumeBuilder({
       {/* Pagtatago o pagpapakita ng personal na impormasyon (Personal Info visibility) */}
       <div className="space-y-3 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-655">
         <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Customize Sections</label>
+
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <input 
+            type="checkbox"
+            checked={cvOptions.showPhoto}
+            onChange={(e) => setCvOptions({ ...cvOptions, showPhoto: e.target.checked })}
+            className="rounded border-slate-300 text-[#7c191e] focus:ring-[#7c191e] w-4 h-4 cursor-pointer"
+          />
+          <span>Include Profile Photo</span>
+        </label>
+
+        {cvOptions.showPhoto && !selfEditForm?.avatar && (
+          <p className="text-[10px] text-amber-700 font-bold bg-amber-50 p-2 rounded-md border border-amber-200 leading-normal animate-pulse">
+            ⚠️ No profile photo found. Please upload one in the "Tracer Intake Sheet" tab.
+          </p>
+        )}
         
         <label className="flex items-center gap-2.5 cursor-pointer select-none">
           <input 
