@@ -73,50 +73,51 @@ export default function ResumePreview({
       <div className="resume-wrapper relative">
         {styleOverride}
         <div 
-          className="resume-container mx-auto bg-white shadow-lg p-8 border border-slate-200 text-slate-800 flex flex-col md:flex-row gap-6 font-sans antialiased my-2 select-text"
+          className="resume-container mx-auto bg-white shadow-lg border border-slate-200 text-slate-800 flex flex-col md:flex-row gap-0 font-sans antialiased my-2 select-text"
           style={{ ...currentPaperStyle, width: '100%', boxSizing: 'border-box' }}
         >
-          <div className="w-full md:w-1/3 space-y-6 md:border-r md:border-slate-100 md:pr-6">
+          {/* Left Column (Sidebar) */}
+          <div className="w-full md:w-1/3 bg-[#faf6f6] border-r border-slate-100 p-8 space-y-6 flex flex-col">
             {cvOptions.showPhoto && selfEditForm?.avatar && (
-              <div className="flex justify-start mb-4">
+              <div className="flex justify-start mb-2">
                 <img 
                   src={selfEditForm.avatar} 
                   alt="Profile Avatar" 
-                  className="w-24 h-24 rounded-lg object-cover border border-slate-200 shadow-xs"
+                  className="w-24 h-24 rounded-lg object-cover border-2 border-[#7c191e] shadow-xs"
                 />
               </div>
             )}
             <div className="space-y-2">
               <h2 className="text-lg font-black text-[#7c191e] uppercase tracking-wide leading-tight">{fullName}</h2>
-              <span className="text-xs font-bold text-slate-505 uppercase tracking-widest block">{programShort.replace('BS ', '')} Graduate</span>
+              <span className="text-xs font-bold text-slate-550 uppercase tracking-widest block">{programShort.replace('BS ', '')} Graduate</span>
             </div>
             
             <div className="space-y-2 text-[11px] font-semibold text-slate-600">
-              <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block">Contact Info</span>
-              {cvOptions.showPhone && <div className="truncate">Phone: {phone || 'Not provided'}</div>}
-              <div className="truncate">Email: {email}</div>
-              <div className="break-words">Address: {address || 'Basco, Batanes'}</div>
+              <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">Contact Info</span>
+              {cvOptions.showPhone && <div className="truncate"><b>Phone:</b> {phone || 'Not provided'}</div>}
+              <div className="truncate"><b>Email:</b> {email}</div>
+              <div className="break-words"><b>Address:</b> {address || 'Basco, Batanes'}</div>
               {cvOptions.showCivilStatus && (
-                <div className="pt-1 border-t border-slate-100 mt-2 space-y-1">
-                  <div>Status: {civilStatus}</div>
-                  <div>Gender: {gender}</div>
+                <div className="pt-2 border-t border-slate-200/50 mt-2 space-y-1">
+                  <div><b>Status:</b> {civilStatus}</div>
+                  <div><b>Gender:</b> {gender}</div>
                 </div>
               )}
             </div>
 
             {cvOptions.showSkills && skills.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block">Core Skills</span>
+                <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">Core Skills</span>
                 <div className="flex flex-wrap gap-1">
                   {skills.map(s => (
-                    <span key={s} className="bg-slate-100 text-slate-705 px-2 py-0.5 rounded text-[10px] font-bold">{s}</span>
+                    <span key={s} className="bg-[#7c191e] text-white px-2 py-0.5 rounded text-[10px] font-bold">{s}</span>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 p-8 space-y-6">
             <div className="space-y-3">
               <h3 className="text-xs font-black uppercase text-[#7c191e] tracking-widest border-b border-[#7c191e] pb-1">Academic Background</h3>
               <div className="space-y-3">
@@ -173,9 +174,10 @@ export default function ResumePreview({
 
                   {/* Past career history timeline */}
                   {selfEditForm.careerHistory && selfEditForm.careerHistory.map((item, index) => (
-                    <div key={index} className="space-y-1 border-l-2 border-slate-200 pl-3 py-0.5">
+                    <div key={index} className="space-y-1 border-l-2 border-slate-200 pl-4 py-1 relative">
+                      <span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-[#cca43b] border border-white" />
                       <div className="flex justify-between font-extrabold text-xs">
-                        <span>{item.title}</span>
+                        <span className="text-slate-800">{item.title}</span>
                         <span className="text-slate-500 font-bold">{item.years}</span>
                       </div>
                       <div className="text-[11px] font-bold text-[#cca43b]">{item.company}</div>
@@ -196,7 +198,7 @@ export default function ResumePreview({
       <div className="resume-wrapper relative">
         {styleOverride}
         <div 
-          className="resume-container mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-800 font-serif antialiased my-2 space-y-8 select-text"
+          className="resume-container mx-auto bg-white shadow-lg p-10 border-4 border-double border-[#cca43b] text-slate-800 font-serif antialiased my-2 space-y-8 select-text"
           style={{ ...currentPaperStyle, width: '100%', boxSizing: 'border-box' }}
         >
           <div className="text-center space-y-2 pb-4 border-b-2 border-[#cca43b]">
@@ -293,7 +295,7 @@ export default function ResumePreview({
                 <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Technical Competencies</h3>
                 <div className="flex flex-wrap gap-1.5 font-sans">
                   {skills.map(s => (
-                    <span key={s} className="bg-slate-50 border border-slate-200 text-slate-700 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider">{s}</span>
+                    <span key={s} className="bg-slate-50 border border-[#cca43b]/40 text-[#cca43b] px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{s}</span>
                   ))}
                 </div>
               </div>

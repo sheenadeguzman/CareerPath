@@ -247,6 +247,65 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
   };
 
   /**
+   * Helper utility to temporarily clean stylesheets from OKLCH color definitions,
+   * avoiding html2canvas crash during PDF/Image generation. Restores them in a finally block.
+   */
+  const runWithCleanStyleSheets = async (callback) => {
+    let cleanCss = '';
+    const tempDiv = document.createElement('div');
+    document.body.appendChild(tempDiv);
+
+    // Kumuha at linisin ang lahat ng style rules
+    for (let i = 0; i < document.styleSheets.length; i++) {
+      const sheet = document.styleSheets[i];
+      try {
+        const rules = sheet.cssRules || sheet.rules;
+        if (!rules) continue;
+        for (let j = 0; j < rules.length; j++) {
+          let cssText = rules[j].cssText;
+          if (cssText.includes('oklch')) {
+            cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => {
+              try {
+                tempDiv.style.color = match;
+                return window.getComputedStyle(tempDiv).color || 'rgb(30, 41, 59)';
+              } catch (e) {
+                return 'rgb(30, 41, 59)';
+              }
+            });
+          }
+          cleanCss += cssText + '\n';
+        }
+      } catch (e) {
+        // Laktawan ang CORS stylesheet issues (kung meron)
+      }
+    }
+    document.body.removeChild(tempDiv);
+
+    // Gumawa ng temporary style element para sa malinis na CSS
+    const cleanStyleEl = document.createElement('style');
+    cleanStyleEl.id = 'html2canvas-clean-styles';
+    cleanStyleEl.textContent = cleanCss;
+    document.head.appendChild(cleanStyleEl);
+
+    const cleanSheet = cleanStyleEl.sheet;
+    const mockStyleSheets = [cleanSheet];
+
+    // Mock document.styleSheets
+    Object.defineProperty(document, 'styleSheets', {
+      get() { return mockStyleSheets; },
+      configurable: true
+    });
+
+    try {
+      await callback(mockStyleSheets);
+    } finally {
+      // Ibalik sa normal ang lahat ng style sheets
+      delete document.styleSheets;
+      cleanStyleEl.remove();
+    }
+  };
+
+  /**
    * Nag-da-download ng Resume/CV bilang PDF gamit ang 'html2pdf.js' library.
    * Nililinis nito ang mga oklch styles sa clone upang maiwasan ang pagka-crash ng parser.
    */
@@ -265,82 +324,44 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
-    // Itakda ang paper size format
     let format = 'letter';
     if (paperSize === 'a4') format = 'a4';
     else if (paperSize === 'legal') format = 'legal';
 
-    const opt = {
-      margin: 0,
-      filename: `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        onclone: (clonedDoc) => {
-          // Kumuha ng kopya ng lahat ng CSS rules sa active page at linisin ang oklch rules
-          const cleanStyle = clonedDoc.createElement('style');
-          let combinedCss = '';
-          
-          for (let i = 0; i < document.styleSheets.length; i++) {
-            const sheet = document.styleSheets[i];
-            try {
-              const rules = sheet.cssRules || sheet.rules;
-              if (!rules) continue;
-              for (let j = 0; j < rules.length; j++) {
-                combinedCss += rules[j].cssText + '\n';
-              }
-            } catch (e) {
-              // Ignore cross-origin access blocks
-            }
-          }
-          
-          // I-convert ang oklch colors sa standard RGB string format
-          const oklchRegex = /oklch\(([^)]+)\)/g;
-          combinedCss = combinedCss.replace(oklchRegex, (match) => {
-            try {
-              const temp = document.createElement('div');
-              temp.style.color = match;
-              document.body.appendChild(temp);
-              const rgb = window.getComputedStyle(temp).color;
-              document.body.removeChild(temp);
-              return rgb;
-            } catch (err) {
-              return 'rgb(30, 41, 59)';
-            }
-          });
-          
-          cleanStyle.textContent = combinedCss;
-          clonedDoc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
-          clonedDoc.head.appendChild(cleanStyle);
-
-          // Ayusin ang itsura ng container sa loob ng clone para sa eksaktong sukat ng page
-          const clonedContainer = clonedDoc.querySelector('.resume-container');
-          if (clonedContainer) {
-            clonedContainer.style.margin = '0';
-            clonedContainer.style.border = 'none';
-            clonedContainer.style.boxShadow = 'none';
-          }
-        }
-      },
-      jsPDF: { unit: 'in', format: format, orientation: 'portrait' }
-    };
-
     console.log('Executing html2pdf pipeline with format:', format);
-    try {
-      window.html2pdf().set(opt).from(element).save()
-        .then(() => {
-          console.log('html2pdf successfully generated and saved.');
-        })
-        .catch(err => {
-          console.error('html2pdf promise rejection caught:', err);
-          alert('Failed to generate PDF. Please try exporting as Image or Word.');
-        });
-    } catch (e) {
-      console.error('Synchronous exception during html2pdf invocation:', e);
-      alert('Error during PDF conversion: ' + e.message);
-    }
+    
+    runWithCleanStyleSheets(async (mockSheets) => {
+      const opt = {
+        margin: 0,
+        filename: `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          onclone: (clonedDoc) => {
+            // I-mock ang styleSheets sa cloned document
+            Object.defineProperty(clonedDoc, 'styleSheets', {
+              get() { return mockSheets; },
+              configurable: true
+            });
+            const clonedContainer = clonedDoc.querySelector('.resume-container');
+            if (clonedContainer) {
+              clonedContainer.style.margin = '0';
+              clonedContainer.style.border = 'none';
+              clonedContainer.style.boxShadow = 'none';
+            }
+          }
+        },
+        jsPDF: { unit: 'in', format: format, orientation: 'portrait' }
+      };
+
+      await window.html2pdf().set(opt).from(element).save();
+      console.log('html2pdf pipeline executed successfully.');
+    }).catch(err => {
+      console.error('html2pdf promise rejection caught:', err);
+      alert('Failed to generate PDF. Please try exporting as Image or Word.');
+    });
   };
 
   /**
@@ -348,31 +369,393 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
    * page layout XML ng Word upang maging adjustable ang page size batay sa piniling paperSize.
    */
   const handleDownloadWord = () => {
-    const element = document.querySelector('.resume-container');
-    if (!element) {
-      alert('Resume element not found.');
-      return;
-    }
+    const fullName = [selfEditForm.firstName, selfEditForm.middleName, selfEditForm.lastName, selfEditForm.suffix].filter(Boolean).join(' ');
+    const programShort = selfEditForm.program || '';
+    const email = selfEditForm.email || '';
+    const phone = selfEditForm.phone || '';
+    const address = selfEditForm.address || '';
+    const civilStatus = selfEditForm.civilStatus || '';
+    const gender = selfEditForm.gender || '';
+    const yearGraduated = selfEditForm.yearGraduated || '';
+    const skills = selfEditForm.skills || [];
 
-    // Tukuyin ang size properties para sa CSS ng Word section
     let sizeCss = '';
     if (paperSize === 'a4') {
       sizeCss = '@page Section1 { size: 8.27in 11.69in; margin: 0.5in; } div.Section1 { page: Section1; }';
     } else if (paperSize === 'legal') {
       sizeCss = '@page Section1 { size: 8.5in 14.0in; margin: 0.5in; } div.Section1 { page: Section1; }';
     } else {
-      // letter
       sizeCss = '@page Section1 { size: 8.5in 11.0in; margin: 0.5in; } div.Section1 { page: Section1; }';
     }
 
-    const contentHtml = element.innerHTML;
+    let templateContent = '';
 
-    // Wrap in Word template and compile inline helper styles to format the flex/grid items cleanly
+    if (selectedTemplate === 'modern') {
+      // Modern template with a 2-column layout (Table based to ensure Word columns format perfectly)
+      templateContent = `
+        <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif;">
+          <tr>
+            <!-- Left column (Sidebar) -->
+            <td style="width: 32%; background-color: #faf6f6; border-right: 2px solid #e2e8f0; padding: 25px 15px; vertical-align: top;">
+              ${cvOptions.showPhoto && selfEditForm?.avatar ? `
+                <div style="margin-bottom: 20px;">
+                  <img src="${selfEditForm.avatar}" style="width: 90px; height: 90px; border-radius: 8px; border: 2px solid #7c191e; object-fit: cover;" />
+                </div>
+              ` : ''}
+              
+              <div style="margin-bottom: 25px;">
+                <h2 style="font-size: 14pt; font-weight: bold; color: #7c191e; text-transform: uppercase; margin: 0 0 5px 0;">${fullName}</h2>
+                <div style="font-size: 8.5pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">${programShort.replace('BS ', '')} Graduate</div>
+              </div>
+
+              <!-- Contact Info -->
+              <div style="margin-bottom: 25px; font-size: 8.5pt; color: #475569;">
+                <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Contact Info</h3>
+                ${cvOptions.showPhone && phone ? `<div style="margin-bottom: 5px;"><b>Phone:</b> ${phone}</div>` : ''}
+                <div style="margin-bottom: 5px;"><b>Email:</b> ${email}</div>
+                <div style="margin-bottom: 5px;"><b>Address:</b> ${address || 'Basco, Batanes'}</div>
+                ${cvOptions.showCivilStatus ? `
+                  <div style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 5px;">
+                    <div style="margin-bottom: 3px;"><b>Status:</b> ${civilStatus}</div>
+                    <div><b>Gender:</b> ${gender}</div>
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Skills -->
+              ${cvOptions.showSkills && skills.length > 0 ? `
+                <div style="font-size: 8.5pt; color: #475569;">
+                  <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Core Skills</h3>
+                  <div>
+                    ${skills.map(s => `<span style="background-color: #7c191e; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8pt; display: inline-block; margin-right: 4px; margin-bottom: 6px; font-weight: bold;">${s}</span>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            </td>
+
+            <!-- Right column (Main details) -->
+            <td style="width: 68%; padding: 25px 20px; vertical-align: top;">
+              <!-- Academic Background -->
+              <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 11pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 2px solid #7c191e; padding-bottom: 4px; margin: 0 0 15px 0; letter-spacing: 1px;">Academic Background</h3>
+                
+                <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+                  <tr>
+                    <td style="font-weight: bold; color: #0f172a;">Batanes State College</td>
+                    <td style="text-align: right; font-weight: bold; color: #7c191e;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="color: #475569; padding-top: 3px;">${programShort}</td>
+                  </tr>
+                  ${selfEditForm.honors && selfEditForm.honors !== 'None' ? `
+                    <tr>
+                      <td colspan="2" style="color: #d97706; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 5px;">Honors: ${selfEditForm.honors}</td>
+                    </tr>
+                  ` : ''}
+                  ${selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' ? `
+                    <tr>
+                      <td colspan="2" style="color: #047857; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 3px;">License: ${selfEditForm.professionalExamPassed}</td>
+                    </tr>
+                  ` : ''}
+                </table>
+
+                ${selfEditForm.educationHistory && selfEditForm.educationHistory.map(item => `
+                  <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt;">
+                    <tr>
+                      <td style="font-weight: bold; color: #0f172a;">${item.school}</td>
+                      <td style="text-align: right; color: #64748b; font-weight: bold;">${item.years}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="color: #475569; padding-top: 3px;">${item.degree}</td>
+                    </tr>
+                  </table>
+                `).join('')}
+              </div>
+
+              <!-- Professional Experience -->
+              <div>
+                <h3 style="font-size: 11pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 2px solid #7c191e; padding-bottom: 4px; margin: 0 0 15px 0; letter-spacing: 1px;">Professional Experience</h3>
+                
+                ${selfEditForm.employmentStatus === 'Unemployed' && (!selfEditForm.careerHistory || selfEditForm.careerHistory.length === 0) ? `
+                  <div style="font-size: 9.5pt; font-style: italic; color: #94a3b8;">Currently seeking opportunities.</div>
+                ` : `
+                  ${selfEditForm.employmentStatus !== 'Unemployed' ? `
+                    <div style="margin-bottom: 20px;">
+                      <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                        <tr>
+                          <td style="font-weight: bold; color: #0f172a;">${selfEditForm.jobTitle || 'Graduate Trainee'}</td>
+                          <td style="text-align: right; font-weight: bold; color: #7c191e;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="color: #64748b; font-style: italic; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
+                        </tr>
+                      </table>
+                      ${cvOptions.showDescription && selfEditForm.jobDescription ? `
+                        <div style="font-size: 8.5pt; color: #475569; background-color: #f8fafc; padding: 10px; border-left: 3px solid #7c191e; margin-top: 8px; line-height: 1.4;">
+                          ${selfEditForm.jobDescription.replace(/\n/g, '<br/>')}
+                        </div>
+                      ` : ''}
+                      ${cvOptions.showSalary && selfEditForm.monthlyIncome ? `
+                        <div style="font-size: 8.5pt; font-weight: bold; color: #7c191e; text-transform: uppercase; margin-top: 5px;">Income Bracket: P ${selfEditForm.monthlyIncome}</div>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+
+                  <!-- Past career history -->
+                  ${selfEditForm.careerHistory && selfEditForm.careerHistory.map(item => `
+                    <div style="margin-bottom: 12px; border-left: 2px solid #cca43b; padding-left: 10px;">
+                      <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                        <tr>
+                          <td style="font-weight: bold; color: #0f172a;">${item.title}</td>
+                          <td style="text-align: right; color: #64748b;">${item.years}</td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="color: #cca43b; font-weight: 500; padding-top: 2px;">${item.company}</td>
+                        </tr>
+                      </table>
+                    </div>
+                  `).join('')}
+                `}
+              </div>
+            </td>
+          </tr>
+        </table>
+      `;
+    } else if (selectedTemplate === 'gold') {
+      // Gold Minimalist Template (Includes beautiful double border and golden tones)
+      templateContent = `
+        <div style="font-family: Georgia, serif; padding: 25px; border: 4px double #cca43b; background-color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #cca43b; padding-bottom: 15px;">
+            ${cvOptions.showPhoto && selfEditForm?.avatar ? `
+              <div style="margin-bottom: 12px; text-align: center;">
+                <img src="${selfEditForm.avatar}" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #cca43b; object-fit: cover; display: inline-block;" />
+              </div>
+            ` : ''}
+            <h2 style="font-size: 18pt; color: #0f172a; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 5px 0; font-weight: normal;">${fullName}</h2>
+            <div style="font-size: 9pt; font-weight: bold; color: #cca43b; text-transform: uppercase; font-family: Arial, sans-serif; letter-spacing: 1.5px;">${programShort}</div>
+            
+            <div style="font-size: 8.5pt; font-family: Arial, sans-serif; color: #64748b; margin-top: 10px;">
+              ${cvOptions.showPhone && phone ? `Phone: ${phone} &bull; ` : ''}
+              Email: ${email} &bull; Address: ${address || 'Basco, Batanes'}
+              ${cvOptions.showCivilStatus ? ` &bull; Status: ${civilStatus}` : ''}
+            </div>
+          </div>
+
+          <!-- Education -->
+          <div style="margin-bottom: 25px;">
+            <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-family: Arial, sans-serif; letter-spacing: 1px; margin: 0 0 12px 0;">Education</h3>
+            
+            <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt;">
+              <tr>
+                <td style="font-weight: bold; color: #0f172a;">Batanes State College</td>
+                <td style="text-align: right; color: #64748b;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${programShort}</td>
+              </tr>
+              ${selfEditForm.honors && selfEditForm.honors !== 'None' ? `
+                <tr>
+                  <td colspan="2" style="color: #64748b; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 4px;">Honors: ${selfEditForm.honors}</td>
+                </tr>
+              ` : ''}
+              ${selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' ? `
+                <tr>
+                  <td colspan="2" style="color: #64748b; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 2px;">License: ${selfEditForm.professionalExamPassed}</td>
+                </tr>
+              ` : ''}
+            </table>
+
+            ${selfEditForm.educationHistory && selfEditForm.educationHistory.map(item => `
+              <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
+                <tr>
+                  <td style="font-weight: bold; color: #0f172a;">${item.school}</td>
+                  <td style="text-align: right; color: #64748b;">${item.years}</td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${item.degree}</td>
+                </tr>
+              </table>
+            `).join('')}
+          </div>
+
+          <!-- Professional Experience -->
+          <div style="margin-bottom: 25px;">
+            <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-family: Arial, sans-serif; letter-spacing: 1px; margin: 0 0 12px 0;">Professional Experience</h3>
+            
+            ${selfEditForm.employmentStatus === 'Unemployed' && (!selfEditForm.careerHistory || selfEditForm.careerHistory.length === 0) ? `
+              <div style="font-size: 9.5pt; font-style: italic; color: #94a3b8;">Currently seeking opportunities.</div>
+            ` : `
+              ${selfEditForm.employmentStatus !== 'Unemployed' ? `
+                <div style="margin-bottom: 15px;">
+                  <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                    <tr>
+                      <td style="font-weight: bold; color: #0f172a;">${selfEditForm.jobTitle || 'Graduate Trainee'}</td>
+                      <td style="text-align: right; font-weight: bold; color: #cca43b;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="color: #64748b; font-style: italic; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
+                    </tr>
+                  </table>
+                  ${cvOptions.showDescription && selfEditForm.jobDescription ? `
+                    <div style="font-size: 9pt; color: #475569; line-height: 1.4; margin-top: 6px;">
+                      ${selfEditForm.jobDescription.replace(/\n/g, '<br/>')}
+                    </div>
+                  ` : ''}
+                  ${cvOptions.showSalary && selfEditForm.monthlyIncome ? `
+                    <div style="font-size: 8.5pt; font-weight: bold; color: #cca43b; text-transform: uppercase; margin-top: 4px;">Income Bracket: P ${selfEditForm.monthlyIncome}</div>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              <!-- Past career history -->
+              ${selfEditForm.careerHistory && selfEditForm.careerHistory.map(item => `
+                <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
+                  <tr>
+                    <td style="font-weight: bold; color: #0f172a;">${item.title}</td>
+                    <td style="text-align: right; color: #64748b;">${item.years}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="color: #475569; padding-top: 2px;">${item.company}</td>
+                  </tr>
+                </table>
+              `).join('')}
+            `}
+          </div>
+
+          <!-- Skills -->
+          ${cvOptions.showSkills && skills.length > 0 ? `
+            <div>
+              <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-family: Arial, sans-serif; letter-spacing: 1px; margin: 0 0 12px 0;">Technical Competencies</h3>
+              <div style="margin-top: 5px;">
+                ${skills.map(s => `<span style="border: 1px solid #cca43b; color: #cca43b; padding: 2px 8px; border-radius: 4px; font-size: 8pt; font-family: Arial, sans-serif; display: inline-block; margin-right: 6px; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; background-color: #fafaf5;">${s}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else {
+      // Classic Executive Template (Highly centered, traditional layout)
+      templateContent = `
+        <div style="font-family: 'Times New Roman', Times, serif; padding: 15px; background-color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 25px; border-bottom: 1px solid #1e293b; padding-bottom: 15px;">
+            ${cvOptions.showPhoto && selfEditForm?.avatar ? `
+              <div style="margin-bottom: 12px; text-align: center;">
+                <img src="${selfEditForm.avatar}" style="width: 90px; height: 90px; border-radius: 50%; border: 1px solid #94a3b8; object-fit: cover; display: inline-block;" />
+              </div>
+            ` : ''}
+            <h2 style="font-size: 20pt; color: #0f172a; text-transform: uppercase; font-weight: bold; margin: 0 0 5px 0;">${fullName}</h2>
+            <div style="font-size: 10pt; font-weight: bold; color: #64748b; text-transform: uppercase; font-family: Arial, sans-serif; letter-spacing: 1px;">${programShort}</div>
+            
+            <div style="font-size: 9pt; font-family: Arial, sans-serif; color: #475569; margin-top: 8px;">
+              ${cvOptions.showPhone && phone ? `Phone: ${phone} &bull; ` : ''}
+              Email: ${email} &bull; Address: ${address || 'Basco, Batanes'}
+            </div>
+            ${cvOptions.showCivilStatus ? `
+              <div style="font-size: 8.5pt; font-family: Arial, sans-serif; color: #94a3b8; text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">
+                Status: ${civilStatus} &bull; Gender: ${gender}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Education -->
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Education</h3>
+            
+            <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt;">
+              <tr>
+                <td style="font-weight: bold; color: #0f172a;">Batanes State College</td>
+                <td style="text-align: right; font-weight: bold; color: #0f172a;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${programShort}</td>
+              </tr>
+              ${selfEditForm.honors && selfEditForm.honors !== 'None' ? `
+                <tr>
+                  <td colspan="2" style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 4px;">Honors: ${selfEditForm.honors}</td>
+                </tr>
+              ` : ''}
+              ${selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' ? `
+                <tr>
+                  <td colspan="2" style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 2px;">License: ${selfEditForm.professionalExamPassed}</td>
+                </tr>
+              ` : ''}
+            </table>
+
+            ${selfEditForm.educationHistory && selfEditForm.educationHistory.map(item => `
+              <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
+                <tr>
+                  <td style="font-weight: bold; color: #0f172a;">${item.school}</td>
+                  <td style="text-align: right; font-weight: bold; color: #0f172a;">${item.years}</td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${item.degree}</td>
+                </tr>
+              </table>
+            `).join('')}
+          </div>
+
+          <!-- Professional Experience -->
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Professional Experience</h3>
+            
+            ${selfEditForm.employmentStatus === 'Unemployed' && (!selfEditForm.careerHistory || selfEditForm.careerHistory.length === 0) ? `
+              <div style="font-size: 9.5pt; font-style: italic; color: #94a3b8;">Currently seeking opportunities.</div>
+            ` : `
+              ${selfEditForm.employmentStatus !== 'Unemployed' ? `
+                <div style="margin-bottom: 15px;">
+                  <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                    <tr>
+                      <td style="font-weight: bold; color: #0f172a;">${selfEditForm.jobTitle || 'Graduate Trainee'}</td>
+                      <td style="text-align: right; color: #475569;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="font-weight: bold; font-style: italic; color: #64748b; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
+                    </tr>
+                  </table>
+                  ${cvOptions.showDescription && selfEditForm.jobDescription ? `
+                    <div style="font-size: 9pt; color: #475569; line-height: 1.4; margin-top: 4px;">
+                      ${selfEditForm.jobDescription.replace(/\n/g, '<br/>')}
+                    </div>
+                  ` : ''}
+                  ${cvOptions.showSalary && selfEditForm.monthlyIncome ? `
+                    <div style="font-size: 8.5pt; font-weight: bold; text-transform: uppercase; margin-top: 4px;">Income Bracket: P ${selfEditForm.monthlyIncome}</div>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              <!-- Past career history -->
+              ${selfEditForm.careerHistory && selfEditForm.careerHistory.map(item => `
+                <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
+                  <tr>
+                    <td style="font-weight: bold; color: #0f172a;">${item.title}</td>
+                    <td style="text-align: right; color: #64748b;">${item.years}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="font-weight: bold; color: #475569; padding-top: 2px;">${item.company}</td>
+                  </tr>
+                </table>
+              `).join('')}
+            `}
+          </div>
+
+          <!-- Skills -->
+          ${cvOptions.showSkills && skills.length > 0 ? `
+            <div>
+              <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Skills and Certifications</h3>
+              <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 9.5pt; color: #334155;">
+                ${skills.map(s => `<li style="margin-bottom: 4px;">${s}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
     const htmlDoc = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
         <meta charset="utf-8">
-        <title>Resume - ${selfEditForm.firstName || ''} ${selfEditForm.lastName || ''}</title>
+        <title>Resume - ${fullName}</title>
         <!--[if gte mso 9]>
         <xml>
           <w:WordDocument>
@@ -385,101 +768,17 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
         <style>
           ${sizeCss}
           body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            color: #1e293b;
-            line-height: 1.3;
             margin: 0;
             padding: 0;
           }
-          .resume-container {
-            width: 100%;
+          div.Section1 { 
+            page: Section1; 
           }
-          /* Custom layout overrides to format flex blocks in Word */
-          .flex {
-            display: block;
-            width: 100%;
-          }
-          /* Column split for Modern layout */
-          .md\\:w-1\\/3 {
-            float: left;
-            width: 30%;
-            margin-right: 4%;
-          }
-          .flex-1 {
-            float: left;
-            width: 66%;
-          }
-          /* Clear floats */
-          .resume-container:after {
-            content: "";
-            display: table;
-            clear: both;
-          }
-          .space-y-6 > * + * { margin-top: 15px; }
-          .space-y-4 > * + * { margin-top: 12px; }
-          .space-y-3 > * + * { margin-top: 8px; }
-          .space-y-2 > * + * { margin-top: 6px; }
-          .space-y-1 > * + * { margin-top: 3px; }
-          
-          /* Colors */
-          .text-\\[\\#7c191e\\] { color: #7c191e !important; }
-          .text-\\[\\#cca43b\\] { color: #cca43b !important; }
-          .text-slate-900 { color: #0f172a !important; }
-          .text-slate-800 { color: #1e293b !important; }
-          .text-slate-705, .text-slate-700 { color: #334155 !important; }
-          .text-slate-650, .text-slate-655 { color: #475569 !important; }
-          .text-slate-505, .text-slate-500 { color: #64748b !important; }
-          .text-slate-400 { color: #94a3b8 !important; }
-          
-          /* Borders and Dividers */
-          .border-b { border-bottom: 1px solid #7c191e; }
-          .border-b-2 { border-bottom: 2px solid #cca43b; }
-          .border-t { border-top: 1px solid #e2e8f0; }
-          .border-l-2 { border-left: 2px solid #e2e8f0; padding-left: 8px; }
-          .pb-1 { padding-bottom: 4px; }
-          .pb-4 { padding-bottom: 12px; }
-          .pt-1 { padding-top: 4px; }
-          .mt-2 { margin-top: 8px; }
-          .mt-1 { margin-top: 4px; }
-          
-          /* Typo sizes */
-          h2 { font-size: 16pt; margin: 0 0 5px 0; font-weight: bold; }
-          h3 { font-size: 11pt; margin: 12px 0 4px 0; font-weight: bold; text-transform: uppercase; }
-          .text-xs { font-size: 8.5pt; }
-          .text-sm { font-size: 9.5pt; }
-          .text-[11px] { font-size: 8.5pt; }
-          .text-[10px] { font-size: 8pt; }
-          .text-[9px] { font-size: 7.5pt; }
-          .font-black, .font-extrabold { font-weight: bold; }
-          .font-bold { font-weight: bold; }
-          .uppercase { text-transform: uppercase; }
-          .italic { font-style: italic; }
-          
-          /* Center content for classic/gold styles */
-          .text-center { text-align: center; }
-          .justify-center { text-align: center; }
-          
-          /* Photo styling */
-          .rounded-lg { border-radius: 6px; }
-          .rounded-full { border-radius: 50%; }
-          
-          /* Skill badge wrappers */
-          .flex-wrap { display: block; margin-top: 4px; }
-          .bg-slate-100 { 
-            background: #f1f5f9; 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            font-size: 8pt; 
-            display: inline-block; 
-            margin-right: 4px; 
-            margin-bottom: 4px; 
-          }
-          .list-item { display: inline-block; margin-right: 12px; }
         </style>
       </head>
       <body>
         <div class="Section1">
-          ${contentHtml}
+          ${templateContent}
         </div>
       </body>
       </html>
@@ -511,56 +810,26 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
-    window.html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      onclone: (clonedDoc) => {
-        // Redefine clonedDoc.styleSheets to bypass OKLCH crashes dynamically in html2canvas parsing
-        const cleanStyle = clonedDoc.createElement('style');
-        let combinedCss = '';
-        
-        for (let i = 0; i < document.styleSheets.length; i++) {
-          const sheet = document.styleSheets[i];
-          try {
-            const rules = sheet.cssRules || sheet.rules;
-            if (!rules) continue;
-            for (let j = 0; j < rules.length; j++) {
-              combinedCss += rules[j].cssText + '\n';
-            }
-          } catch (e) {
-            // Cross-origin CSS block bypass
+    runWithCleanStyleSheets(async (mockSheets) => {
+      const canvas = await window.html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          // I-mock ang styleSheets sa cloned document
+          Object.defineProperty(clonedDoc, 'styleSheets', {
+            get() { return mockSheets; },
+            configurable: true
+          });
+          const clonedContainer = clonedDoc.querySelector('.resume-container');
+          if (clonedContainer) {
+            clonedContainer.style.margin = '0';
+            clonedContainer.style.border = 'none';
+            clonedContainer.style.boxShadow = 'none';
           }
         }
-        
-        // Convert all oklch values to their equivalent RGB strings
-        const oklchRegex = /oklch\(([^)]+)\)/g;
-        combinedCss = combinedCss.replace(oklchRegex, (match) => {
-          try {
-            const temp = document.createElement('div');
-            temp.style.color = match;
-            document.body.appendChild(temp);
-            const rgb = window.getComputedStyle(temp).color;
-            document.body.removeChild(temp);
-            return rgb;
-          } catch (err) {
-            return 'rgb(30, 41, 59)';
-          }
-        });
-        
-        cleanStyle.textContent = combinedCss;
-        clonedDoc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
-        clonedDoc.head.appendChild(cleanStyle);
-
-        // Adjust layout of the container inside the canvas clone
-        const clonedContainer = clonedDoc.querySelector('.resume-container');
-        if (clonedContainer) {
-          clonedContainer.style.margin = '0';
-          clonedContainer.style.border = 'none';
-          clonedContainer.style.boxShadow = 'none';
-        }
-      }
-    }).then(canvas => {
+      });
+      
       const imgData = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = imgData;
