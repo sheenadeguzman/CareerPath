@@ -262,9 +262,22 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
-    // INTERCEPT OKLCH COLORS FOR HTML2CANVAS COMPATIBILITY
+    // 1. INTERCEPT DOCUMENT.STYLESHEETS TO PREVENT STYLESHEET PARSING ERRORS
+    const originalStyleSheets = document.styleSheets;
+    try {
+      Object.defineProperty(document, 'styleSheets', {
+        get() { return []; },
+        configurable: true
+      });
+    } catch (e) {
+      console.error('Failed to redefine document.styleSheets:', e);
+    }
+
+    // 2. INTERCEPT WINDOW.GETCOMPUTEDSTYLE TO CONVERT OKLCH TO RGB ON THE FLY
     const originalGetComputedStyle = window.getComputedStyle;
     const oklchCache = {};
+    const oklchRegex = /oklch\([^)]+\)/g;
+
     function convertOklchToRgb(oklchStr) {
       if (oklchCache[oklchStr]) return oklchCache[oklchStr];
       try {
@@ -280,6 +293,11 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       }
     }
 
+    function translateOklchInString(str) {
+      if (typeof str !== 'string' || !str.includes('oklch')) return str;
+      return str.replace(oklchRegex, (match) => convertOklchToRgb(match));
+    }
+
     // Mock window.getComputedStyle to translate oklch to rgb on the fly
     window.getComputedStyle = function (el, pseudoEl) {
       const style = originalGetComputedStyle(el, pseudoEl);
@@ -288,15 +306,12 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
           if (prop === 'getPropertyValue') {
             return function (propertyName) {
               const val = target.getPropertyValue(propertyName);
-              if (typeof val === 'string' && val.includes('oklch')) {
-                return convertOklchToRgb(val);
-              }
-              return val;
+              return translateOklchInString(val);
             };
           }
           const val = target[prop];
           if (typeof val === 'string' && val.includes('oklch')) {
-            return convertOklchToRgb(val);
+            return translateOklchInString(val);
           }
           if (typeof val === 'function') {
             return val.bind(target);
@@ -315,22 +330,34 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
+    const restoreOriginals = () => {
+      window.getComputedStyle = originalGetComputedStyle;
+      try {
+        Object.defineProperty(document, 'styleSheets', {
+          get() { return originalStyleSheets; },
+          configurable: true
+        });
+      } catch (e) {
+        console.error('Failed to restore document.styleSheets:', e);
+      }
+    };
+
     console.log('Executing html2pdf pipeline...');
     try {
       window.html2pdf().set(opt).from(element).save()
         .then(() => {
           console.log('html2pdf output save promise resolved successfully.');
-          window.getComputedStyle = originalGetComputedStyle;
+          restoreOriginals();
         })
         .catch(err => {
           console.error('html2pdf promise rejection caught:', err);
           alert('Failed to generate PDF. Check developer console.');
-          window.getComputedStyle = originalGetComputedStyle;
+          restoreOriginals();
         });
     } catch (e) {
       console.error('Synchronous exception during html2pdf invocation:', e);
       alert('Error during PDF conversion: ' + e.message);
-      window.getComputedStyle = originalGetComputedStyle;
+      restoreOriginals();
     }
   };
 
