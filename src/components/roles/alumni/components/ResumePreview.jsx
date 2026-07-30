@@ -3,8 +3,25 @@ import React from 'react';
 export default function ResumePreview({
   selfEditForm,
   selectedTemplate,
-  cvOptions
+  cvOptions,
+  paperSize = 'letter'
 }) {
+  const paperStyles = {
+    letter: {
+      maxWidth: '8.5in',
+      minHeight: '11in',
+    },
+    a4: {
+      maxWidth: '8.27in',
+      minHeight: '11.69in',
+    },
+    legal: {
+      maxWidth: '8.5in',
+      minHeight: '14in',
+    }
+  };
+  const currentPaperStyle = paperStyles[paperSize] || paperStyles.letter;
+
   const fullName = [selfEditForm.firstName, selfEditForm.middleName, selfEditForm.lastName, selfEditForm.suffix].filter(Boolean).join(' ');
   const programShort = selfEditForm.program || '';
   const email = selfEditForm.email || '';
@@ -55,7 +72,10 @@ export default function ResumePreview({
     return (
       <div className="resume-wrapper relative">
         {styleOverride}
-        <div className="resume-container w-full max-w-[800px] mx-auto bg-white shadow-lg p-8 border border-slate-200 text-slate-800 flex flex-col md:flex-row gap-6 font-sans antialiased my-2 min-h-[900px] select-text">
+        <div 
+          className="resume-container mx-auto bg-white shadow-lg p-8 border border-slate-200 text-slate-800 flex flex-col md:flex-row gap-6 font-sans antialiased my-2 select-text"
+          style={{ ...currentPaperStyle, width: '100%', boxSizing: 'border-box' }}
+        >
           <div className="w-full md:w-1/3 space-y-6 md:border-r md:border-slate-100 md:pr-6">
             {cvOptions.showPhoto && selfEditForm?.avatar && (
               <div className="flex justify-start mb-4">
@@ -175,7 +195,10 @@ export default function ResumePreview({
     return (
       <div className="resume-wrapper relative">
         {styleOverride}
-        <div className="resume-container w-full max-w-[800px] mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-800 font-serif antialiased my-2 min-h-[900px] space-y-8 select-text">
+        <div 
+          className="resume-container mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-800 font-serif antialiased my-2 space-y-8 select-text"
+          style={{ ...currentPaperStyle, width: '100%', boxSizing: 'border-box' }}
+        >
           <div className="text-center space-y-2 pb-4 border-b-2 border-[#cca43b]">
             {cvOptions.showPhoto && selfEditForm?.avatar && (
               <div className="flex justify-center mb-3">
@@ -285,7 +308,10 @@ export default function ResumePreview({
   return (
     <div className="resume-wrapper relative">
       {styleOverride}
-      <div className="resume-container w-full max-w-[800px] mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-955 font-serif antialiased my-2 min-h-[900px] space-y-6 select-text">
+      <div 
+        className="resume-container mx-auto bg-white shadow-lg p-10 border border-slate-200 text-slate-955 font-serif antialiased my-2 space-y-6 select-text"
+        style={{ ...currentPaperStyle, width: '100%', boxSizing: 'border-box' }}
+      >
         <div className="text-center space-y-1">
           {cvOptions.showPhoto && selfEditForm?.avatar && (
             <div className="flex justify-center mb-3">
