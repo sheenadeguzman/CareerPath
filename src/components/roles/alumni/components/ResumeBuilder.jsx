@@ -54,6 +54,33 @@ export default function ResumeBuilder({
             <span>Classic Executive (Serif Typography)</span>
             {selectedTemplate === 'classic' && <Check className="w-4 h-4" />}
           </button>
+          <button
+            onClick={() => setSelectedTemplate('emerald')}
+            className={`w-full py-2.5 px-4 text-left rounded-lg text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+              selectedTemplate === 'emerald' ? 'bg-[#7c191e] text-white' : 'bg-slate-50 text-slate-700 border border-slate-150 hover:bg-slate-100'
+            }`}
+          >
+            <span>Emerald Corporate (Deep Green Accents)</span>
+            {selectedTemplate === 'emerald' && <Check className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={() => setSelectedTemplate('midnight')}
+            className={`w-full py-2.5 px-4 text-left rounded-lg text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+              selectedTemplate === 'midnight' ? 'bg-[#7c191e] text-white' : 'bg-slate-50 text-slate-700 border border-slate-150 hover:bg-slate-100'
+            }`}
+          >
+            <span>Midnight Minimal (Slate Blue Theme)</span>
+            {selectedTemplate === 'midnight' && <Check className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={() => setSelectedTemplate('charcoal')}
+            className={`w-full py-2.5 px-4 text-left rounded-lg text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+              selectedTemplate === 'charcoal' ? 'bg-[#7c191e] text-white' : 'bg-slate-50 text-slate-700 border border-slate-150 hover:bg-slate-100'
+            }`}
+          >
+            <span>Charcoal Clean (Modernist Layout)</span>
+            {selectedTemplate === 'charcoal' && <Check className="w-4 h-4" />}
+          </button>
         </div>
       </div>
 

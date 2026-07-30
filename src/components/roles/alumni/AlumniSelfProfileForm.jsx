@@ -553,6 +553,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     const gender = selfEditForm.gender || '';
     const yearGraduated = selfEditForm.yearGraduated || '';
     const skills = selfEditForm.skills || [];
+    const langs = selfEditForm.languages ? selfEditForm.languages.split(',').map(l => l.trim()).filter(Boolean) : [];
 
     let sizeCss = '';
     if (paperSize === 'a4') {
@@ -824,76 +825,322 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
           ` : ''}
 
           <!-- Languages -->
-          ${cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 ? `
+          ${cvOptions.showLanguages && langs.length > 0 ? `
             <div style="font-size: 8.5pt; color: #475569; font-weight: bold; font-family: Arial, sans-serif;">
               <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; letter-spacing: 1px; margin: 0 0 12px 0;">Languages</h3>
               <div style="margin-top: 5px; line-height: 1.4;">
-                ${selfEditForm.languages.map(l => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${l}</span>`).join('')}
+                ${langs.map(l => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${l}</span>`).join('')}
               </div>
             </div>
           ` : ''}
         </div>
       `;
-    } else {
-      // Classic Executive Template (Highly centered, traditional layout)
+    } else if (selectedTemplate === 'emerald') {
+      // Emerald Corporate Template (.docx Layout)
       templateContent = `
-        <div style="font-family: 'Times New Roman', Times, serif; padding: 15px; background-color: #ffffff;">
-          <div style="text-align: center; margin-bottom: 25px; border-bottom: 1px solid #1e293b; padding-bottom: 15px;">
+        <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+          <tr>
+            <td style="width: 32%; background-color: #f2faf7; border-right: 2px solid #064e3b; padding: 25px 15px; vertical-align: top;">
+              ${cvOptions.showPhoto && selfEditForm?.avatar ? `
+                <div style="margin-bottom: 20px;">
+                  <img src="${selfEditForm.avatar}" style="width: 90px; height: 90px; border-radius: 8px; border: 2px solid #064e3b; object-fit: cover;" />
+                </div>
+              ` : ''}
+              
+              <div style="margin-bottom: 25px;">
+                <h2 style="font-size: 14pt; font-weight: bold; color: #064e3b; text-transform: uppercase; margin: 0 0 5px 0;">${fullName}</h2>
+                <div style="font-size: 8.5pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">${programShort.replace('BS ', '')} Graduate</div>
+              </div>
+
+              ${cvOptions.showAboutMe && selfEditForm.aboutMe ? `
+                <div style="margin-bottom: 25px; font-size: 8.5pt; color: #475569;">
+                  <h3 style="font-size: 9pt; font-weight: bold; color: #064e3b; text-transform: uppercase; border-bottom: 1px solid #064e3b; padding-bottom: 3px; margin: 0 0 10px 0;">About Me</h3>
+                  <div style="line-height: 1.4; white-space: pre-line;">${selfEditForm.aboutMe}</div>
+                </div>
+              ` : ''}
+
+              <div style="margin-bottom: 25px; font-size: 8.5pt; color: #475569;">
+                <h3 style="font-size: 9pt; font-weight: bold; color: #064e3b; text-transform: uppercase; border-bottom: 1px solid #064e3b; padding-bottom: 3px; margin: 0 0 10px 0;">Contact Info</h3>
+                ${cvOptions.showPhone && phone ? `<div style="margin-bottom: 5px;"><b>Phone:</b> ${phone}</div>` : ''}
+                <div style="margin-bottom: 5px;"><b>Email:</b> ${email}</div>
+                <div style="margin-bottom: 5px;"><b>Address:</b> ${address || 'Basco, Batanes'}</div>
+                ${cvOptions.showCivilStatus ? `
+                  <div style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 5px;">
+                    <div style="margin-bottom: 3px;"><b>Status:</b> ${civilStatus}</div>
+                    <div><b>Gender:</b> ${gender}</div>
+                  </div>
+                ` : ''}
+              </div>
+
+              ${cvOptions.showSkills && skills.length > 0 ? `
+                <div style="font-size: 8.5pt; color: #475569; font-weight: bold; margin-bottom: 25px;">
+                  <h3 style="font-size: 9pt; font-weight: bold; color: #064e3b; text-transform: uppercase; border-bottom: 1px solid #064e3b; padding-bottom: 3px; margin: 0 0 10px 0;">Core Skills</h3>
+                  <div style="margin: 0; padding: 0; line-height: 1.4;">
+                    ${skills.map(s => `<div style="margin-bottom: 3px;">• ${s}</div>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${cvOptions.showLanguages && langs.length > 0 ? `
+                <div style="font-size: 8.5pt; color: #475569; font-weight: bold;">
+                  <h3 style="font-size: 9pt; font-weight: bold; color: #064e3b; text-transform: uppercase; border-bottom: 1px solid #064e3b; padding-bottom: 3px; margin: 0 0 10px 0;">Languages</h3>
+                  <div style="margin: 0; padding: 0; line-height: 1.4;">
+                    ${langs.map(l => `<div style="margin-bottom: 3px;">• ${l}</div>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            </td>
+            <td style="width: 68%; padding: 25px 20px; vertical-align: top;">
+              <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 11pt; font-weight: bold; color: #064e3b; text-transform: uppercase; border-bottom: 2px solid #064e3b; padding-bottom: 4px; margin: 0 0 15px 0; letter-spacing: 1px;">Academic Background</h3>
+                
+                <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt;">
+                  <tr>
+                    <td style="font-weight: bold; color: #0f172a;">Batanes State College</td>
+                    <td style="text-align: right; font-weight: bold; color: #064e3b;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="color: #475569; padding-top: 3px;">${programShort}</td>
+                  </tr>
+                  ${selfEditForm.honors && selfEditForm.honors !== 'None' ? `
+                    <tr>
+                      <td colspan="2" style="color: #d97706; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 5px;">Honors: ${selfEditForm.honors}</td>
+                    </tr>
+                  ` : ''}
+                  ${selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' ? `
+                    <tr>
+                      <td colspan="2" style="color: #064e3b; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 3px;">License: ${selfEditForm.professionalExamPassed}</td>
+                    </tr>
+                  ` : ''}
+                </table>
+
+                ${selfEditForm.educationHistory && selfEditForm.educationHistory.map(item => `
+                  <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt;">
+                    <tr>
+                      <td style="font-weight: bold; color: #0f172a;">${item.school}</td>
+                      <td style="text-align: right; color: #64748b; font-weight: bold;">${item.years}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="color: #475569; padding-top: 3px;">${item.degree}</td>
+                    </tr>
+                  </table>
+                `).join('')}
+              </div>
+
+              <div>
+                <h3 style="font-size: 11pt; font-weight: bold; color: #064e3b; text-transform: uppercase; border-bottom: 2px solid #064e3b; padding-bottom: 4px; margin: 0 0 15px 0; letter-spacing: 1px;">Professional Experience</h3>
+                
+                ${selfEditForm.employmentStatus === 'Unemployed' && (!selfEditForm.careerHistory || selfEditForm.careerHistory.length === 0) ? `
+                  <div style="font-size: 9.5pt; font-style: italic; color: #94a3b8;">Currently seeking opportunities.</div>
+                ` : `
+                  ${selfEditForm.employmentStatus !== 'Unemployed' ? `
+                    <div style="margin-bottom: 20px;">
+                      <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                        <tr>
+                          <td style="font-weight: bold; color: #0f172a;">${selfEditForm.jobTitle || 'Graduate Trainee'}</td>
+                          <td style="text-align: right; font-weight: bold; color: #064e3b;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="color: #64748b; font-style: italic; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
+                        </tr>
+                      </table>
+                      ${cvOptions.showDescription && selfEditForm.jobDescription ? `
+                        <div style="font-size: 8.5pt; color: #475569; background-color: #f8fafc; padding: 10px; border-left: 3px solid #064e3b; margin-top: 8px; line-height: 1.4;">
+                          ${selfEditForm.jobDescription.replace(/\n/g, '<br/>')}
+                        </div>
+                      ` : ''}
+                      ${cvOptions.showSalary && selfEditForm.monthlyIncome ? `
+                        <div style="font-size: 8.5pt; font-weight: bold; color: #064e3b; text-transform: uppercase; margin-top: 5px;">Income Bracket: P ${selfEditForm.monthlyIncome}</div>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+
+                  ${selfEditForm.careerHistory && selfEditForm.careerHistory.map(item => `
+                    <div style="margin-bottom: 12px; border-left: 2px solid #064e3b; padding-left: 10px;">
+                      <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                        <tr>
+                          <td style="font-weight: bold; color: #0f172a;">${item.title}</td>
+                          <td style="text-align: right; color: #64748b;">${item.years}</td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="color: #064e3b; font-weight: 500; padding-top: 2px;">${item.company}</td>
+                        </tr>
+                      </table>
+                    </div>
+                  `).join('')}
+                `}
+              </div>
+            </td>
+          </tr>
+        </table>
+      `;
+    } else if (selectedTemplate === 'midnight') {
+      // Midnight Minimal Template (.docx Layout)
+      templateContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border-top: 8px solid #1e1b4b; background-color: #ffffff;">
+          <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 25px;">
+            <tr>
+              <td style="vertical-align: top;">
+                ${cvOptions.showPhoto && selfEditForm?.avatar ? `
+                  <div style="margin-bottom: 10px;">
+                    <img src="${selfEditForm.avatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #1e1b4b;" />
+                  </div>
+                ` : ''}
+                <h2 style="font-size: 18pt; color: #1e1b4b; text-transform: uppercase; margin: 0 0 5px 0;">${fullName}</h2>
+                <div style="font-size: 9pt; font-weight: bold; color: #1e1b4b; text-transform: uppercase;">${programShort}</div>
+              </td>
+              <td style="text-align: right; vertical-align: top; font-size: 8.5pt; color: #64748b; line-height: 1.4;">
+                ${cvOptions.showPhone && phone ? `<div><b>Phone:</b> ${phone}</div>` : ''}
+                <div><b>Email:</b> ${email}</div>
+                <div><b>Address:</b> ${address || 'Basco, Batanes'}</div>
+                ${cvOptions.showCivilStatus ? `<div><b>Status:</b> ${civilStatus} &bull; <b>Gender:</b> ${gender}</div>` : ''}
+              </td>
+            </tr>
+          </table>
+
+          <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="width: 32%; padding-right: 15px; vertical-align: top;">
+                ${cvOptions.showAboutMe && selfEditForm.aboutMe ? `
+                  <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 9.5pt; font-weight: bold; color: #1e1b4b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin: 0 0 10px 0;">About Me</h3>
+                    <div style="font-size: 8.5pt; color: #475569; line-height: 1.4; white-space: pre-line;">${selfEditForm.aboutMe}</div>
+                  </div>
+                ` : ''}
+
+                ${cvOptions.showSkills && skills.length > 0 ? `
+                  <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 9.5pt; font-weight: bold; color: #1e1b4b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin: 0 0 10px 0;">Skills</h3>
+                    <div style="font-size: 8.5pt; color: #475569; line-height: 1.4;">
+                      ${skills.map(s => `<div style="margin-bottom: 3px;">• ${s}</div>`).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${cvOptions.showLanguages && langs.length > 0 ? `
+                  <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 9.5pt; font-weight: bold; color: #1e1b4b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin: 0 0 10px 0;">Languages</h3>
+                    <div style="font-size: 8.5pt; color: #475569; line-height: 1.4;">
+                      ${langs.map(l => `<div style="margin-bottom: 3px;">• ${l}</div>`).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </td>
+              <td style="width: 68%; padding-left: 15px; vertical-align: top; border-left: 1px solid #f1f5f9;">
+                <div style="margin-bottom: 25px;">
+                  <h3 style="font-size: 10pt; font-weight: bold; color: #1e1b4b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin: 0 0 12px 0;">Education</h3>
+                  
+                  <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt;">
+                    <tr>
+                      <td style="font-weight: bold; color: #0f172a;">Batanes State College</td>
+                      <td style="text-align: right; color: #64748b;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${programShort}</td>
+                    </tr>
+                  </table>
+
+                  ${selfEditForm.educationHistory && selfEditForm.educationHistory.map(item => `
+                    <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
+                      <tr>
+                        <td style="font-weight: bold; color: #0f172a;">${item.school}</td>
+                        <td style="text-align: right; color: #64748b;">${item.years}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${item.degree}</td>
+                      </tr>
+                    </table>
+                  `).join('')}
+                </div>
+
+                <div>
+                  <h3 style="font-size: 10pt; font-weight: bold; color: #1e1b4b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin: 0 0 12px 0;">Professional Experience</h3>
+                  
+                  ${selfEditForm.employmentStatus === 'Unemployed' && (!selfEditForm.careerHistory || selfEditForm.careerHistory.length === 0) ? `
+                    <div style="font-size: 9.5pt; font-style: italic; color: #94a3b8;">Currently seeking opportunities.</div>
+                  ` : `
+                    ${selfEditForm.employmentStatus !== 'Unemployed' ? `
+                      <div style="margin-bottom: 15px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
+                          <tr>
+                            <td style="font-weight: bold; color: #0f172a;">${selfEditForm.jobTitle || 'Graduate Trainee'}</td>
+                            <td style="text-align: right; font-weight: bold; color: #1e1b4b;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
+                          </tr>
+                          <tr>
+                            <td colspan="2" style="color: #64748b; font-style: italic; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
+                          </tr>
+                        </table>
+                        ${cvOptions.showDescription && selfEditForm.jobDescription ? `
+                          <div style="font-size: 9pt; color: #475569; line-height: 1.4; margin-top: 6px; background-color: #f8fafc; padding: 8px;">
+                            ${selfEditForm.jobDescription.replace(/\n/g, '<br/>')}
+                          </div>
+                        ` : ''}
+                      </div>
+                    ` : ''}
+
+                    ${selfEditForm.careerHistory && selfEditForm.careerHistory.map(item => `
+                      <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
+                        <tr>
+                          <td style="font-weight: bold; color: #0f172a;">${item.title}</td>
+                          <td style="text-align: right; color: #64748b;">${item.years}</td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="color: #475569; padding-top: 2px;">${item.company}</td>
+                        </tr>
+                      </table>
+                    `).join('')}
+                  `}
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      `;
+    } else if (selectedTemplate === 'charcoal') {
+      // Charcoal Clean Template (.docx Layout)
+      templateContent = `
+        <div style="font-family: Arial, sans-serif; padding: 25px; background-color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 25px; border-bottom: 1px solid #cbd5e1; padding-bottom: 15px;">
             ${cvOptions.showPhoto && selfEditForm?.avatar ? `
               <div style="margin-bottom: 12px; text-align: center;">
-                <img src="${selfEditForm.avatar}" style="width: 90px; height: 90px; border-radius: 50%; border: 1px solid #94a3b8; object-fit: cover; display: inline-block;" />
+                <img src="${selfEditForm.avatar}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: inline-block;" />
               </div>
             ` : ''}
-            <h2 style="font-size: 20pt; color: #0f172a; text-transform: uppercase; font-weight: bold; margin: 0 0 5px 0;">${fullName}</h2>
-            <div style="font-size: 10pt; font-weight: bold; color: #64748b; text-transform: uppercase; font-family: Arial, sans-serif; letter-spacing: 1px;">${programShort}</div>
+            <h2 style="font-size: 18pt; color: #334155; text-transform: uppercase; margin: 0 0 5px 0;">${fullName}</h2>
+            <div style="font-size: 9.5pt; font-weight: bold; color: #64748b; text-transform: uppercase;">${programShort}</div>
             
-            <div style="font-size: 9pt; font-family: Arial, sans-serif; color: #475569; margin-top: 8px;">
+            <div style="font-size: 8.5pt; color: #64748b; margin-top: 10px;">
               ${cvOptions.showPhone && phone ? `Phone: ${phone} &bull; ` : ''}
               Email: ${email} &bull; Address: ${address || 'Basco, Batanes'}
+              ${cvOptions.showCivilStatus ? ` &bull; Status: ${civilStatus} &bull; Gender: ${gender}` : ''}
             </div>
-            ${cvOptions.showCivilStatus ? `
-              <div style="font-size: 8.5pt; font-family: Arial, sans-serif; color: #94a3b8; text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">
-                Status: ${civilStatus} &bull; Gender: ${gender}
-              </div>
-            ` : ''}
           </div>
 
           ${cvOptions.showAboutMe && selfEditForm.aboutMe ? `
             <div style="margin-bottom: 20px;">
-              <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">About Me</h3>
+              <h3 style="font-size: 10pt; font-weight: bold; color: #334155; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin: 0 0 10px 0;">About Me</h3>
               <div style="font-size: 9.5pt; color: #475569; line-height: 1.4; white-space: pre-line;">${selfEditForm.aboutMe}</div>
             </div>
           ` : ''}
 
-          <!-- Education -->
           <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Education</h3>
+            <h3 style="font-size: 10pt; font-weight: bold; color: #334155; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin: 0 0 10px 0;">Education</h3>
             
             <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9.5pt;">
               <tr>
                 <td style="font-weight: bold; color: #0f172a;">Batanes State College</td>
-                <td style="text-align: right; font-weight: bold; color: #0f172a;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
+                <td style="text-align: right; color: #64748b;">${selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : ''}${yearGraduated}</td>
               </tr>
               <tr>
                 <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${programShort}</td>
               </tr>
-              ${selfEditForm.honors && selfEditForm.honors !== 'None' ? `
-                <tr>
-                  <td colspan="2" style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 4px;">Honors: ${selfEditForm.honors}</td>
-                </tr>
-              ` : ''}
-              ${selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' ? `
-                <tr>
-                  <td colspan="2" style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding-top: 2px;">License: ${selfEditForm.professionalExamPassed}</td>
-                </tr>
-              ` : ''}
             </table>
 
             ${selfEditForm.educationHistory && selfEditForm.educationHistory.map(item => `
               <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
                 <tr>
                   <td style="font-weight: bold; color: #0f172a;">${item.school}</td>
-                  <td style="text-align: right; font-weight: bold; color: #0f172a;">${item.years}</td>
+                  <td style="text-align: right; color: #64748b;">${item.years}</td>
                 </tr>
                 <tr>
                   <td colspan="2" style="font-style: italic; color: #475569; padding-top: 2px;">${item.degree}</td>
@@ -902,9 +1149,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             `).join('')}
           </div>
 
-          <!-- Professional Experience -->
           <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Professional Experience</h3>
+            <h3 style="font-size: 10pt; font-weight: bold; color: #334155; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin: 0 0 10px 0;">Professional Experience</h3>
             
             ${selfEditForm.employmentStatus === 'Unemployed' && (!selfEditForm.careerHistory || selfEditForm.careerHistory.length === 0) ? `
               <div style="font-size: 9.5pt; font-style: italic; color: #94a3b8;">Currently seeking opportunities.</div>
@@ -914,10 +1160,10 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                   <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-size: 9.5pt;">
                     <tr>
                       <td style="font-weight: bold; color: #0f172a;">${selfEditForm.jobTitle || 'Graduate Trainee'}</td>
-                      <td style="text-align: right; color: #475569;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
+                      <td style="text-align: right; color: #334155; font-weight: bold;">${selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</td>
                     </tr>
                     <tr>
-                      <td colspan="2" style="font-weight: bold; font-style: italic; color: #64748b; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
+                      <td colspan="2" style="color: #64748b; font-style: italic; padding-top: 2px;">${selfEditForm.employerName || 'Independent'}</td>
                     </tr>
                   </table>
                   ${cvOptions.showDescription && selfEditForm.jobDescription ? `
@@ -925,13 +1171,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                       ${selfEditForm.jobDescription.replace(/\n/g, '<br/>')}
                     </div>
                   ` : ''}
-                  ${cvOptions.showSalary && selfEditForm.monthlyIncome ? `
-                    <div style="font-size: 8.5pt; font-weight: bold; text-transform: uppercase; margin-top: 4px;">Income Bracket: P ${selfEditForm.monthlyIncome}</div>
-                  ` : ''}
                 </div>
               ` : ''}
 
-              <!-- Past career history -->
               ${selfEditForm.careerHistory && selfEditForm.careerHistory.map(item => `
                 <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5pt;">
                   <tr>
@@ -939,30 +1181,28 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                     <td style="text-align: right; color: #64748b;">${item.years}</td>
                   </tr>
                   <tr>
-                    <td colspan="2" style="font-weight: bold; color: #475569; padding-top: 2px;">${item.company}</td>
+                    <td colspan="2" style="color: #475569; padding-top: 2px;">${item.company}</td>
                   </tr>
                 </table>
               `).join('')}
             `}
           </div>
 
-          <!-- Skills -->
           ${cvOptions.showSkills && skills.length > 0 ? `
             <div style="margin-bottom: 20px;">
-              <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Skills and Certifications</h3>
-              <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 9.5pt; color: #334155;">
-                ${skills.map(s => `<li style="margin-bottom: 4px;">${s}</li>`).join('')}
-              </ul>
+              <h3 style="font-size: 10pt; font-weight: bold; color: #334155; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin: 0 0 10px 0;">Skills and Certifications</h3>
+              <div style="font-size: 9.5pt; color: #475569; line-height: 1.4;">
+                ${skills.map(s => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${s}</span>`).join('')}
+              </div>
             </div>
           ` : ''}
 
-          <!-- Languages -->
-          ${cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 ? `
+          ${cvOptions.showLanguages && langs.length > 0 ? `
             <div>
-              <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Languages</h3>
-              <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 9.5pt; color: #334155;">
-                ${selfEditForm.languages.map(l => `<li style="margin-bottom: 4px;">${l}</li>`).join('')}
-              </ul>
+              <h3 style="font-size: 10pt; font-weight: bold; color: #334155; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin: 0 0 10px 0;">Languages</h3>
+              <div style="font-size: 9.5pt; color: #475569; line-height: 1.4;">
+                ${langs.map(l => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${l}</span>`).join('')}
+              </div>
             </div>
           ` : ''}
         </div>
