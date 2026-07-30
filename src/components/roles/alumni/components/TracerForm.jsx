@@ -316,20 +316,7 @@ export default function TracerForm({
                 <option value="Widowed">Widowed</option>
               </select>
             </div>
-            {/* Lokasyon (Lokal, Pambansa, o Internasyonal) at Karangalan */}
-            <div>
-              <label className="block text-slate-400 mb-1">Geographic Location Region</label>
-              <select
-                value={selfEditForm.locationRegion || 'Local (Batanes)'}
-                onChange={(e) => setSelfEditForm({ ...selfEditForm, locationRegion: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
-              >
-                <option value="" className="text-slate-400 bg-white">Select Location --</option>
-                <option value="Local (Batanes)">Local (Batanes)</option>
-                <option value="National (Rest of PH)">National (Rest of PH)</option>
-                <option value="International">International</option>
-              </select>
-            </div>
+            {/* Karangalan */}
             <div>
               <label className="block text-slate-400 mb-1">Honors / Academic Distinction</label>
               <input
@@ -485,6 +472,19 @@ export default function TracerForm({
             {/* Conditional Rendering: Ipakita lamang ang mga field ng trabaho kung HINDI unemployed ang user */}
             {selfEditForm.employmentStatus !== 'Unemployed' && (
               <>
+                <div>
+                  <label className="block text-slate-400 mb-1">Geographic Location Region</label>
+                  <select
+                    value={selfEditForm.locationRegion || 'Local (Batanes)'}
+                    onChange={(e) => setSelfEditForm({ ...selfEditForm, locationRegion: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none font-semibold text-slate-700"
+                  >
+                    <option value="" className="text-slate-400 bg-white">Select Location --</option>
+                    <option value="Local (Batanes)">Local (Batanes)</option>
+                    <option value="National (Rest of PH)">National (Rest of PH)</option>
+                    <option value="International">International</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-slate-400 mb-1">Company / Firm Name</label>
                   <input
