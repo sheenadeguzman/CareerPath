@@ -123,11 +123,11 @@ export default function ResumePreview({
               </div>
             )}
 
-            {cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 && (
+            {cvOptions.showLanguages && selfEditForm.languages && (
               <div className="space-y-2 text-[11px] font-semibold text-slate-600">
                 <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">Languages</span>
                 <div className="space-y-1">
-                  {selfEditForm.languages.map(l => (
+                  {selfEditForm.languages.split(',').map(l => l.trim()).filter(Boolean).map(l => (
                     <div key={l} className="truncate">• {l}</div>
                   ))}
                 </div>
@@ -326,11 +326,11 @@ export default function ResumePreview({
                 </div>
               )}
 
-              {cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 && (
+              {cvOptions.showLanguages && selfEditForm.languages && (
                 <div className="space-y-2 pt-2">
                   <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Languages</h3>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-600 font-sans">
-                    {selfEditForm.languages.map(l => (
+                    {selfEditForm.languages.split(',').map(l => l.trim()).filter(Boolean).map(l => (
                       <span key={l} className="list-item list-inside">{l}</span>
                     ))}
                   </div>
@@ -460,11 +460,11 @@ export default function ResumePreview({
             </div>
           )}
 
-          {cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 && (
+          {cvOptions.showLanguages && selfEditForm.languages && (
             <div className="space-y-2">
               <h3 className="text-xs font-bold uppercase tracking-widest border-b border-slate-900 pb-0.5">Languages</h3>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-705 font-sans">
-                {selfEditForm.languages.map(l => (
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-755 font-sans">
+                {selfEditForm.languages.split(',').map(l => l.trim()).filter(Boolean).map(l => (
                   <span key={l} className="list-item list-inside">{l}</span>
                 ))}
               </div>

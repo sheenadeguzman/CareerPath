@@ -68,16 +68,14 @@ export function mapAlumniFromDB(row) {
       educationArr = [];
     }
   }
-  let languagesArr = [];
-  if (row.languages) {
+  let languagesStr = row.languages || '';
+  if (languagesStr && languagesStr.startsWith('[')) {
     try {
-      languagesArr = JSON.parse(row.languages);
-      if (!Array.isArray(languagesArr)) {
-        languagesArr = row.languages.split(',').map(l => l.trim()).filter(Boolean);
+      const parsed = JSON.parse(languagesStr);
+      if (Array.isArray(parsed)) {
+        languagesStr = parsed.join(', ');
       }
-    } catch {
-      languagesArr = row.languages.split(',').map(l => l.trim()).filter(Boolean);
-    }
+    } catch (e) {}
   }
   return {
     studentId: row.student_id,
@@ -132,7 +130,7 @@ export function mapAlumniFromDB(row) {
     })(),
     reasonsUnemployment: row.reasons_unemployment || '',
     aboutMe: row.about_me || '',
-    languages: languagesArr,
+    languages: languagesStr,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };

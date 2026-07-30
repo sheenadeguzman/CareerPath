@@ -112,7 +112,6 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
     const dob = profile.dateOfBirth ? profile.dateOfBirth : null;
     const usefulSkillsStr = JSON.stringify(profile.usefulSkills || []);
     const educationStr = JSON.stringify(profile.educationHistory || []);
-    const languagesStr = JSON.stringify(profile.languages || []);
 
     if (existing.length > 0) {
       await pool.query(
@@ -139,7 +138,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
           usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null, educationStr,
-          profile.aboutMe || null, languagesStr,
+          profile.aboutMe || null, profile.languages || null,
           profile.studentId
         ]
       );
@@ -206,7 +205,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
           usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null, educationStr,
-          profile.aboutMe || null, languagesStr
+          profile.aboutMe || null, profile.languages || null
         ]
       );
     }

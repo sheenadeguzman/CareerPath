@@ -1115,11 +1115,8 @@ export default function TracerForm({
               <input
                 type="text"
                 placeholder="e.g. English, Tagalog, Ivatan"
-                value={Array.isArray(selfEditForm.languages) ? selfEditForm.languages.join(', ') : (selfEditForm.languages || '')}
-                onChange={(e) => {
-                  const langs = e.target.value.split(',').map(l => l.trim()).filter(Boolean);
-                  setSelfEditForm({ ...selfEditForm, languages: langs });
-                }}
+                value={selfEditForm.languages || ''}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, languages: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e] font-sans text-xs font-bold text-slate-705"
               />
             </div>
