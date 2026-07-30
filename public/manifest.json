@@ -3,12 +3,12 @@
   "name": "BSC Graduate Tracer & CareerPath Portal",
   "icons": [
     {
-      "src": "/assets/icon-192.png",
+      "src": "/assets/logo.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/assets/icon-512.png",
+      "src": "/assets/logo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
