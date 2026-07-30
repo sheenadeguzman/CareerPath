@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Briefcase, Calendar, MapPin, Tag, PlusCircle, Check, Users, ShieldAlert, X, Mail, Phone, Globe, User } from 'lucide-react';
+import { Briefcase, Calendar, MapPin, Tag, PlusCircle, Check, Users, ShieldAlert, X, Mail, Phone, Globe, User, Pencil } from 'lucide-react';
 
 export default function JobPostingsView({ jobPostings = [], employers = [], activeUser, onSaveJob }) {
   const [isPosting, setIsPosting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [successToast, setSuccessToast] = useState('');
 
   // Mga state para sa pagsala (filter)
@@ -95,13 +96,14 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     const submission = {
       ...newJob,
       employerName: activeUser.role === 'Employer' ? activeUser.name : newJob.employerName,
-      id: `job-${Date.now()}`,
+      id: newJob.id || `job-${Date.now()}`,
       requirements: separatedReqs.length > 0 ? separatedReqs : ['None specified'],
-      status: 'Open'
+      status: newJob.status || 'Open'
     };
 
     await onSaveJob(submission);
     setIsPosting(false);
+    setIsEditing(false);
     setSuccessToast(`SUCCESS! Job Bulletin for '${newJob.jobTitle}' has been verified & deployed!`);
     setTimeout(() => setSuccessToast(''), 4000);
 
@@ -124,6 +126,29 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       contactWebsite: ''
     });
     setReqInput('');
+  };
+
+  const handleEditClick = (job) => {
+    setNewJob({
+      id: job.id,
+      jobTitle: job.jobTitle,
+      employerName: job.employerName,
+      description: job.description,
+      requirements: job.requirements || [],
+      employmentType: job.employmentType || 'Regular/Permanent',
+      salaryRange: job.salaryRange || 'P 18,000 - P 25,000',
+      location: job.location || 'Basco, Batanes',
+      slots: job.slots || 1,
+      deadline: job.deadline ? job.deadline : '',
+      status: job.status || 'Open',
+      contactPerson: job.contactPerson || '',
+      contactEmail: job.contactEmail || '',
+      contactPhone: job.contactPhone || '',
+      contactWebsite: job.contactWebsite || ''
+    });
+    setReqInput((job.requirements || []).join(', '));
+    setIsEditing(true);
+    setIsPosting(true);
   };  const filteredJobs = jobPostings.filter(job => {
     const text = (job.jobTitle + ' ' + job.employerName + ' ' + job.location + ' ' + job.description).toLowerCase();
     const matchesSearch = text.includes(searchQuery.toLowerCase());
@@ -266,11 +291,27 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
             e => e.companyName.trim().toLowerCase() === job.employerName.trim().toLowerCase()
           );
 
+          // Pagtukoy kung ang logged-in user ay ang employer na nag-post nito
+          const loggedInEmp = activeUser?.role === 'Employer'
+            ? employers.find(e => e.email.toLowerCase() === activeUser.email.toLowerCase())
+            : null;
+          const loggedInEmpName = loggedInEmp ? loggedInEmp.companyName : activeUser?.name || '';
+          const isOwnJob = activeUser?.role === 'Employer' && job.employerName.trim().toLowerCase() === loggedInEmpName.trim().toLowerCase();
+
           return (
             <div key={job.id} className="bg-white rounded-xl shadow-xs border border-slate-100 p-5 flex flex-col justify-between relative overflow-hidden animate-fade-in">
               
               {/* Tag ng Status sa itaas na sulok */}
-              <div className="absolute top-0 right-0">
+              <div className="absolute top-0 right-0 flex items-center">
+                {isOwnJob && (
+                  <button
+                    onClick={() => handleEditClick(job)}
+                    className="p-1 text-slate-400 hover:text-[#7c191e] hover:bg-slate-50 rounded-lg transition mr-1.5 mt-1 cursor-pointer"
+                    title="Edit Job Vacancy"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <span className={`px-3 py-1 rounded-bl-lg font-bold text-[9px] uppercase tracking-wider ${
                   job.status === 'Open' ? 'bg-[#7c191e] text-white' : 'bg-slate-400 text-white'
                 }`}>
@@ -417,10 +458,15 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
             <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-[#1e4620]" />
-                <h3 className="text-sm font-extrabold text-[#1e4620] uppercase tracking-wide">Publish Vacancy Alerts</h3>
+                <h3 className="text-sm font-extrabold text-[#1e4620] uppercase tracking-wide">
+                  {isEditing ? 'Edit Vacancy Alert' : 'Publish Vacancy Alerts'}
+                </h3>
               </div>
               <button 
-                onClick={() => setIsPosting(false)}
+                onClick={() => {
+                  setIsPosting(false);
+                  setIsEditing(false);
+                }}
                 className="p-1.5 hover:bg-slate-100 text-slate-500 rounded-lg transition"
                 title="Close"
               >
@@ -547,6 +593,20 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                   />
                 </div>
 
+                {isEditing && (
+                  <div>
+                    <label className="block text-slate-500 mb-1">Vacancy Status</label>
+                    <select
+                      value={newJob.status}
+                      onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md p-2"
+                    >
+                      <option value="Open">Open</option>
+                      <option value="Closed">Closed</option>
+                    </select>
+                  </div>
+                )}
+
                 <div className="border-t border-slate-100 pt-4 mt-4 space-y-4">
                   <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider text-slate-600">
                     Custom Contact &amp; Application Details (Optional)
@@ -605,7 +665,10 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
             <div className="sticky bottom-0 bg-slate-50 border-t border-slate-100 px-6 py-4 flex items-center justify-end gap-2 z-10 w-full animate-fade-in">
               <button
                 type="button"
-                onClick={() => setIsPosting(false)}
+                onClick={() => {
+                  setIsPosting(false);
+                  setIsEditing(false);
+                }}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition"
               >
                 Cancel
@@ -615,7 +678,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 onClick={handlePostSubmit}
                 className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-bold rounded-lg transition"
               >
-                Deploy Vacancy Bullet
+                {isEditing ? 'Update Vacancy Bullet' : 'Deploy Vacancy Bullet'}
               </button>
             </div>
 
