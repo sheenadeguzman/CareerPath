@@ -262,16 +262,32 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       return;
     }
 
-    // 1. INTERCEPT DOCUMENT.STYLESHEETS TO PREVENT STYLESHEET PARSING ERRORS
+    // 1. STRIP OKLCH RULES FROM ALL ACTIVE STYLESHEETS
+    const oklchRulesBackup = [];
     const originalStyleSheets = document.styleSheets;
-    try {
-      Object.defineProperty(document, 'styleSheets', {
-        get() { return []; },
-        configurable: true
-      });
-    } catch (e) {
-      console.error('Failed to redefine document.styleSheets:', e);
+
+    console.log('Scanning active stylesheets for oklch rules...');
+    for (let i = 0; i < originalStyleSheets.length; i++) {
+      const sheet = originalStyleSheets[i];
+      try {
+        const rules = sheet.cssRules || sheet.rules;
+        if (!rules) continue;
+        for (let j = rules.length - 1; j >= 0; j--) {
+          const rule = rules[j];
+          if (rule.cssText && rule.cssText.includes('oklch')) {
+            oklchRulesBackup.push({
+              sheet: sheet,
+              index: j,
+              cssText: rule.cssText
+            });
+            sheet.deleteRule(j);
+          }
+        }
+      } catch (e) {
+        // Ignore cross-origin stylesheet access block errors
+      }
     }
+    console.log(`Backed up and stripped ${oklchRulesBackup.length} oklch style rules.`);
 
     // 2. INTERCEPT WINDOW.GETCOMPUTEDSTYLE TO CONVERT OKLCH TO RGB ON THE FLY
     const originalGetComputedStyle = window.getComputedStyle;
@@ -332,14 +348,18 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
     const restoreOriginals = () => {
       window.getComputedStyle = originalGetComputedStyle;
-      try {
-        Object.defineProperty(document, 'styleSheets', {
-          get() { return originalStyleSheets; },
-          configurable: true
-        });
-      } catch (e) {
-        console.error('Failed to restore document.styleSheets:', e);
+      
+      // Restore deleted oklch rules in reverse order of backup to maintain original indices
+      console.log('Restoring stripped oklch style rules...');
+      for (let i = oklchRulesBackup.length - 1; i >= 0; i--) {
+        const item = oklchRulesBackup[i];
+        try {
+          item.sheet.insertRule(item.cssText, item.index);
+        } catch (e) {
+          // Silent catch
+        }
       }
+      console.log('Restoration complete.');
     };
 
     console.log('Executing html2pdf pipeline...');
