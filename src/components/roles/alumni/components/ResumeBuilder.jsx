@@ -15,7 +15,6 @@ export default function ResumeBuilder({
   setPaperSize,
   handleDownloadPDF,
   handleDownloadWord,
-  handleDownloadImage,
   selfEditForm
 }) {
   return (
@@ -173,29 +172,21 @@ export default function ResumeBuilder({
       <div className="pt-4 border-t border-slate-100 space-y-2">
         <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1">Download Format</label>
         
-        {/* PDF Download Button */}
-        <button
-          onClick={handleDownloadPDF}
-          className="w-full py-2.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-bold uppercase text-xs rounded-lg transition inline-flex items-center justify-center gap-2 shadow-xs cursor-pointer select-none"
-        >
-          <Download className="w-4 h-4" /> Download PDF Document
-        </button>
-
         <div className="grid grid-cols-2 gap-2">
+          {/* PDF Download Button */}
+          <button
+            onClick={handleDownloadPDF}
+            className="py-2.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-bold uppercase text-[10px] tracking-wide rounded-lg transition inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer select-none border border-[#7c191e]"
+          >
+            <Download className="w-3.5 h-3.5" /> Export PDF
+          </button>
+
           {/* Word Download Button */}
           <button
             onClick={handleDownloadWord}
-            className="py-2.5 bg-slate-55 hover:bg-slate-100 text-slate-700 font-bold uppercase text-[10px] tracking-wide rounded-lg transition inline-flex items-center justify-center gap-1.5 border border-slate-200 cursor-pointer select-none"
+            className="py-2.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-bold uppercase text-[10px] tracking-wide rounded-lg transition inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer select-none border border-[#7c191e]"
           >
-            <FileText className="w-3.5 h-3.5 text-blue-600" /> Export Word
-          </button>
-
-          {/* Image Download Button */}
-          <button
-            onClick={handleDownloadImage}
-            className="py-2.5 bg-slate-55 hover:bg-slate-100 text-slate-700 font-bold uppercase text-[10px] tracking-wide rounded-lg transition inline-flex items-center justify-center gap-1.5 border border-slate-200 cursor-pointer select-none"
-          >
-            <Image className="w-3.5 h-3.5 text-emerald-600" /> Export Image
+            <FileText className="w-3.5 h-3.5" /> Export Word
           </button>
         </div>
       </div>

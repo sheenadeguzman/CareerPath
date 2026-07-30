@@ -170,6 +170,38 @@ const makeStyleProxy = (style) => {
   });
 };
 
+/**
+ * Nagti-trigger ng file download gamit ang Web Share API sa mobile/phone
+ * o standard download link fallback sa desktop.
+ */
+const triggerDownload = (blob, filename) => {
+  const file = new File([blob], filename, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({
+      files: [file],
+      title: filename,
+    }).catch(err => {
+      console.log('Share cancelled or failed, falling back to anchor download:', err);
+      if (err.name !== 'AbortError') {
+        fallbackAnchorDownload(blob, filename);
+      }
+    });
+  } else {
+    fallbackAnchorDownload(blob, filename);
+  }
+};
+
+const fallbackAnchorDownload = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+};
+
 export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, triggerToast }) {
   // State para sa buong profile data ng alumni. Dito sine-save ang pansamantalang kopya ng data.
   const [selfEditForm, setSelfEditForm] = useState(currentAlAlumnus);
@@ -489,15 +521,17 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     };
 
     try {
-      window.html2pdf().set(opt).from(element).save()
-        .then(() => {
-          console.log('html2pdf successfully generated and saved.');
+      window.html2pdf().set(opt).from(element).outputPdf('blob')
+        .then((blob) => {
+          console.log('html2pdf successfully generated PDF blob.');
+          const filename = `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.pdf`;
+          triggerDownload(blob, filename);
           restoreGCS();
         })
         .catch(err => {
           console.error('html2pdf promise rejection caught:', err);
           restoreGCS();
-          alert('Failed to generate PDF. Please try exporting as Image or Word.');
+          alert('Failed to generate PDF. Please try exporting as Word.');
         });
     } catch (e) {
       console.error('Synchronous exception during html2pdf invocation:', e);
@@ -507,7 +541,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
   };
 
   /**
-   * Nag-da-download ng Resume/CV bilang Word document (.doc) na gumagamit ng standard
+   * Nag-da-download ng Resume/CV bilang Word document (.docx) na gumagamit ng standard
    * page layout XML ng Word upang maging adjustable ang page size batay sa piniling paperSize.
    */
   const handleDownloadWord = () => {
@@ -533,11 +567,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     let templateContent = '';
 
     if (selectedTemplate === 'modern') {
-      // Modern template with a 2-column layout (Table based to ensure Word columns format perfectly)
       templateContent = `
         <table border="0" cellspacing="0" cellpadding="0" style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif;">
           <tr>
-            <!-- Left column (Sidebar) -->
             <td style="width: 32%; background-color: #faf6f6; border-right: 2px solid #e2e8f0; padding: 25px 15px; vertical-align: top;">
               ${cvOptions.showPhoto && selfEditForm?.avatar ? `
                 <div style="margin-bottom: 20px;">
@@ -550,7 +582,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                 <div style="font-size: 8.5pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">${programShort.replace('BS ', '')} Graduate</div>
               </div>
 
-              <!-- Contact Info -->
               <div style="margin-bottom: 25px; font-size: 8.5pt; color: #475569;">
                 <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Contact Info</h3>
                 ${cvOptions.showPhone && phone ? `<div style="margin-bottom: 5px;"><b>Phone:</b> ${phone}</div>` : ''}
@@ -564,20 +595,16 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                 ` : ''}
               </div>
 
-              <!-- Skills -->
               ${cvOptions.showSkills && skills.length > 0 ? `
-                <div style="font-size: 8.5pt; color: #475569;">
+                <div style="font-size: 8.5pt; color: #475569; font-weight: bold;">
                   <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Core Skills</h3>
-                  <div>
-                    ${skills.map(s => `<span style="background-color: #7c191e; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8pt; display: inline-block; margin-right: 4px; margin-bottom: 6px; font-weight: bold;">${s}</span>`).join('')}
+                  <div style="margin: 0; padding: 0; line-height: 1.4;">
+                    ${skills.map(s => `<div style="margin-bottom: 3px;">• ${s}</div>`).join('')}
                   </div>
                 </div>
               ` : ''}
             </td>
-
-            <!-- Right column (Main details) -->
             <td style="width: 68%; padding: 25px 20px; vertical-align: top;">
-              <!-- Academic Background -->
               <div style="margin-bottom: 30px;">
                 <h3 style="font-size: 11pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 2px solid #7c191e; padding-bottom: 4px; margin: 0 0 15px 0; letter-spacing: 1px;">Academic Background</h3>
                 
@@ -766,10 +793,10 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
           <!-- Skills -->
           ${cvOptions.showSkills && skills.length > 0 ? `
-            <div>
-              <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-family: Arial, sans-serif; letter-spacing: 1px; margin: 0 0 12px 0;">Technical Competencies</h3>
-              <div style="margin-top: 5px;">
-                ${skills.map(s => `<span style="border: 1px solid #cca43b; color: #cca43b; padding: 2px 8px; border-radius: 4px; font-size: 8pt; font-family: Arial, sans-serif; display: inline-block; margin-right: 6px; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; background-color: #fafaf5;">${s}</span>`).join('')}
+            <div style="font-size: 8.5pt; color: #475569; font-weight: bold; font-family: Arial, sans-serif;">
+              <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; letter-spacing: 1px; margin: 0 0 12px 0;">Technical Competencies</h3>
+              <div style="margin-top: 5px; line-height: 1.4;">
+                ${skills.map(s => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${s}</span>`).join('')}
               </div>
             </div>
           ` : ''}
@@ -926,119 +953,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       </html>
     `;
 
-    const blob = new Blob(['\ufeff' + htmlDoc], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.doc`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  /**
-   * Nag-da-download ng Resume/CV bilang mataas na kalidad na PNG image gamit ang html2canvas.
-   * Nililinis nito ang mga oklch values upang maiwasan ang parser crash sa library.
-   */
-  const handleDownloadImage = () => {
-    const element = document.querySelector('.resume-container');
-    if (!element) {
-      alert('Resume element not found.');
-      return;
-    }
-    if (!window.html2canvas) {
-      alert('Image generation library is still loading, please try again.');
-      return;
-    }
-
-    // Hijack getComputedStyle on window and prototype
-    const origWindowGCS = window.getComputedStyle;
-    const origProtoGCS = Window.prototype.getComputedStyle;
-
-    window.getComputedStyle = function(el, pseudoEl) {
-      return makeStyleProxy(origWindowGCS.call(this, el, pseudoEl));
-    };
-    Window.prototype.getComputedStyle = function(el, pseudoEl) {
-      return makeStyleProxy(origProtoGCS.call(this, el, pseudoEl));
-    };
-
-    const restoreGCS = () => {
-      window.getComputedStyle = origWindowGCS;
-      Window.prototype.getComputedStyle = origProtoGCS;
-    };
-
-    const opt = {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      onclone: (clonedDoc) => {
-        if (clonedDoc.defaultView) {
-          const origClonedGCS = clonedDoc.defaultView.getComputedStyle;
-          clonedDoc.defaultView.getComputedStyle = function(el, pseudoEl) {
-            return makeStyleProxy(origClonedGCS.call(this, el, pseudoEl));
-          };
-        }
-
-        // 1. Extract all active style rules and clean OKLCH colors
-        const cleanStyle = clonedDoc.createElement('style');
-        let combinedCss = '';
-        
-        for (let i = 0; i < document.styleSheets.length; i++) {
-          const sheet = document.styleSheets[i];
-          try {
-            const rules = sheet.cssRules || sheet.rules;
-            if (!rules) continue;
-            for (let j = 0; j < rules.length; j++) {
-              let cssText = rules[j].cssText;
-              if (cssText.toLowerCase().includes('oklch')) {
-                cssText = cssText.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
-              }
-              combinedCss += cssText + '\n';
-            }
-          } catch (e) {
-            // Ignore CORS
-          }
-        }
-        cleanStyle.textContent = combinedCss;
-
-        // 2. Remove all link and style elements in the cloned document
-        clonedDoc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
-
-        // 3. Append our clean styles
-        clonedDoc.head.appendChild(cleanStyle);
-
-        // 4. Adjust container styles
-        const clonedContainer = clonedDoc.querySelector('.resume-container');
-        if (clonedContainer) {
-          clonedContainer.style.margin = '0';
-          clonedContainer.style.border = 'none';
-          clonedContainer.style.boxShadow = 'none';
-        }
-
-        // 5. Linisin ang mga inline styles na may oklch sa loob ng clone document upang maiwasan ang error sa html2canvas
-        clonedDoc.querySelectorAll('*').forEach(el => {
-          if (el.style && el.style.cssText && el.style.cssText.toLowerCase().includes('oklch')) {
-            el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
-          }
-        });
-      }
-    };
-
-    window.html2canvas(element, opt).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = imgData;
-      a.download = `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      restoreGCS();
-    }).catch(err => {
-      console.error('Error generating image:', err);
-      restoreGCS();
-      alert('Failed to generate image.');
-    });
+    const blob = new Blob(['\ufeff' + htmlDoc], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const filename = `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}.docx`;
+    triggerDownload(blob, filename);
   };
 
   return (
@@ -1095,7 +1012,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             setPaperSize={setPaperSize}
             handleDownloadPDF={handleDownloadCV}
             handleDownloadWord={handleDownloadWord}
-            handleDownloadImage={handleDownloadImage}
             selfEditForm={selfEditForm}
           />
           {/* ResumePreview: Nagpapakita ng live visual representation ng CV ng user */}

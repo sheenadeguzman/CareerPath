@@ -106,11 +106,11 @@ export default function ResumePreview({
             </div>
 
             {cvOptions.showSkills && skills.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2 text-[11px] font-semibold text-slate-600">
                 <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">Core Skills</span>
-                <div className="flex flex-wrap gap-1">
+                <div className="space-y-1">
                   {skills.map(s => (
-                    <span key={s} className="bg-[#7c191e] text-white px-2 py-0.5 rounded text-[10px] font-bold">{s}</span>
+                    <div key={s} className="truncate">• {s}</div>
                   ))}
                 </div>
               </div>
@@ -291,11 +291,11 @@ export default function ResumePreview({
             </div>
 
             {cvOptions.showSkills && skills.length > 0 && (
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-2">
                 <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Technical Competencies</h3>
-                <div className="flex flex-wrap gap-1.5 font-sans">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-600 font-sans">
                   {skills.map(s => (
-                    <span key={s} className="bg-slate-50 border border-[#cca43b]/40 text-[#cca43b] px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{s}</span>
+                    <span key={s} className="list-item list-inside">{s}</span>
                   ))}
                 </div>
               </div>
