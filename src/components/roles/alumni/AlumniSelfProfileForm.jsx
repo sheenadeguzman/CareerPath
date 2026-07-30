@@ -248,26 +248,43 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
    * Kung wala pa ang library sa pahina, kukunin muna ito bago simulan ang pag-convert.
    */
   const handleDownloadCV = () => {
+    console.log('handleDownloadCV function invoked.');
     const element = document.querySelector('.resume-container');
     if (!element) {
+      console.error('Error: Element with class .resume-container was not found in the DOM.');
       alert('Resume element not found.');
       return;
     }
 
     if (!window.html2pdf) {
+      console.error('Error: window.html2pdf is not defined. The library failed to load.');
       alert('PDF generation library is still loading, please try again in a moment.');
       return;
     }
 
+    console.log('Found resume container element. Initializing html2pdf payload...', element);
     const opt = {
       margin:       0.2,
       filename:     `BSC_Resume_${selfEditForm.firstName || 'BSC'}_${selfEditForm.lastName || 'Alumni'}_2026.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
+      html2canvas:  { scale: 2, useCORS: true, logging: true },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
-    // Patakbuhin ang html2pdf.js API
-    window.html2pdf().set(opt).from(element).save();
+
+    console.log('Executing html2pdf pipeline...');
+    try {
+      window.html2pdf().set(opt).from(element).save()
+        .then(() => {
+          console.log('html2pdf output save promise resolved successfully.');
+        })
+        .catch(err => {
+          console.error('html2pdf promise rejection caught:', err);
+          alert('Failed to generate PDF. Check developer console.');
+        });
+    } catch (e) {
+      console.error('Synchronous exception during html2pdf invocation:', e);
+      alert('Error during PDF conversion: ' + e.message);
+    }
   };
 
   return (
