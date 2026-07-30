@@ -1087,6 +1087,46 @@ export default function TracerForm({
             })()}
           </div>
         </div>
+        <hr className="border-slate-100" />
+
+        {/* Seksyon 5: Resume Personalization (About Me & Languages) */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
+            <Check className="w-4 h-4 text-[#7c191e]" /> 5. Resume Personalization (About Me &amp; Languages)
+          </h3>
+          <p className="text-[10px] text-slate-400 font-bold block">
+            Add a personal summary and your spoken languages to display on your generated Resume.
+          </p>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-slate-400 mb-1">About Me (Personal Summary)</label>
+              <textarea
+                rows={3}
+                placeholder="e.g. A passionate software developer with 3+ years of experience building modern web applications..."
+                value={selfEditForm.aboutMe || ''}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, aboutMe: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e] font-sans text-xs font-bold text-slate-705"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-slate-400 mb-1">Languages Spoken (Separated by commas, e.g. English, Tagalog, Ivatan)</label>
+              <input
+                type="text"
+                placeholder="e.g. English, Tagalog, Ivatan"
+                value={Array.isArray(selfEditForm.languages) ? selfEditForm.languages.join(', ') : (selfEditForm.languages || '')}
+                onChange={(e) => {
+                  const langs = e.target.value.split(',').map(l => l.trim()).filter(Boolean);
+                  setSelfEditForm({ ...selfEditForm, languages: langs });
+                }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e] font-sans text-xs font-bold text-slate-705"
+              />
+            </div>
+          </div>
+        </div>
+
+        <hr className="border-slate-100" />
 
         {/* Guideline Notice: Paalala sa layunin at gamit ng nakolektang Tracer statistics para sa CHED audits */}
         <div className="bg-[#7c191e]/5 rounded-xl border border-[#7c191e]/15 p-4 flex gap-3 text-[11px] font-semibold text-slate-655 leading-relaxed">

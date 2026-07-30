@@ -257,6 +257,18 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added education_history column to alumni_profiles table.');
     } catch (e) {}
 
+    // MIGRATION: Add about_me to alumni_profiles table if missing
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN about_me TEXT DEFAULT NULL");
+      console.log('Database Migration: Added about_me column to alumni_profiles table.');
+    } catch (e) {}
+
+    // MIGRATION: Add languages to alumni_profiles table if missing
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN languages TEXT DEFAULT NULL");
+      console.log('Database Migration: Added languages column to alumni_profiles table.');
+    } catch (e) {}
+
 
     // MIGRATION 3: Awtomatikong i-hash ang plain-text user passwords para sa seguridad ng database
     try {

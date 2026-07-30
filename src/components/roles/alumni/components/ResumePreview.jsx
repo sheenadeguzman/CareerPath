@@ -89,10 +89,17 @@ export default function ResumePreview({
             )}
             <div className="space-y-2">
               <h2 className="text-lg font-black text-[#7c191e] uppercase tracking-wide leading-tight">{fullName}</h2>
-              <span className="text-xs font-bold text-slate-550 uppercase tracking-widest block">{programShort.replace('BS ', '')} Graduate</span>
+              <span className="text-xs font-bold text-slate-555 uppercase tracking-widest block">{programShort.replace('BS ', '')} Graduate</span>
             </div>
             
-            <div className="space-y-2 text-[11px] font-semibold text-slate-600">
+            {cvOptions.showAboutMe && selfEditForm.aboutMe && (
+              <div className="space-y-2 text-[11px] font-semibold text-slate-600">
+                <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">About Me</span>
+                <p className="whitespace-pre-line text-slate-550 leading-relaxed font-sans">{selfEditForm.aboutMe}</p>
+              </div>
+            )}
+            
+            <div className="space-y-2 text-[11px] font-semibold text-slate-655">
               <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">Contact Info</span>
               {cvOptions.showPhone && <div className="truncate"><b>Phone:</b> {phone || 'Not provided'}</div>}
               <div className="truncate"><b>Email:</b> {email}</div>
@@ -111,6 +118,17 @@ export default function ResumePreview({
                 <div className="space-y-1">
                   {skills.map(s => (
                     <div key={s} className="truncate">• {s}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 && (
+              <div className="space-y-2 text-[11px] font-semibold text-slate-600">
+                <span className="text-[10px] font-extrabold uppercase text-[#7c191e] tracking-widest block border-b border-[#7c191e]/20 pb-1">Languages</span>
+                <div className="space-y-1">
+                  {selfEditForm.languages.map(l => (
+                    <div key={l} className="truncate">• {l}</div>
                   ))}
                 </div>
               </div>
@@ -223,6 +241,13 @@ export default function ResumePreview({
           </div>
 
           <div className="space-y-6">
+            {cvOptions.showAboutMe && selfEditForm.aboutMe && (
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">About Me</h3>
+                <p className="text-[10.5px] text-slate-655 font-sans leading-relaxed whitespace-pre-line">{selfEditForm.aboutMe}</p>
+              </div>
+            )}
+
             <div className="space-y-3">
               <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Education</h3>
               <div className="space-y-3">
@@ -291,15 +316,26 @@ export default function ResumePreview({
             </div>
 
             {cvOptions.showSkills && skills.length > 0 && (
-              <div className="space-y-2 pt-2">
-                <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Technical Competencies</h3>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-600 font-sans">
-                  {skills.map(s => (
-                    <span key={s} className="list-item list-inside">{s}</span>
-                  ))}
+                <div className="space-y-2 pt-2">
+                  <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Technical Competencies</h3>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-600 font-sans">
+                    {skills.map(s => (
+                      <span key={s} className="list-item list-inside">{s}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Languages</h3>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-600 font-sans">
+                    {selfEditForm.languages.map(l => (
+                      <span key={l} className="list-item list-inside">{l}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -339,6 +375,13 @@ export default function ResumePreview({
         </div>
 
         <div className="space-y-5">
+          {cvOptions.showAboutMe && selfEditForm.aboutMe && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest border-b border-slate-900 pb-0.5">About Me</h3>
+              <p className="text-[11px] text-slate-655 leading-relaxed whitespace-pre-line font-serif">{selfEditForm.aboutMe}</p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-widest border-b border-slate-900 pb-0.5">Education</h3>
             <div className="space-y-3">
@@ -412,6 +455,17 @@ export default function ResumePreview({
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-705">
                 {skills.map(s => (
                   <span key={s} className="list-item list-inside">{s}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest border-b border-slate-900 pb-0.5">Languages</h3>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-705 font-sans">
+                {selfEditForm.languages.map(l => (
+                  <span key={l} className="list-item list-inside">{l}</span>
                 ))}
               </div>
             </div>

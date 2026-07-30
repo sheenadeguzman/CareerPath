@@ -263,7 +263,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     showCivilStatus: true,   // Ipakita ang civil status
     showPhone: true,         // Ipakita ang mobile number
     showSkills: true,        // Ipakita ang core skills
-    showDescription: true    // Ipakita ang job description/summary
+    showDescription: true,   // Ipakita ang job description/summary
+    showAboutMe: true,       // Ipakita ang tungkol sa akin
+    showLanguages: true      // Ipakita ang mga wika
   });
 
   /**
@@ -579,6 +581,13 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                 <div style="font-size: 8.5pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">${programShort.replace('BS ', '')} Graduate</div>
               </div>
 
+              ${cvOptions.showAboutMe && selfEditForm.aboutMe ? `
+                <div style="margin-bottom: 25px; font-size: 8.5pt; color: #475569;">
+                  <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">About Me</h3>
+                  <div style="line-height: 1.4; white-space: pre-line;">${selfEditForm.aboutMe}</div>
+                </div>
+              ` : ''}
+
               <div style="margin-bottom: 25px; font-size: 8.5pt; color: #475569;">
                 <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Contact Info</h3>
                 ${cvOptions.showPhone && phone ? `<div style="margin-bottom: 5px;"><b>Phone:</b> ${phone}</div>` : ''}
@@ -593,10 +602,19 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
               </div>
 
               ${cvOptions.showSkills && skills.length > 0 ? `
-                <div style="font-size: 8.5pt; color: #475569; font-weight: bold;">
+                <div style="font-size: 8.5pt; color: #475569; font-weight: bold; margin-bottom: 25px;">
                   <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Core Skills</h3>
                   <div style="margin: 0; padding: 0; line-height: 1.4;">
                     ${skills.map(s => `<div style="margin-bottom: 3px;">• ${s}</div>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 ? `
+                <div style="font-size: 8.5pt; color: #475569; font-weight: bold;">
+                  <h3 style="font-size: 9pt; font-weight: bold; color: #7c191e; text-transform: uppercase; border-bottom: 1px solid #7c191e; padding-bottom: 3px; margin: 0 0 10px 0;">Languages</h3>
+                  <div style="margin: 0; padding: 0; line-height: 1.4;">
+                    ${selfEditForm.languages.map(l => `<div style="margin-bottom: 3px;">• ${l}</div>`).join('')}
                   </div>
                 </div>
               ` : ''}
@@ -707,6 +725,13 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             </div>
           </div>
 
+          ${cvOptions.showAboutMe && selfEditForm.aboutMe ? `
+            <div style="margin-bottom: 25px;">
+              <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-family: Arial, sans-serif; letter-spacing: 1px; margin: 0 0 12px 0;">About Me</h3>
+              <div style="font-size: 9.5pt; color: #475569; line-height: 1.4; white-space: pre-line;">${selfEditForm.aboutMe}</div>
+            </div>
+          ` : ''}
+
           <!-- Education -->
           <div style="margin-bottom: 25px;">
             <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-family: Arial, sans-serif; letter-spacing: 1px; margin: 0 0 12px 0;">Education</h3>
@@ -790,10 +815,20 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
           <!-- Skills -->
           ${cvOptions.showSkills && skills.length > 0 ? `
-            <div style="font-size: 8.5pt; color: #475569; font-weight: bold; font-family: Arial, sans-serif;">
+            <div style="font-size: 8.5pt; color: #475569; font-weight: bold; font-family: Arial, sans-serif; margin-bottom: 25px;">
               <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; letter-spacing: 1px; margin: 0 0 12px 0;">Technical Competencies</h3>
               <div style="margin-top: 5px; line-height: 1.4;">
                 ${skills.map(s => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${s}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Languages -->
+          ${cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 ? `
+            <div style="font-size: 8.5pt; color: #475569; font-weight: bold; font-family: Arial, sans-serif;">
+              <h3 style="font-size: 10pt; font-weight: bold; color: #cca43b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; letter-spacing: 1px; margin: 0 0 12px 0;">Languages</h3>
+              <div style="margin-top: 5px; line-height: 1.4;">
+                ${selfEditForm.languages.map(l => `<span style="display: inline-block; margin-right: 15px; margin-bottom: 4px;">• ${l}</span>`).join('')}
               </div>
             </div>
           ` : ''}
@@ -822,6 +857,13 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
               </div>
             ` : ''}
           </div>
+
+          ${cvOptions.showAboutMe && selfEditForm.aboutMe ? `
+            <div style="margin-bottom: 20px;">
+              <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">About Me</h3>
+              <div style="font-size: 9.5pt; color: #475569; line-height: 1.4; white-space: pre-line;">${selfEditForm.aboutMe}</div>
+            </div>
+          ` : ''}
 
           <!-- Education -->
           <div style="margin-bottom: 20px;">
@@ -906,10 +948,20 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
 
           <!-- Skills -->
           ${cvOptions.showSkills && skills.length > 0 ? `
-            <div>
+            <div style="margin-bottom: 20px;">
               <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Skills and Certifications</h3>
               <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 9.5pt; color: #334155;">
                 ${skills.map(s => `<li style="margin-bottom: 4px;">${s}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+
+          <!-- Languages -->
+          ${cvOptions.showLanguages && selfEditForm.languages && selfEditForm.languages.length > 0 ? `
+            <div>
+              <h3 style="font-size: 11pt; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1.5px solid #000; padding-bottom: 2px; letter-spacing: 1px; margin: 0 0 10px 0;">Languages</h3>
+              <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 9.5pt; color: #334155;">
+                ${selfEditForm.languages.map(l => `<li style="margin-bottom: 4px;">${l}</li>`).join('')}
               </ul>
             </div>
           ` : ''}

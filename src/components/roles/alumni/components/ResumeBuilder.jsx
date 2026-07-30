@@ -120,6 +120,26 @@ export default function ResumeBuilder({
         <label className="flex items-center gap-2.5 cursor-pointer select-none">
           <input 
             type="checkbox"
+            checked={cvOptions.showAboutMe}
+            onChange={(e) => setCvOptions({ ...cvOptions, showAboutMe: e.target.checked })}
+            className="rounded border-slate-300 text-[#7c191e] focus:ring-[#7c191e] w-4 h-4 cursor-pointer"
+          />
+          <span>Include About Me / Summary</span>
+        </label>
+
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <input 
+            type="checkbox"
+            checked={cvOptions.showLanguages}
+            onChange={(e) => setCvOptions({ ...cvOptions, showLanguages: e.target.checked })}
+            className="rounded border-slate-300 text-[#7c191e] focus:ring-[#7c191e] w-4 h-4 cursor-pointer"
+          />
+          <span>Include Languages</span>
+        </label>
+
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <input 
+            type="checkbox"
             checked={cvOptions.showSalary}
             onChange={(e) => setCvOptions({ ...cvOptions, showSalary: e.target.checked })}
             className="rounded border-slate-300 text-[#7c191e] focus:ring-[#7c191e] w-4 h-4 cursor-pointer"
