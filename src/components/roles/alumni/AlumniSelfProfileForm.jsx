@@ -266,9 +266,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     if (window.html2pdf) {
       runHtml2Pdf();
     } else {
-      // Kung wala pa, mag-append ng script tag para i-load ang library mula sa public directory
+      // Kung wala pa, mag-append ng script tag para i-load ang library mula sa public CDN
       const script = document.createElement('script');
-      script.src = '/html2pdf.bundle.min.js';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
       
       // Pagka-load ng script, patakbuhin ang PDF generator function
       script.onload = runHtml2Pdf;
