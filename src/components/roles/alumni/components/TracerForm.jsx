@@ -441,10 +441,10 @@ export default function TracerForm({
 
         <hr className="border-slate-100" />
 
-        {/* Seksyon 2: Employment Metrics na nakabatay sa standard parameter ng CHED */}
+        {/* Seksyon 2: Employment Metrics */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <Briefcase className="w-4 h-4 text-[#7c191e]" /> 2. Employment Tracer metrics (CHED parameters)
+            <Briefcase className="w-4 h-4 text-[#7c191e]" /> 2. Employment Tracer
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -778,7 +778,20 @@ export default function TracerForm({
             </div>
 
             {/* Listahan ng kasalukuyang naitalang Timeline Events */}
-            <div className="space-y-2">
+            <div className="space-y-2 font-sans">
+              {/* Render current job as the first timeline item if employed */}
+              {selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employerName && selfEditForm.jobTitle && (
+                <div className="flex justify-between items-center bg-amber-50/50 p-3 rounded-lg border border-amber-200/60 shadow-3xs">
+                  <div>
+                    <span className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                      {selfEditForm.jobTitle} <span className="bg-[#7c191e] text-white text-[8px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-extrabold scale-90">Current</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold">{selfEditForm.employerName} &bull; {selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</span>
+                  </div>
+                  <span className="text-[10px] text-[#7c191e] font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 select-none">Active</span>
+                </div>
+              )}
+
               {selfEditForm.careerHistory && selfEditForm.careerHistory.length > 0 ? (
                 selfEditForm.careerHistory.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200/60 shadow-3xs font-sans">
@@ -803,7 +816,9 @@ export default function TracerForm({
                   </div>
                 ))
               ) : (
-                <span className="text-[10.5px] text-slate-400 italic block font-sans">No career progression timeline events recorded.</span>
+                selfEditForm.employmentStatus === 'Unemployed' && (
+                  <span className="text-[10.5px] text-slate-400 italic block font-sans">No career progression timeline events recorded.</span>
+                )
               )}
             </div>
           </div>

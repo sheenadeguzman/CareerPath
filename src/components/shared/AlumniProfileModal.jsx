@@ -261,6 +261,21 @@ export default function AlumniProfileModal({ alumni, onClose }) {
           <div className="space-y-3 font-sans">
             <span className="block text-xs font-bold text-[#1e4620] uppercase tracking-wider">Career Path Timeline History</span>
             <div className="space-y-2">
+              {/* Render current job if employed */}
+              {alumni.employmentStatus !== 'Unemployed' && alumni.employerName && alumni.jobTitle && (
+                <div className="flex justify-between items-center bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100 text-xs font-sans">
+                  <div>
+                    <span className="block font-bold text-slate-800 flex items-center gap-1.5">
+                      {alumni.jobTitle} <span className="bg-[#1e4620] text-white text-[8px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-extrabold scale-90">Current</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold">{alumni.employerName}</span>
+                  </div>
+                  <span className="text-[10px] text-[#1e4620] font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 font-mono">
+                    {alumni.jobStartYear ? `${alumni.jobStartYear} - Present` : 'Present'}
+                  </span>
+                </div>
+              )}
+
               {alumni.careerHistory && alumni.careerHistory.length > 0 ? (
                 alumni.careerHistory.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-xs font-sans">
@@ -272,7 +287,9 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                   </div>
                 ))
               ) : (
-                <span className="text-xs text-slate-400 italic">No historical career timeline events recorded.</span>
+                alumni.employmentStatus === 'Unemployed' && (
+                  <span className="text-xs text-slate-400 italic">No historical career timeline events recorded.</span>
+                )
               )}
             </div>
           </div>

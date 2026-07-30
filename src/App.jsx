@@ -369,7 +369,11 @@ export default function App() {
             {/* Employment View: Dedicated graduate placement tracker at employed alumni directory */}
             {currentTab === 'Employment' && (
               <EmploymentView
-                alumniList={scopedAlumniList}
+                alumniList={
+                  activeUser?.role === 'Alumni'
+                    ? scopedAlumniList.filter(al => al.email.toLowerCase() === activeUser.email.toLowerCase() || al.name.toLowerCase() === activeUser.name.toLowerCase())
+                    : scopedAlumniList
+                }
                 activeUser={activeUser}
               />
             )}
