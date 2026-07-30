@@ -32,6 +32,118 @@ const calculateAge = (dobString) => {
   return isNaN(age) ? 'N/A' : age;
 };
 
+/**
+ * Nagpapalit ng OKLCH color strings papuntang standard RGB/RGBA.
+ * Kinakalkula nito sa pamamagitan ng color space transformation formulas.
+ */
+const parseOklchArgs = (innerStr) => {
+  const cleaned = innerStr.replace(/,/g, ' ').replace(/\//g, ' ').trim();
+  const parts = cleaned.split(/\s+/);
+  if (parts.length < 3) return null;
+  
+  let L = parseFloat(parts[0]);
+  if (parts[0].endsWith('%')) L = L / 100;
+  
+  const C = parseFloat(parts[1]);
+  
+  let H = parseFloat(parts[2]);
+  if (parts[2].endsWith('rad')) {
+    H = (H * 180) / Math.PI;
+  } else if (parts[2].endsWith('grad')) {
+    H = (H * 180) / 200;
+  } else if (parts[2].endsWith('turn')) {
+    H = H * 360;
+  }
+  
+  let alpha = 1;
+  if (parts.length >= 4) {
+    alpha = parseFloat(parts[3]);
+    if (parts[3].endsWith('%')) alpha = alpha / 100;
+  }
+  
+  return { L, C, H, alpha };
+};
+
+const oklchToRgbMath = (oklchStr) => {
+  try {
+    const match = oklchStr.match(/oklch\(([^)]+)\)/i);
+    if (!match) return oklchStr;
+    const parsed = parseOklchArgs(match[1]);
+    if (!parsed) return oklchStr;
+    
+    const { L, C, H, alpha } = parsed;
+
+    // Convert H from degrees to radians
+    const hRad = (H * Math.PI) / 180;
+    const aLab = C * Math.cos(hRad);
+    const bLab = C * Math.sin(hRad);
+
+    // OKLAB to LMS
+    const l_lms = L + 0.3963377774 * aLab + 0.2158037573 * bLab;
+    const m_lms = L - 0.1055613458 * aLab - 0.0638541728 * bLab;
+    const s_lms = L - 0.0894841775 * aLab - 1.2914855480 * bLab;
+
+    // LMS to linear RGB
+    const l = l_lms * l_lms * l_lms;
+    const m = m_lms * m_lms * m_lms;
+    const s = s_lms * s_lms * s_lms;
+
+    const r_lin = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+    const g_lin = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+    const b_lin = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+    // linear RGB to sRGB
+    const toSRGB = (c) => {
+      c = Math.max(0, Math.min(1, c)); // Clamp
+      return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+    };
+
+    const r = Math.round(toSRGB(r_lin) * 255);
+    const g = Math.round(toSRGB(g_lin) * 255);
+    const b = Math.round(toSRGB(b_lin) * 255);
+
+    if (alpha === 1) {
+      return `rgb(${r}, ${g}, ${b})`;
+    } else {
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  } catch (e) {
+    console.error('Error parsing oklch with math fallback:', oklchStr, e);
+    return 'rgb(30, 41, 59)';
+  }
+};
+
+let tempCanvas = null;
+let tempCtx = null;
+
+const oklchToRgb = (colorStr) => {
+  if (!colorStr || typeof colorStr !== 'string') return colorStr;
+  if (!colorStr.includes('oklch')) return colorStr;
+  
+  try {
+    if (!tempCanvas) {
+      tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 1;
+      tempCanvas.height = 1;
+      tempCtx = tempCanvas.getContext('2d');
+    }
+    tempCtx.clearRect(0, 0, 1, 1);
+    tempCtx.fillStyle = colorStr;
+    tempCtx.fillRect(0, 0, 1, 1);
+    const data = tempCtx.getImageData(0, 0, 1, 1).data;
+    if (data[3] === 0) {
+      return oklchToRgbMath(colorStr);
+    }
+    const r = data[0];
+    const g = data[1];
+    const b = data[2];
+    const a = data[3] / 255;
+    return a === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
+  } catch (e) {
+    return oklchToRgbMath(colorStr);
+  }
+};
+
 export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, triggerToast }) {
   // State para sa buong profile data ng alumni. Dito sine-save ang pansamantalang kopya ng data.
   const [selfEditForm, setSelfEditForm] = useState(currentAlAlumnus);
@@ -283,8 +395,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
           // 1. Kumuha ng kopya ng lahat ng CSS rules sa active page at linisin ang oklch rules
           const cleanStyle = clonedDoc.createElement('style');
           let combinedCss = '';
-          const tempDiv = document.createElement('div');
-          document.body.appendChild(tempDiv);
           
           for (let i = 0; i < document.styleSheets.length; i++) {
             const sheet = document.styleSheets[i];
@@ -294,14 +404,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
               for (let j = 0; j < rules.length; j++) {
                 let cssText = rules[j].cssText;
                 if (cssText.includes('oklch')) {
-                  cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => {
-                    try {
-                      tempDiv.style.color = match;
-                      return window.getComputedStyle(tempDiv).color || 'rgb(30, 41, 59)';
-                    } catch (e) {
-                      return 'rgb(30, 41, 59)';
-                    }
-                  });
+                  cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
                 }
                 combinedCss += cssText + '\n';
               }
@@ -309,7 +412,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
               // Ignore cross-origin access blocks
             }
           }
-          document.body.removeChild(tempDiv);
           cleanStyle.textContent = combinedCss;
 
           // 2. Tanggalin ang lahat ng orihinal na link at style tags sa loob ng clone document upang maiwasan ang crash sa oklch
@@ -325,6 +427,13 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             clonedContainer.style.border = 'none';
             clonedContainer.style.boxShadow = 'none';
           }
+
+          // 5. Linisin ang mga inline styles na may oklch sa loob ng clone document upang maiwasan ang error sa html2canvas
+          clonedDoc.querySelectorAll('*').forEach(el => {
+            if (el.style && el.style.cssText && el.style.cssText.includes('oklch')) {
+              el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
+            }
+          });
         }
       },
       jsPDF: { unit: 'in', format: format, orientation: 'portrait' }
@@ -799,8 +908,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
         // 1. Extract all active style rules and clean OKLCH colors
         const cleanStyle = clonedDoc.createElement('style');
         let combinedCss = '';
-        const tempDiv = document.createElement('div');
-        document.body.appendChild(tempDiv);
         
         for (let i = 0; i < document.styleSheets.length; i++) {
           const sheet = document.styleSheets[i];
@@ -810,14 +917,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             for (let j = 0; j < rules.length; j++) {
               let cssText = rules[j].cssText;
               if (cssText.includes('oklch')) {
-                cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => {
-                  try {
-                    tempDiv.style.color = match;
-                    return window.getComputedStyle(tempDiv).color || 'rgb(30, 41, 59)';
-                  } catch (e) {
-                    return 'rgb(30, 41, 59)';
-                  }
-                });
+                cssText = cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
               }
               combinedCss += cssText + '\n';
             }
@@ -825,7 +925,6 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             // Ignore CORS
           }
         }
-        document.body.removeChild(tempDiv);
         cleanStyle.textContent = combinedCss;
 
         // 2. Remove all link and style elements in the cloned document
@@ -841,6 +940,13 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
           clonedContainer.style.border = 'none';
           clonedContainer.style.boxShadow = 'none';
         }
+
+        // 5. Linisin ang mga inline styles na may oklch sa loob ng clone document upang maiwasan ang error sa html2canvas
+        clonedDoc.querySelectorAll('*').forEach(el => {
+          if (el.style && el.style.cssText && el.style.cssText.includes('oklch')) {
+            el.style.cssText = el.style.cssText.replace(/oklch\(([^)]+)\)/g, (match) => oklchToRgb(match));
+          }
+        });
       }
     };
 
