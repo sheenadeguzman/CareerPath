@@ -171,35 +171,32 @@ const makeStyleProxy = (style) => {
 };
 
 /**
- * Nagti-trigger ng file download gamit ang Web Share API sa mobile/phone
- * o standard download link fallback sa desktop.
+ * Nagti-trigger ng file download gamit ang application/octet-stream MIME type override.
+ * Pinipilit nito ang mobile (iOS/Android) at desktop browsers na direktang i-download ang file
+ * sa halip na i-preview o i-share ito.
  */
 const triggerDownload = (blob, filename) => {
-  const file = new File([blob], filename, { type: blob.type });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({
-      files: [file],
-      title: filename,
-    }).catch(err => {
-      console.log('Share cancelled or failed, falling back to anchor download:', err);
-      if (err.name !== 'AbortError') {
-        fallbackAnchorDownload(blob, filename);
-      }
-    });
-  } else {
-    fallbackAnchorDownload(blob, filename);
+  try {
+    const downloadBlob = new Blob([blob], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(downloadBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 200);
+  } catch (e) {
+    console.error('Trigger download failed, using standard fallback:', e);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 200);
   }
-};
-
-const fallbackAnchorDownload = (blob, filename) => {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 100);
 };
 
 export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, triggerToast }) {
