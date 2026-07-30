@@ -125,19 +125,13 @@ export default function ResumeBuilder({
         </label>
       </div>
 
-      {/* Button para sa pag-download at pag-print ng PDF */}
+      {/* Button para sa pag-download ng PDF */}
       <div className="pt-4 border-t border-slate-100 space-y-2">
         <button
           onClick={handleDownloadCV}
           className="w-full py-2.5 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-extrabold uppercase text-xs rounded-lg transition inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer select-none"
         >
           <Download className="w-4 h-4" /> Download Resume PDF
-        </button>
-        <button
-          onClick={handlePrintCV}
-          className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold uppercase text-xs rounded-lg transition inline-flex items-center justify-center gap-1.5 shadow-md cursor-pointer select-none"
-        >
-          <Printer className="w-4 h-4" /> Open Print Settings
         </button>
       </div>
     </div>
