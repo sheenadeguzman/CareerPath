@@ -88,8 +88,8 @@ export default function ResumePreview({
                   <div className="space-y-1.5 border-l-2 border-[#7c191e] pl-3 py-0.5">
                     <div className="space-y-0.5">
                       <div className="flex justify-between font-extrabold text-xs">
-                        <span>{selfEditForm.jobTitle || 'Staff Member'} (Current)</span>
-                        <span className="text-slate-505 font-bold">{selfEditForm.employmentType}</span>
+                        <span>{selfEditForm.jobTitle || 'Staff Member'} ({selfEditForm.employmentType || 'Current'})</span>
+                        <span className="text-slate-505 font-bold">{selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</span>
                       </div>
                       <div className="text-[11px] font-bold text-[#cca43b]">{selfEditForm.employerName}</div>
                     </div>
@@ -175,8 +175,8 @@ export default function ResumePreview({
                   <div className="space-y-2">
                     <div className="font-sans">
                       <div className="flex justify-between font-extrabold text-xs text-slate-900">
-                        <span>{selfEditForm.jobTitle || 'Staff Member'} (Current)</span>
-                        <span className="font-normal text-slate-500">{selfEditForm.employmentType}</span>
+                        <span>{selfEditForm.jobTitle || 'Staff Member'} ({selfEditForm.employmentType || 'Current'})</span>
+                        <span className="font-normal text-slate-500">{selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</span>
                       </div>
                       <div className="text-[11px] font-extrabold text-slate-655">{selfEditForm.employerName}</div>
                     </div>
@@ -274,8 +274,8 @@ export default function ResumePreview({
                 <div className="space-y-2">
                   <div>
                     <div className="flex justify-between font-bold text-xs text-slate-900">
-                      <span>{selfEditForm.jobTitle || 'Staff Member'} (Current)</span>
-                      <span className="font-normal text-slate-500 font-sans text-[10px]">{selfEditForm.employmentType}</span>
+                      <span>{selfEditForm.jobTitle || 'Staff Member'} ({selfEditForm.employmentType || 'Current'})</span>
+                      <span className="font-normal text-slate-500 font-sans text-[10px]">{selfEditForm.jobStartYear ? `${selfEditForm.jobStartYear} - Present` : 'Present'}</span>
                     </div>
                     <div className="text-[11px] font-bold text-slate-800">{selfEditForm.employerName}</div>
                   </div>

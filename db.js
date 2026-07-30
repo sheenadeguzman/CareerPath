@@ -245,6 +245,11 @@ export async function initializeDatabase() {
     } catch (err) {
       console.error('Database Migration Error: Failed to purge activity logs from feedbacks table:', err);
     }
+    // MIGRATION: Add job_start_year to alumni_profiles table if missing
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN job_start_year VARCHAR(50) DEFAULT NULL");
+      console.log('Database Migration: Added job_start_year column to alumni_profiles table.');
+    } catch (e) {}
 
 
     // MIGRATION 3: Awtomatikong i-hash ang plain-text user passwords para sa seguridad ng database

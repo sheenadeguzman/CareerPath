@@ -90,6 +90,7 @@ export function mapAlumniFromDB(row) {
     jobRelatedToCourse: row.job_related_to_course || 'No',
     firstJobRelatedToCourse: row.first_job_related_to_course || 'No',
     timeToFirstJob: row.time_to_first_job || '',
+    jobStartYear: row.job_start_year || '',
     skills: skillsArr,
     profileCompleteness: row.profile_completeness || 0,
     lastUpdated: row.last_updated,

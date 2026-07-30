@@ -72,9 +72,43 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       if (users.length > 0) activeUser = mapUserFromDB(users[0]);
     }
 
-    const [existing] = await pool.query('SELECT student_id FROM alumni_profiles WHERE student_id = ?', [profile.studentId]);
+    const [existing] = await pool.query('SELECT * FROM alumni_profiles WHERE student_id = ?', [profile.studentId]);
+    let careerHistory = profile.careerHistory || [];
+
+    if (existing.length > 0) {
+      const oldProfile = existing[0];
+      const oldJobExists = oldProfile.employer_name && oldProfile.job_title;
+      const hasJobChanged = oldJobExists && (
+        profile.employmentStatus === 'Unemployed' ||
+        (profile.employerName && profile.jobTitle && (profile.employerName !== oldProfile.employer_name || profile.jobTitle !== oldProfile.job_title))
+      );
+
+      if (hasJobChanged) {
+        // Check if the old job is already archived in incoming history to avoid duplicates
+        const alreadyExists = careerHistory.some(
+          h => h.company && h.company.toLowerCase() === oldProfile.employer_name.toLowerCase() &&
+               h.title && h.title.toLowerCase() === oldProfile.job_title.toLowerCase()
+        );
+
+        if (!alreadyExists) {
+          const startYear = oldProfile.job_start_year || oldProfile.year_graduated || '';
+          const currentYear = new Date().getFullYear();
+          const yearsStr = startYear ? `${startYear} - ${currentYear}` : `${currentYear}`;
+          
+          careerHistory = [
+            ...careerHistory,
+            {
+              title: oldProfile.job_title,
+              company: oldProfile.employer_name,
+              years: yearsStr
+            }
+          ];
+        }
+      }
+    }
+
     const skillsStr = JSON.stringify(profile.skills || []);
-    const historyStr = JSON.stringify(profile.careerHistory || []);
+    const historyStr = JSON.stringify(careerHistory);
     const dob = profile.dateOfBirth ? profile.dateOfBirth : null;
     const usefulSkillsStr = JSON.stringify(profile.usefulSkills || []);
 
@@ -89,7 +123,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           job_related_to_course = ?, first_job_related_to_course = ?, time_to_first_job = ?, skills = ?, profile_completeness = ?, 
           location_region = ?, career_history = ?,
           reasons_pursuing_program = ?, find_first_job = ?, reasons_accepting_job = ?,
-          useful_skills = ?, reasons_unemployment = ?,
+          useful_skills = ?, reasons_unemployment = ?, job_start_year = ?,
           last_updated = CURRENT_TIMESTAMP
          WHERE student_id = ?`,
         [
@@ -101,7 +135,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, profile.profileCompleteness || 0,
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
-          usefulSkillsStr, profile.reasonsUnemployment || null,
+          usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null,
           profile.studentId
         ]
       );
@@ -155,8 +189,8 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           job_related_to_course, first_job_related_to_course, time_to_first_job, skills, profile_completeness,
           location_region, career_history,
           reasons_pursuing_program, find_first_job, reasons_accepting_job,
-          useful_skills, reasons_unemployment
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          useful_skills, reasons_unemployment, job_start_year
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           profile.studentId, profile.firstName, profile.middleName || null, profile.lastName, profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
           dob, profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
@@ -166,7 +200,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, profile.profileCompleteness || 0,
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
-          usefulSkillsStr, profile.reasonsUnemployment || null
+          usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null
         ]
       );
     }
@@ -214,7 +248,7 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
       if (users.length > 0) activeUser = mapUserFromDB(users[0]);
     }
 
-      if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
+    if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
       return res.status(403).json({ error: 'Permission denied: Only Administrators, Super Admins, and Department Chairpersons can delete profiles.' });
     }
 

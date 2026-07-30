@@ -506,6 +506,16 @@ export default function TracerForm({
                   />
                 </div>
                 <div>
+                  <label className="block text-slate-400 mb-1">Year Started Current Job</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 2024"
+                    value={selfEditForm.jobStartYear || ''}
+                    onChange={(e) => setSelfEditForm({ ...selfEditForm, jobStartYear: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+                  />
+                </div>
+                <div>
                   <label className="block text-slate-400 mb-1">Job Contract Type</label>
                   <select
                     value={selfEditForm.employmentType}
@@ -696,7 +706,12 @@ export default function TracerForm({
 
           {/* Career Timeline History Editor: Listahan ng mga naging trabaho ng alumni sa paglipas ng panahon */}
           <div className="space-y-4 pt-2">
-            <span className="block text-[11px] font-extrabold text-[#7c191e] uppercase tracking-wider">Career Path Timeline History</span>
+            <div>
+              <span className="block text-[11px] font-extrabold text-[#7c191e] uppercase tracking-wider">Career Path Timeline History</span>
+              <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+                Isulat ang buong kasaysayan ng iyong trabaho (mula sa pinakaunang trabaho pagkapagtapos ng kolehiyo hanggang sa kasalukuyan).
+              </span>
+            </div>
             
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
               <div className="sm:col-span-4">
