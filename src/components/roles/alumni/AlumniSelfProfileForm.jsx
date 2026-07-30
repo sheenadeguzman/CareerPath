@@ -358,35 +358,55 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             console.error('Failed to redefine clonedDoc.styleSheets:', e);
           }
 
-          // Inline resolved color styles from the original elements to prevent any oklch leak
-          const container = clonedDoc.querySelector('.resume-container');
-          if (!container) return;
+          // Mock getComputedStyle on the cloned document's window (iframe contentWindow)
+          // to intercept all computed color values and translate oklch to rgb dynamically
+          const iframeWin = clonedDoc.defaultView;
+          if (iframeWin) {
+            const originalGetComputedStyle = iframeWin.getComputedStyle;
+            const oklchCache = {};
+            const oklchRegex = /oklch\([^)]+\)/g;
 
-          const originalContainer = document.querySelector('.resume-container');
-          if (!originalContainer) return;
-
-          const originalElements = [originalContainer, ...Array.from(originalContainer.querySelectorAll('*'))];
-          const clonedElements = [container, ...Array.from(container.querySelectorAll('*'))];
-
-          const propertiesToCopy = [
-            'color', 'backgroundColor', 'borderColor', 
-            'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor',
-            'boxShadow', 'textShadow', 'opacity', 'backgroundImage'
-          ];
-
-          for (let i = 0; i < originalElements.length; i++) {
-            const origEl = originalElements[i];
-            const cloneEl = clonedElements[i];
-            if (!origEl || !cloneEl) continue;
-
-            const computedStyle = originalGetComputedStyle(origEl);
-            propertiesToCopy.forEach(prop => {
-              let val = computedStyle[prop];
-              if (typeof val === 'string' && val.includes('oklch')) {
-                val = translateOklchInString(val);
+            function convertOklchToRgb(oklchStr) {
+              if (oklchCache[oklchStr]) return oklchCache[oklchStr];
+              try {
+                const tempDiv = clonedDoc.createElement('div');
+                tempDiv.style.color = oklchStr;
+                clonedDoc.body.appendChild(tempDiv);
+                const computedColor = originalGetComputedStyle.call(iframeWin, tempDiv).color;
+                clonedDoc.body.removeChild(tempDiv);
+                oklchCache[oklchStr] = computedColor;
+                return computedColor;
+              } catch (err) {
+                return 'rgb(30, 41, 59)';
               }
-              cloneEl.style[prop] = val;
-            });
+            }
+
+            function translateOklchInString(str) {
+              if (typeof str !== 'string' || !str.includes('oklch')) return str;
+              return str.replace(oklchRegex, (match) => convertOklchToRgb(match));
+            }
+
+            iframeWin.getComputedStyle = function (el, pseudoEl) {
+              const style = originalGetComputedStyle.call(iframeWin, el, pseudoEl);
+              return new Proxy(style, {
+                get(target, prop) {
+                  if (prop === 'getPropertyValue') {
+                    return function (propertyName) {
+                      const val = target.getPropertyValue(propertyName);
+                      return translateOklchInString(val);
+                    };
+                  }
+                  const val = target[prop];
+                  if (typeof val === 'string' && val.includes('oklch')) {
+                    return translateOklchInString(val);
+                  }
+                  if (typeof val === 'function') {
+                    return val.bind(target);
+                  }
+                  return val;
+                }
+              });
+            };
           }
         }
       },
