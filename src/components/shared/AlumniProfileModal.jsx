@@ -186,6 +186,20 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                     {alumni.professionalExamPassed || 'None Listed'}
                   </span>
                 </div>
+
+                {alumni.educationHistory && alumni.educationHistory.length > 0 && (
+                  <div className="pt-2.5 border-t border-slate-100 mt-2.5 space-y-2">
+                    <span className="block text-slate-400 font-bold uppercase text-[10px] tracking-wider">Other Educational History:</span>
+                    <div className="space-y-2">
+                      {alumni.educationHistory.map((edu, idx) => (
+                        <div key={idx} className="bg-slate-55 p-2.5 border border-slate-200/60 rounded-lg font-sans">
+                          <span className="block font-bold text-slate-800 text-xs">{edu.school}</span>
+                          <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">{edu.degree} &bull; {edu.years}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -57,6 +57,17 @@ export function mapAlumniFromDB(row) {
       historyArr = [];
     }
   }
+  let educationArr = [];
+  if (row.education_history) {
+    try {
+      educationArr = JSON.parse(row.education_history);
+      if (!Array.isArray(educationArr)) {
+        educationArr = [];
+      }
+    } catch {
+      educationArr = [];
+    }
+  }
   return {
     studentId: row.student_id,
     name: [row.first_name, row.middle_name, row.last_name, row.suffix].filter(Boolean).join(' '),
@@ -98,6 +109,7 @@ export function mapAlumniFromDB(row) {
     locationRegion: row.location_region || 'Local (Batanes)',
     avatar: row.avatar || null,
     careerHistory: historyArr,
+    educationHistory: educationArr,
     reasonsPursuingProgram: row.reasons_pursuing_program || '',
     findFirstJob: row.find_first_job || '',
     reasonsAcceptingJob: row.reasons_accepting_job || '',

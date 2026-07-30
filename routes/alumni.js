@@ -111,6 +111,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
     const historyStr = JSON.stringify(careerHistory);
     const dob = profile.dateOfBirth ? profile.dateOfBirth : null;
     const usefulSkillsStr = JSON.stringify(profile.usefulSkills || []);
+    const educationStr = JSON.stringify(profile.educationHistory || []);
 
     if (existing.length > 0) {
       await pool.query(
@@ -123,7 +124,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           job_related_to_course = ?, first_job_related_to_course = ?, time_to_first_job = ?, skills = ?, profile_completeness = ?, 
           location_region = ?, career_history = ?,
           reasons_pursuing_program = ?, find_first_job = ?, reasons_accepting_job = ?,
-          useful_skills = ?, reasons_unemployment = ?, job_start_year = ?,
+          useful_skills = ?, reasons_unemployment = ?, job_start_year = ?, education_history = ?,
           last_updated = CURRENT_TIMESTAMP
          WHERE student_id = ?`,
         [
@@ -135,7 +136,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, profile.profileCompleteness || 0,
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
-          usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null,
+          usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null, educationStr,
           profile.studentId
         ]
       );
@@ -189,8 +190,8 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           job_related_to_course, first_job_related_to_course, time_to_first_job, skills, profile_completeness,
           location_region, career_history,
           reasons_pursuing_program, find_first_job, reasons_accepting_job,
-          useful_skills, reasons_unemployment, job_start_year
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          useful_skills, reasons_unemployment, job_start_year, education_history
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           profile.studentId, profile.firstName, profile.middleName || null, profile.lastName, profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
           dob, profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
@@ -200,7 +201,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, profile.profileCompleteness || 0,
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
-          usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null
+          usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null, educationStr
         ]
       );
     }

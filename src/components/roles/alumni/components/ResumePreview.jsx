@@ -62,18 +62,30 @@ export default function ResumePreview({
         <div className="flex-1 space-y-6">
           <div className="space-y-3">
             <h3 className="text-xs font-black uppercase text-[#7c191e] tracking-widest border-b border-[#7c191e] pb-1">Academic Background</h3>
-            <div className="space-y-1">
-              <div className="flex justify-between font-extrabold text-xs">
-                <span>Batanes State College</span>
-                <span>{selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : 'Class of '}{yearGraduated}</span>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between font-extrabold text-xs">
+                  <span>Batanes State College</span>
+                  <span>{selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : 'Class of '}{yearGraduated}</span>
+                </div>
+                <span className="block text-[11px] font-bold text-slate-505">{programShort}</span>
+                {selfEditForm.honors && selfEditForm.honors !== 'None' && (
+                  <span className="block text-[10px] text-amber-600 font-bold uppercase tracking-wider mt-1">Honors: {selfEditForm.honors}</span>
+                )}
+                {selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' && (
+                  <span className="block text-[10px] text-emerald-800 font-bold uppercase tracking-wider mt-0.5">License: {selfEditForm.professionalExamPassed}</span>
+                )}
               </div>
-              <span className="block text-[11px] font-bold text-slate-505">{programShort}</span>
-              {selfEditForm.honors && selfEditForm.honors !== 'None' && (
-                <span className="block text-[10px] text-amber-600 font-bold uppercase tracking-wider mt-1">Honors: {selfEditForm.honors}</span>
-              )}
-              {selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' && (
-                <span className="block text-[10px] text-emerald-800 font-bold uppercase tracking-wider mt-0.5">License: {selfEditForm.professionalExamPassed}</span>
-              )}
+
+              {selfEditForm.educationHistory && selfEditForm.educationHistory.map((item, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex justify-between font-extrabold text-xs">
+                    <span>{item.school}</span>
+                    <span className="text-slate-500 font-bold">{item.years}</span>
+                  </div>
+                  <span className="block text-[11px] font-bold text-slate-505">{item.degree}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -150,18 +162,30 @@ export default function ResumePreview({
         <div className="space-y-6">
           <div className="space-y-3">
             <h3 className="text-[11px] font-bold uppercase text-[#cca43b] tracking-widest border-b border-slate-100 pb-1 font-sans">Education</h3>
-            <div className="space-y-1 font-sans">
-              <div className="flex justify-between font-extrabold text-xs text-slate-900">
-                <span>Batanes State College</span>
-                <span className="font-normal text-slate-500">{selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : 'Graduated '}{yearGraduated}</span>
+            <div className="space-y-3">
+              <div className="space-y-1 font-sans">
+                <div className="flex justify-between font-extrabold text-xs text-slate-900">
+                  <span>Batanes State College</span>
+                  <span className="font-normal text-slate-500">{selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : 'Graduated '}{yearGraduated}</span>
+                </div>
+                <span className="block text-[11px] font-medium text-slate-650 italic">{programShort}</span>
+                {selfEditForm.honors && selfEditForm.honors !== 'None' && (
+                  <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Honors: {selfEditForm.honors}</span>
+                )}
+                {selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' && (
+                  <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">License: {selfEditForm.professionalExamPassed}</span>
+                )}
               </div>
-              <span className="block text-[11px] font-medium text-slate-650 italic">{programShort}</span>
-              {selfEditForm.honors && selfEditForm.honors !== 'None' && (
-                <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Honors: {selfEditForm.honors}</span>
-              )}
-              {selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' && (
-                <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">License: {selfEditForm.professionalExamPassed}</span>
-              )}
+
+              {selfEditForm.educationHistory && selfEditForm.educationHistory.map((item, index) => (
+                <div key={index} className="space-y-1 font-sans">
+                  <div className="flex justify-between font-extrabold text-xs text-slate-900">
+                    <span>{item.school}</span>
+                    <span className="font-normal text-slate-500">{item.years}</span>
+                  </div>
+                  <span className="block text-[11px] font-medium text-slate-650 italic">{item.degree}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -249,18 +273,30 @@ export default function ResumePreview({
       <div className="space-y-5">
         <div className="space-y-2">
           <h3 className="text-xs font-bold uppercase tracking-widest border-b border-slate-900 pb-0.5">Education</h3>
-          <div className="space-y-1">
-            <div className="flex justify-between font-bold text-xs text-slate-900">
-              <span>Batanes State College</span>
-              <span>{selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : 'Graduated '}{yearGraduated}</span>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <div className="flex justify-between font-bold text-xs text-slate-900">
+                <span>Batanes State College</span>
+                <span>{selfEditForm.yearEnrolled ? `${selfEditForm.yearEnrolled} - ` : 'Graduated '}{yearGraduated}</span>
+              </div>
+              <span className="block text-[11px] font-medium text-slate-650 italic">{programShort}</span>
+              {selfEditForm.honors && selfEditForm.honors !== 'None' && (
+                <span className="block text-[10px] font-bold uppercase tracking-wider mt-1">Honors: {selfEditForm.honors}</span>
+              )}
+              {selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' && (
+                <span className="block text-[10px] font-bold uppercase tracking-wider mt-0.5">License: {selfEditForm.professionalExamPassed}</span>
+              )}
             </div>
-            <span className="block text-[11px] font-medium text-slate-650 italic">{programShort}</span>
-            {selfEditForm.honors && selfEditForm.honors !== 'None' && (
-              <span className="block text-[10px] font-bold uppercase tracking-wider mt-1">Honors: {selfEditForm.honors}</span>
-            )}
-            {selfEditForm.professionalExamPassed && selfEditForm.professionalExamPassed !== 'None' && (
-              <span className="block text-[10px] font-bold uppercase tracking-wider mt-0.5">License: {selfEditForm.professionalExamPassed}</span>
-            )}
+
+            {selfEditForm.educationHistory && selfEditForm.educationHistory.map((item, index) => (
+              <div key={index} className="space-y-1">
+                <div className="flex justify-between font-bold text-xs text-slate-900">
+                  <span>{item.school}</span>
+                  <span>{item.years}</span>
+                </div>
+                <span className="block text-[11px] font-medium text-slate-650 italic">{item.degree}</span>
+              </div>
+            ))}
           </div>
         </div>
 

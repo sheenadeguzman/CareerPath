@@ -251,6 +251,12 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added job_start_year column to alumni_profiles table.');
     } catch (e) {}
 
+    // MIGRATION: Add education_history to alumni_profiles table if missing
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN education_history TEXT DEFAULT NULL");
+      console.log('Database Migration: Added education_history column to alumni_profiles table.');
+    } catch (e) {}
+
 
     // MIGRATION 3: Awtomatikong i-hash ang plain-text user passwords para sa seguridad ng database
     try {

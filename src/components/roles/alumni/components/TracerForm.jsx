@@ -439,6 +439,108 @@ export default function TracerForm({
         </div>
         </div>
 
+        {/* Educational History Editor: Listahan ng iba pang natapos na paaralan */}
+        <div className="space-y-4 pt-4 border-t border-slate-100 mt-4">
+          <div>
+            <span className="block text-[11px] font-extrabold text-[#7c191e] uppercase tracking-wider">Educational History (Elementary, High School, etc.)</span>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Idagdag ang iyong iba pang natapos na paaralan tulad ng Elementary, High School, o Senior High School para lumabas sa Resume.
+            </span>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-4">
+              <label className="block text-[10px] text-slate-405 uppercase font-bold mb-1">School Name</label>
+              <input
+                type="text"
+                id="new-edu-school"
+                placeholder="e.g. Basco National High School"
+                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-750 focus:outline-none focus:border-[#7c191e]"
+              />
+            </div>
+            <div className="sm:col-span-4">
+              <label className="block text-[10px] text-slate-405 uppercase font-bold mb-1">Level / Degree Completed</label>
+              <input
+                type="text"
+                id="new-edu-degree"
+                placeholder="e.g. High School Diploma, STEM"
+                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-755 focus:outline-none focus:border-[#7c191e]"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-[10px] text-slate-405 uppercase font-bold mb-1">Years (e.g. 2012 - 2018)</label>
+              <input
+                type="text"
+                id="new-edu-years"
+                placeholder="e.g. 2012 - 2018"
+                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-750 focus:outline-none focus:border-[#7c191e]"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const schoolInput = document.getElementById('new-edu-school');
+                  const degreeInput = document.getElementById('new-edu-degree');
+                  const yearsInput = document.getElementById('new-edu-years');
+                  
+                  const school = schoolInput.value.trim();
+                  const degree = degreeInput.value.trim();
+                  const years = yearsInput.value.trim();
+                  
+                  if (!school || !degree || !years) {
+                    alert('Please fill out all education details (School Name, Level, Years).');
+                    return;
+                  }
+                  
+                  const newEdu = { school, degree, years };
+                  setSelfEditForm({
+                    ...selfEditForm,
+                    educationHistory: [...(selfEditForm.educationHistory || []), newEdu]
+                  });
+                  
+                  // Reset inputs
+                  schoolInput.value = '';
+                  degreeInput.value = '';
+                  yearsInput.value = '';
+                }}
+                className="w-full py-2 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-bold text-xs rounded-lg transition uppercase tracking-wider cursor-pointer h-[38px] font-sans"
+              >
+                Add School
+              </button>
+            </div>
+          </div>
+
+          {/* Listahan ng Educational History Entries */}
+          <div className="space-y-2">
+            {selfEditForm.educationHistory && selfEditForm.educationHistory.length > 0 ? (
+              selfEditForm.educationHistory.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200/60 shadow-3xs font-sans">
+                  <div>
+                    <span className="block font-bold text-slate-800 text-xs">{item.school}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold">{item.degree} &bull; {item.years}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updatedEdu = selfEditForm.educationHistory.filter((_, i) => i !== idx);
+                      setSelfEditForm({
+                        ...selfEditForm,
+                        educationHistory: updatedEdu
+                      });
+                    }}
+                    className="text-rose-600 hover:text-rose-800 text-xs font-bold transition px-2 py-1 hover:bg-rose-50 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))
+            ) : (
+              <span className="text-[10.5px] text-slate-400 italic block font-sans">No other academic schools recorded. (Batanes State College degree is added by default).</span>
+            )}
+          </div>
+        </div>
+
         <hr className="border-slate-100" />
 
         {/* Seksyon 2: Employment Metrics */}
