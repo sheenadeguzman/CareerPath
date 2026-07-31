@@ -425,7 +425,7 @@ export const INITIAL_JOB_POSTINGS = [
 export const INITIAL_SURVEYS = [
   {
     id: 'survey-1',
-    title: 'CHED Graduate Tracer Study 2026',
+    title: 'Graduate Tracer Study 2026',
     description: 'Annual graduate tracer study aligned with standard requirements to assess employability parameters of Batanes State College graduates.',
     startDate: '2026-01-01',
     endDate: '2026-12-31',

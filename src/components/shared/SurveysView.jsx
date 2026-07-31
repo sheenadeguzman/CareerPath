@@ -330,7 +330,7 @@ export default function SurveysView({
                   <textarea
                     required
                     rows={3}
-                    placeholder="Provide purpose description or alignment with CHED guidelines..."
+                    placeholder="Provide purpose description..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 font-semibold text-slate-650 font-sans"
