@@ -58,7 +58,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
           // 1. Gumawa ng notification record sa database para sa alumni
           const notifyId = `notify-survey-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
           const notifyTitle = `New Tracer Survey Deployed`;
-          const notifyText = `Hi ${u.name}, a new CHED Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
+          const notifyText = `Hi ${u.name}, a new Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
 
           await pool.query(
             `INSERT INTO notifications (id, title, text, date, \`read\`) 
