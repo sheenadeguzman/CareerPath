@@ -26,8 +26,8 @@ export default function ExportView({ alumniList = [] }) {
   // Dito ginagawa ang mga kalkulasyon at statistical aggregations para sa dashboard cards
   const totalAlumniCount = alumniList.length;
   
-  // Sinasala ang mga graduate na may email, registered na, o may trabaho para makuha ang active tracer responses
-  const registeredAlumni = alumniList.filter(a => a.isRegistered || a.employmentStatus !== 'Unemployed' || a.email);
+  // Sinasala ang mga graduate na registered na
+  const registeredAlumni = alumniList.filter(a => a.isRegistered);
   const totalRegistered = registeredAlumni.length;
   
   // Binibilang ang mga graduates na may trabaho base sa kanilang employment status
@@ -151,7 +151,7 @@ export default function ExportView({ alumniList = [] }) {
         
         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-5 rounded-xl border border-emerald-150 flex items-center justify-between shadow-xs hover:shadow-sm transition">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-800">Total Registered Profiles</span>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-800">Total Alumni Profiles</span>
             <span className="block text-2xl font-black text-slate-900">{totalAlumniCount}</span>
           </div>
           <Users className="w-8 h-8 text-emerald-700 opacity-60" />
@@ -159,7 +159,7 @@ export default function ExportView({ alumniList = [] }) {
 
         <div className="bg-gradient-to-br from-[#7c191e]/5 to-[#7c191e]/10 p-5 rounded-xl border border-[#7c191e]/15 flex items-center justify-between shadow-xs hover:shadow-sm transition">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#7c191e]">Active Tracer Response</span>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#7c191e]">Registered Profiles (Active Tracer)</span>
             <span className="block text-2xl font-black text-slate-900">{totalRegistered}</span>
           </div>
           <Layers className="w-8 h-8 text-[#7c191e] opacity-60" />

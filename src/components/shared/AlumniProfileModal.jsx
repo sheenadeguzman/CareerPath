@@ -8,6 +8,18 @@
 import React from 'react';
 import { X, User as UserIcon, Calendar, Mail, Phone, Home, GraduationCap, Briefcase, Award, FileText, CheckCircle2 } from 'lucide-react';
 
+const calculateAge = (dobString) => {
+  if (!dobString) return null;
+  const today = new Date();
+  const birthDate = new Date(dobString);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return isNaN(age) ? null : age;
+};
+
 export default function AlumniProfileModal({ alumni, onClose }) {
   
   /**
@@ -134,6 +146,11 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Birth Date:</span>
                   <span className="text-slate-800">{alumni.dateOfBirth || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <UserIcon className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-400 w-20 shrink-0">Age:</span>
+                  <span className="text-slate-800">{calculateAge(alumni.dateOfBirth) || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-slate-400" />
