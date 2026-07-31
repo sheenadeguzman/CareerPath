@@ -39,17 +39,84 @@ export default function FeedbackView({
 
   const myCompanyName = matchingEmployer?.companyName || '';
 
+  const getCategoryDetails = () => {
+    switch (category) {
+      case 'Curriculum':
+        return {
+          subjectPlaceholder: isAlumni ? "e.g., IT Course Relevance to Web Development" : "e.g., Skills Competency of BSIT Graduates",
+          ratingLabel: 'Rating for Program Curriculum Quality',
+          starLabels: {
+            5: '⭐ Excellent: Graduate skills exceed industry standards.',
+            4: '⭐ Very Good: Skills learned align well with job roles.',
+            3: '⭐ Good: Meets basic employment requirements.',
+            2: '⭐ Fair: Needs improvement in modern frameworks/practices.',
+            1: '★ Poor: Curriculum is severely outdated/needs overhaul.'
+          },
+          messageLabel: 'Assessment Observations & Suggestions *',
+          placeholder: isAlumni 
+            ? "e.g., 'The Web Programming syllabus was useful, but adding modern frontend frameworks like React would align better with current jobs...'" 
+            : "e.g., 'Graduates have good database fundamentals, but need more training in modern frontend frameworks...'"
+        };
+      case 'Employability':
+        return {
+          subjectPlaceholder: 'e.g., Job Placement Assistance Feedback',
+          ratingLabel: 'Rating for Employability & Placement Support',
+          starLabels: {
+            5: '⭐ Excellent: Career opportunities are abundant and active.',
+            4: '⭐ Very Good: Good industry linkages and job notifications.',
+            3: '⭐ Good: Adequate listings and basic career assistance.',
+            2: '⭐ Fair: Limited job listings and slow career matching.',
+            1: '★ Poor: Lack of active placement support and career guidelines.'
+          },
+          messageLabel: 'Employability & Job Assistance Comments *',
+          placeholder: "e.g., 'More local internship partnerships and job fairs would help speed up alumni employment...'"
+        };
+      case 'System':
+        return {
+          subjectPlaceholder: 'e.g., Alumni Tracer Login & Registration Issues',
+          ratingLabel: 'Rating for Grad Tracer Portal System',
+          starLabels: {
+            5: '⭐ Excellent: Application interface is extremely fast, clear, and modern.',
+            4: '⭐ Very Good: Standard features work well with good response times.',
+            3: '⭐ Good: Functional portal, but some pages load slowly.',
+            2: '⭐ Fair: Navigation is confusing or has minor glitches.',
+            1: '★ Poor: Many features are broken, or page loads are very slow.'
+          },
+          messageLabel: 'System Feedback & Bug Reports *',
+          placeholder: "e.g., 'The registration form keeps lagging when uploading images. Please optimize file uploads...'"
+        };
+      case 'Others':
+      default:
+        return {
+          subjectPlaceholder: 'e.g., Suggestions for General BSC Services',
+          ratingLabel: 'Overall Rating for General Services',
+          starLabels: {
+            5: '⭐ Excellent: Completely satisfied with general support and facilities.',
+            4: '⭐ Very Good: Mostly satisfied with timely assistance.',
+            3: '⭐ Good: Neutral experience with acceptable resolution.',
+            2: '⭐ Fair: Below average support, needs significant improvements.',
+            1: '★ Poor: Extremely unsatisfied with other services or procedures.'
+          },
+          messageLabel: 'General Inquiries & Other Comments *',
+          placeholder: "e.g., 'Please consider improving library digital access or processing of alumni records...'"
+        };
+    }
+  };
+
+  const details = getCategoryDetails();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!subject.trim()) {
       alert('Please fill out the feedback topic.');
       return;
     }
-    if (!isEmployer && !message.trim()) {
+    const isCurriculumEvaluation = isEmployer && category === 'Curriculum';
+    if (!isCurriculumEvaluation && !message.trim()) {
       alert('Please fill out the core comments.');
       return;
     }
-    if (isEmployer && (!strengths.trim() || !suggestions.trim())) {
+    if (isCurriculumEvaluation && (!strengths.trim() || !suggestions.trim())) {
       alert('Please fill out the graduate strengths and recommended syllabus changes.');
       return;
     }
@@ -59,7 +126,7 @@ export default function FeedbackView({
     let finalMessage = message.trim();
     let finalRating = rating;
 
-    if (isEmployer) {
+    if (isCurriculumEvaluation) {
       const evaluationData = {
         type: 'Evaluation',
         ratings: {
@@ -200,7 +267,7 @@ export default function FeedbackView({
                 <input
                   type="text"
                   required
-                  placeholder={isAlumni ? "e.g., IT Course Relevance to Web Development" : "e.g., Skills Competency of BSIT Graduates"}
+                  placeholder={details.subjectPlaceholder}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none ${
@@ -223,7 +290,7 @@ export default function FeedbackView({
                 </select>
               </div>
 
-              {isEmployer ? (
+              {isEmployer && category === 'Curriculum' ? (
                 // Structured Employer Questionnaire
                 <div className="space-y-4">
                   <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Graduate Performance Ratings</span>
@@ -350,10 +417,10 @@ export default function FeedbackView({
 
                 </div>
               ) : (
-                // Standard Alumni Feedback Form
+                // Standard single rating form (for Alumni, and for Employer if category is not Curriculum)
                 <>
                   <div>
-                    <label className="block text-slate-550 mb-1 font-bold">Rating for Program Curriculum Quality</label>
+                    <label className="block text-slate-550 mb-1 font-bold">{details.ratingLabel}</label>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -369,23 +436,21 @@ export default function FeedbackView({
                       ))}
                     </div>
                     <span className="text-[9px] text-slate-400 font-bold block mt-1">
-                      {rating === 5 ? '⭐ Excellent: Graduate skills exceed industry standards.' : 
-                       rating === 4 ? '⭐ Very Good: Skills learned align well with job roles.' :
-                       rating === 3 ? '⭐ Good: Meets basic employment requirements.' :
-                       rating === 2 ? '⭐ Fair: Needs improvement in modern frameworks/practices.' :
-                       '★ Poor: Curriculum is severely outdated/needs overhaul.'}
+                      {details.starLabels[rating]}
                     </span>
                   </div>
 
                   <div>
-                    <label className="block text-slate-550 mb-1 font-bold">Assessment Observations &amp; Suggestions *</label>
+                    <label className="block text-slate-550 mb-1 font-bold">{details.messageLabel}</label>
                     <textarea
                       required
                       rows={4}
-                      placeholder="e.g., 'The Web Programming syllabus was useful, but adding modern frontend frameworks like React would align better with current jobs...'"
+                      placeholder={details.placeholder}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none text-slate-700 font-medium font-sans"
+                      className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none text-slate-700 font-medium font-sans ${
+                        isAlumni ? 'focus:ring-[#1e4620]' : 'focus:ring-[#7c191e]'
+                      }`}
                     />
                   </div>
                 </>
