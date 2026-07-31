@@ -297,7 +297,10 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
             e => e.companyName.trim().toLowerCase() === job.employerName.trim().toLowerCase()
           );
 
-          const isOwnJob = activeUser?.role === 'Employer' && job.employerName.trim().toLowerCase() === loggedInEmpName.trim().toLowerCase();
+          const isOwnJob = activeUser?.role === 'Employer' && (
+            job.employerName.trim().toLowerCase() === loggedInEmpName.trim().toLowerCase() ||
+            job.employerName.trim().toLowerCase() === (activeUser?.name || '').trim().toLowerCase()
+          );
 
           return (
             <div key={job.id} className="bg-white rounded-xl shadow-xs border border-slate-100 p-5 flex flex-col justify-between relative overflow-hidden animate-fade-in">
