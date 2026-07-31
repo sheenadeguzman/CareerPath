@@ -206,9 +206,10 @@ export default function FeedbackView({
   const avgEth = totalEvals > 0 ? (evaluations.reduce((acc, ev) => acc + (ev.evalData.ratings?.workEthics || 5), 0) / totalEvals).toFixed(1) : '0.0';
   const avgTeam = totalEvals > 0 ? (evaluations.reduce((acc, ev) => acc + (ev.evalData.ratings?.teamwork || 5), 0) / totalEvals).toFixed(1) : '0.0';
 
+  // Kinakalkula ang average rating ng feedbacks; ibinabalik ang 'N/A' kapag wala pang naitalang feedback records
   const averageRating = displayFeedbacks.length > 0 
     ? (displayFeedbacks.reduce((acc, current) => acc + (current.rating || 5), 0) / displayFeedbacks.length).toFixed(1)
-    : '4.8';
+    : 'N/A';
 
   return (
     <div className="space-y-6 font-sans">
@@ -482,12 +483,16 @@ export default function FeedbackView({
               <span className="text-[10px] text-slate-400 uppercase font-bold block">
                 Overall Quality Rating
               </span>
-              <span className="text-2xl font-extrabold text-[#7c191e]">{averageRating} / 5.0</span>
-              <div className="flex justify-center text-amber-500 text-sm font-bold gap-1">
-                {Array.from({ length: Math.round(parseFloat(averageRating)) || 5 }).map((_, i) => (
-                  <span key={i}>&#9733;</span>
-                ))}
-              </div>
+              <span className="text-2xl font-extrabold text-[#7c191e]">
+                {averageRating} {averageRating !== 'N/A' ? '/ 5.0' : ''}
+              </span>
+              {averageRating !== 'N/A' && (
+                <div className="flex justify-center text-amber-500 text-sm font-bold gap-1">
+                  {Array.from({ length: Math.round(parseFloat(averageRating)) || 0 }).map((_, i) => (
+                    <span key={i}>&#9733;</span>
+                  ))}
+                </div>
+              )}
               <span className="text-[9px] text-slate-400 font-bold block mt-1">Based on {totalEvals} Employer evaluation{totalEvals <= 1 ? '' : 's'}</span>
             </div>
 
