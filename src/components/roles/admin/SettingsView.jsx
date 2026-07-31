@@ -982,7 +982,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
             </div>
 
             <p className="max-w-xs mx-auto leading-relaxed text-slate-500 font-medium">
-              This system facilitates post-graduate tracking, curricular analytics, and job placement assistance for Batanes State College.
+              This system facilitates post-graduate tracking, curricular analytics, and job placement assistance under CHED directives for Batanes State College.
             </p>
 
             <div 

@@ -31,7 +31,7 @@ export default function MessageEmailView({
   const [targetAudience, setTargetAudience] = useState('Incomplete');
   const [customSubject, setCustomSubject] = useState('Quarterly Graduate Profile & Tracer Study Update Reminder');
   const [customBody, setCustomBody] = useState(
-    `Hello {name},\n\nAll BSC alumni are requested to immediately audit and update their active employment details.\n\nKindly log into your graduate portal, navigate to the active tracer study tab, and complete any pending questionnaires. This plays a massive role in institutional auditing.\n\nRespectfully,\nOffice of Administrative Affairs\nBatanes State College`
+    `Hello {name},\n\nThis is a quarterly administrative reminder from the Batanes State College Administration.\n\nUnder Commission on Higher Education (CHED) Memorandum Orders, all BSC alumni are requested to immediately audit and update their active employment details.\n\nKindly log into your graduate portal, navigate to the active tracer study tab, and complete any pending questionnaires. This plays a massive role in institutional auditing.\n\nRespectfully,\nOffice of Administrative Affairs\nBatanes State College`
   );
 
   // State variables para sa form ng bagong imbitasyon

@@ -55,7 +55,7 @@ export const INITIAL_USERS = [
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=120'
   },
   {
-   id: 'bsc-chair-htm',
+    id: 'bsc-chair-htm',
     userId: 'chair_htm',
     name: 'Prof. Angela Castro',
     email: 'chair.htm@bsc.edu.ph',
@@ -421,11 +421,11 @@ export const INITIAL_JOB_POSTINGS = [
   }
 ];
 
-// Default na mga depinisyon para sa CHED Tracer surveys
+// Default na mga depinisyon para sa Graduate Tracer surveys
 export const INITIAL_SURVEYS = [
   {
     id: 'survey-1',
-    title: 'Graduate Tracer Study 2026',
+    title: 'Graduate Tracer',
     description: 'Annual graduate tracer study aligned with standard requirements to assess employability parameters of Batanes State College graduates.',
     startDate: '2026-01-01',
     endDate: '2026-12-31',

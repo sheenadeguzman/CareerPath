@@ -499,14 +499,14 @@ export default function ReportsView({ alumniList, activeUser }) {
               const url = URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.href = url;
-              link.setAttribute('download', `BSC_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`);
+              link.setAttribute('download', `BSC_CHED_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`);
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
 
               alert(`COMPLETED! Prepared official tracer metrics spreadsheet for ${isChairperson ? (activeUser?.program || 'Department') : 'Batanes State College'} comprising ${filteredAlumni.length} graduates.`);
             }}
-            title={`Target Filename: BSC_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`}
+            title={`Target Filename: BSC_CHED_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`}
             className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
           >
             <Download className="w-4 h-4" /> Export
@@ -941,7 +941,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
         <div className="p-5">
           <p className="text-[11px] text-slate-500 mb-4 font-semibold leading-relaxed font-sans">
-            The following table summarizes institutional performance quality indicators required for official accreditation reviews.
+            The following table summarizes institutional performance quality indicators required for official accreditation reviews (including CHED graduate placement audits and AACCUP compliance checks).
           </p>
           <div className="overflow-x-auto w-full border border-slate-200 rounded-lg">
             <table className="w-full text-left text-xs font-medium text-slate-705 divide-y divide-slate-200">

@@ -62,7 +62,7 @@ export async function saveJob(job, activeUserId, headers) {
 }
 
 /**
- * I-save o i-update ang survey configuration (Graduate Tracer surveys).
+ * I-save o i-update ang survey configuration (CHED Graduate Tracer surveys).
  */
 export async function saveSurvey(survey, activeUserId, headers) {
   const response = await fetch('/api/save-survey', {

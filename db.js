@@ -338,6 +338,12 @@ export async function initializeDatabase() {
         }
       }
     }
+
+    // MIGRATION: Alisin ang "CHED" at "Study 2026" sa default survey title para maging "Graduate Tracer" na lang
+    try {
+      await pool.query("UPDATE surveys SET title = 'Graduate Tracer' WHERE id = 'survey-1'");
+      console.log("Database Migration: Updated default survey title to 'Graduate Tracer'.");
+    } catch (e) {}
   } catch (err) {
     console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err.message);
   }

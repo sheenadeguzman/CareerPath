@@ -7,12 +7,12 @@ import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpR
  * at Chairperson na gumawa ng mga bagong questionnaire at mag-inspect ng mga sagot,
  * habang pinapayagan ang mga alumni na sumagot sa mga aktibong tracer surveys.
  */
-export default function SurveysView({ 
-  surveys, 
-  activeUser, 
-  onSaveSurvey, 
-  surveyResponses = [], 
-  onSubmitResponse 
+export default function SurveysView({
+  surveys,
+  activeUser,
+  onSaveSurvey,
+  surveyResponses = [],
+  onSubmitResponse
 }) {
   // State hook para sa pagpapakita ng modal sa paggawa ng bagong survey
   const [isAddingSurvey, setIsAddingSurvey] = useState(false);
@@ -90,8 +90,8 @@ export default function SurveysView({
         id: `q-${idx + 1}`,
         text: q.text.trim(),
         type: q.type,
-        options: (q.type === 'select' || q.type === 'checkbox' || q.type === 'likert') && q.options 
-          ? q.options.split(',').map(o => o.trim()).filter(Boolean) 
+        options: (q.type === 'select' || q.type === 'checkbox' || q.type === 'likert') && q.options
+          ? q.options.split(',').map(o => o.trim()).filter(Boolean)
           : []
       }));
 
@@ -170,7 +170,7 @@ export default function SurveysView({
 
   return (
     <div className="space-y-6 font-sans">
-      
+
       {/* Toast notification notice para sa feedback messages */}
       {showComment && (
         <div id="survey-toast-alert" className="p-4 bg-emerald-50 text-emerald-900 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -184,8 +184,8 @@ export default function SurveysView({
         <div>
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-sans">Graduate Tracer Surveys</h2>
           <p className="text-[11px] text-slate-405 mt-0.5">
-            {isAdminOrChair 
-              ? 'Formulate, schedule and analyze graduate tracer questionnaires to track BSC program KPIs.' 
+            {isAdminOrChair
+              ? 'Formulate, schedule and analyze graduate tracer questionnaires to track BSC program KPIs.'
               : 'Participate in educational tracer studies to help audit and upgrade academic curriculums.'}
           </p>
         </div>
@@ -244,7 +244,7 @@ export default function SurveysView({
                   <span className="inline-flex items-center gap-1">
                     <Calendar className="w-4 h-4 text-slate-400" /> Deadline: {survey.endDate}
                   </span>
-                  
+
                   {isAdminOrChair && (
                     <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold">
                       {/* NOTE: Ginawa nating <= 1 para maging singular din ang 0 responses alinsunod sa bagong requirement ng user. */}
@@ -302,7 +302,7 @@ export default function SurveysView({
                 <FileText className="w-5 h-5 text-[#1e4620]" />
                 <h3 className="text-sm font-extrabold text-[#1e4620] uppercase tracking-wide">Configure Graduate Tracer Questionnaire</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsAddingSurvey(false)}
                 className="p-1.5 hover:bg-slate-100 text-slate-500 rounded-lg transition cursor-pointer"
                 title="Close"
@@ -423,8 +423,8 @@ export default function SurveysView({
                               type="text"
                               required
                               placeholder={
-                                question.type === 'likert' 
-                                  ? 'e.g. Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree' 
+                                question.type === 'likert'
+                                  ? 'e.g. Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree'
                                   : 'e.g. Option A, Option B, Option C'
                               }
                               value={question.options || ''}
@@ -466,7 +466,7 @@ export default function SurveysView({
       {answeringSurvey && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
           <div className="bg-white w-full max-w-lg h-[480px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative">
-            
+
             <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#cca43b] animate-pulse" />
@@ -475,7 +475,7 @@ export default function SurveysView({
                   <span className="block text-[10px] text-slate-400 font-bold">Please complete your alignment evaluation inputs accurately</span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setAnsweringSurvey(null)}
                 className="p-1.5 hover:bg-slate-100 text-slate-500 rounded-lg transition cursor-pointer"
                 title="Close"
@@ -600,7 +600,7 @@ export default function SurveysView({
       {viewingResponsesSurvey && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
           <div className="bg-white w-full max-w-4xl h-[520px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative border-collapse">
-            
+
             <div className="sticky top-0 bg-white border-b border-secondary/15 px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-amber-500" />
@@ -611,7 +611,7 @@ export default function SurveysView({
                   </span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setViewingResponsesSurvey(null)}
                 className="p-1.5 hover:bg-slate-100 text-slate-505 rounded-lg transition cursor-pointer"
                 title="Close"
@@ -660,7 +660,7 @@ export default function SurveysView({
                               </td>
                             ))}
                             <td className="p-3 pr-4 text-right font-semibold text-[10px] text-slate-400 whitespace-nowrap font-mono">
-                              {new Date(resp.submittedAt).toLocaleDateString()} &bull; {new Date(resp.submittedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              {new Date(resp.submittedAt).toLocaleDateString()} &bull; {new Date(resp.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </td>
                           </tr>
                         ))}
