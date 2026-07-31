@@ -1,13 +1,16 @@
 /**
  * @file api.js
- * @description Stateless API service helper for the CareerPath frontend.
+ * @description Stateless API service helper para sa CareerPath frontend client.
+ * Dito nakalagay ang lahat ng client-side HTTP/Fetch requests papuntang backend API routes.
  */
 
 /**
- * Helper to handle fetch responses and handle JSON conversion.
+ * Helper function para i-process ang fetch responses at i-validate kung success o error.
+ * Awtomatiko nitong ini-extract ang response body bilang JSON.
  */
 async function handleResponse(response) {
   if (!response.ok) {
+    // Pag may error, kuhanin ang error text galing sa server response kung mayroon
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
   }
@@ -15,7 +18,7 @@ async function handleResponse(response) {
 }
 
 /**
- * Fetch all sync collections from the backend.
+ * Kuhanin ang kumpletong dashboard sync data mula sa database.
  */
 export async function fetchDashboardData() {
   const response = await fetch('/api/data');
@@ -23,7 +26,7 @@ export async function fetchDashboardData() {
 }
 
 /**
- * Save or update alumni profile.
+ * I-save o i-update ang alumni profile details.
  */
 export async function saveAlumni(profile, activeUserId, headers) {
   const response = await fetch('/api/save-alumni', {
@@ -35,7 +38,7 @@ export async function saveAlumni(profile, activeUserId, headers) {
 }
 
 /**
- * Save or update employer details.
+ * I-save o i-update ang partner employer details.
  */
 export async function saveEmployer(employer, activeUserId, headers) {
   const response = await fetch('/api/save-employer', {
@@ -47,7 +50,7 @@ export async function saveEmployer(employer, activeUserId, headers) {
 }
 
 /**
- * Save or update job posting.
+ * I-save o i-update ang job vacancy posting.
  */
 export async function saveJob(job, activeUserId, headers) {
   const response = await fetch('/api/save-job', {
@@ -59,7 +62,7 @@ export async function saveJob(job, activeUserId, headers) {
 }
 
 /**
- * Save or update CHED Graduate Tracer survey.
+ * I-save o i-update ang survey configuration (CHED Graduate Tracer surveys).
  */
 export async function saveSurvey(survey, activeUserId, headers) {
   const response = await fetch('/api/save-survey', {
@@ -71,7 +74,7 @@ export async function saveSurvey(survey, activeUserId, headers) {
 }
 
 /**
- * Submit survey response.
+ * Isumite ang survey response ng isang alumnus.
  */
 export async function submitSurveyResponse(surveyId, alumniId, alumniName, answers, headers) {
   const response = await fetch('/api/submit-survey-response', {
@@ -83,7 +86,7 @@ export async function submitSurveyResponse(surveyId, alumniId, alumniName, answe
 }
 
 /**
- * Submit curriculum/system feedback.
+ * Isumite ang quality curriculum o system feedback mula sa stakeholders.
  */
 export async function submitFeedback(feedback, activeUserId, headers) {
   const response = await fetch('/api/submit-feedback', {
@@ -95,7 +98,7 @@ export async function submitFeedback(feedback, activeUserId, headers) {
 }
 
 /**
- * Bulk import alumni records.
+ * Bulk import ng alumni records mula sa spreadsheet upload ng admin.
  */
 export async function bulkImportAlumni(rows, activeUserId, headers) {
   const response = await fetch('/api/import-alumni', {
@@ -107,7 +110,7 @@ export async function bulkImportAlumni(rows, activeUserId, headers) {
 }
 
 /**
- * Delete alumni profile.
+ * Burahin ang profile at user account ng isang alumnus.
  */
 export async function deleteAlumni(studentId, activeUserId, headers) {
   const response = await fetch('/api/delete-alumni', {
@@ -119,7 +122,7 @@ export async function deleteAlumni(studentId, activeUserId, headers) {
 }
 
 /**
- * Dispatch batch email reminders.
+ * Magpadala ng batch email reminders (nudge alerts) sa mga alumni.
  */
 export async function sendBatchReminders(targetAlumniIds, activeUserId, customSubject, customBody, headers) {
   const response = await fetch('/api/send-email', {
@@ -131,7 +134,7 @@ export async function sendBatchReminders(targetAlumniIds, activeUserId, customSu
 }
 
 /**
- * Invite user and create SIAS login credentials.
+ * Mag-invite ng bagong system user at gumawa ng login credentials.
  */
 export async function inviteUserByEmail(email, role, activeUserId, headers) {
   const response = await fetch('/api/invite-user', {
@@ -143,7 +146,7 @@ export async function inviteUserByEmail(email, role, activeUserId, headers) {
 }
 
 /**
- * Toggle notification read status.
+ * Baguhin ang status (read/unread) ng notification base sa notification ID.
  */
 export async function toggleNotificationRead(id, read, headers) {
   const response = await fetch('/api/toggle-notification-read', {
@@ -155,7 +158,7 @@ export async function toggleNotificationRead(id, read, headers) {
 }
 
 /**
- * Delete system user.
+ * Burahin ang isang system user account.
  */
 export async function deleteUser(userId, activeUserId, headers) {
   const response = await fetch('/api/delete-user', {

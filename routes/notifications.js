@@ -1,6 +1,6 @@
 /**
  * @file notifications.js
- * @description Router para sa user invitations, batch email dispatches, at notification settings updates.
+ * @description Router para sa pag-manage ng invitations, batch emails (tracer nudge reminders), at notification settings updates.
  */
 
 import express from 'express';
@@ -14,12 +14,15 @@ const router = express.Router();
 
 /**
  * POST /api/invite-user
- * Nag-e-email/pre-invite ng mga bagong user (Alumni/Employer/Chairperson) at nag-se-setup ng default password.
+ * Endpoint para mag-invite ng bagong user (Alumni, Employer, o Chairperson).
+ * Awtomatiko nitong ginagawan ng user account na may default password na 'bsc123'.
+ * Gagawa rin ito ng company record kung Employer ang in-invite, at empty profile stub naman kung Alumni.
  */
 router.post('/invite-user', authenticateToken, async (req, res) => {
   try {
     const { email, role, activeUserId } = req.body;
 
+    // Kunin ang active user details para sa logging audit trail
     let activeUser = null;
     if (activeUserId) {
       const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
@@ -29,6 +32,9 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     const cleanEmail = email.trim();
     const parts = cleanEmail.split('@');
     const nameSeed = parts[0];
+    
+    // Matutukoy ang custom login user_id base sa role: 
+    // Kung Alumni, random student ID template. Kung Employer, ang email. Kung Chairperson, ang ngalan bago mag @.
     const customUserId = role === 'Alumni' 
       ? `BSC-2026-${Math.floor(100 + Math.random() * 900)}` 
       : (role === 'Employer' ? cleanEmail : nameSeed);
@@ -45,7 +51,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       companyId: null
     };
 
-    // Kapag ang role ay Employer, i-initialize ang kumpanya nito
+    // Kung Employer ang in-invite, gumawa din ng stub company record sa employers table
     if (role === 'Employer') {
       const companyId = `employer-${Date.now()}`;
       const defaultCompanyName = nameSeed.split('.').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ') + ' Partners';
@@ -61,6 +67,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       newUser.companyId = companyId;
     }
 
+    // I-hash ang default password na 'bsc123' at i-save ang bagong user credentials
     const hashedPassword = await bcrypt.hash(newUser.password, 10);
     await pool.query(
       `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar, company_id) 
@@ -68,7 +75,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       [newUser.id, newUser.userId, hashedPassword, newUser.name, newUser.email, newUser.role, newUser.isInitialPasswordNeeded ? 1 : 0, newUser.avatar, newUser.companyId]
     );
 
-    // Kapag ang role ay Alumni, i-initialize ang isang walang lamang profile
+    // Kung Alumni ang in-invite, gumawa din ng blangkong record sa alumni_profiles
     if (role === 'Alumni') {
       const defaultFirstName = nameSeed.split('.')[0] || nameSeed;
       const defaultLastName = nameSeed.split('.')[1] || 'Grad';
@@ -87,7 +94,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       );
     }
 
-    // Awtomatikong mag-send ng email invitation kung may active SMTP transporter
+    // Magpadala ng email invitation details gamit ang nodemailer SMTP transporter
     const emailSubject = 'Portal Access Invitation | Batanes State College CareerPath';
     const emailBody = `Hello,\n\nYou have been invited by Batanes State College to register and access the CareerPath Graduate Tracer & Employability Analytics System as an ${role}.\n\nBelow are your initial portal credentials:\nPortal URL: http://localhost:3000/\nUser ID: ${newUser.userId}\nTemporary Password: bsc123\n\nPlease log in and update your password immediately upon your first access.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`;
 
@@ -107,7 +114,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       console.log(`[Invite Fallback Mode] Logged credentials: UserID: ${newUser.userId} / Pass: bsc123`);
     }
 
-    // Isulat ang notification para sa fallback visual check sa admin panel
+    // Mag-save din ng alert sa notifications table ng system
     const notifyId = `notify-invite-${Date.now()}`;
     await pool.query(
       `INSERT INTO notifications (id, title, text, date, \`read\`) 
@@ -115,7 +122,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
        [notifyId, emailSubject, `Invitation sent to ${newUser.name} (${cleanEmail}) as ${role}. UserID: ${newUser.userId}, Pass: bsc123`]
     );
 
-    // I-log ang pag-invite ng bagong user
+    // Itala ang pag-invite sa activity logs para sa trace history ng admin
     const newLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -133,6 +140,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Kuhanin ang pinakabagong users at alumni records para i-refresh ang UI sa admin dashboard
     const [usersRows] = await pool.query('SELECT * FROM users');
     const [alumniRows] = await pool.query(`
       SELECT ap.*, u.is_initial_password_needed 
@@ -150,7 +158,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/send-email
- * Nagpapadala ng automated email alerts/nudges gamit ang SMTP. May kasamang database fallback logic kapag offline.
+ * Endpoint para sa pagpapadala ng batch emails/nudges (reminders) sa mga alumni na hindi pa kumpleto ang tracer profile.
  */
 router.post('/send-email', authenticateToken, async (req, res) => {
   try {
@@ -163,14 +171,20 @@ router.post('/send-email', authenticateToken, async (req, res) => {
     }
 
     let sentCount = 0;
+    
+    // Ipadala ang nudge email sa bawat isa sa napiling target list
     for (const studentId of targetAlumniIds) {
       const [alRows] = await pool.query('SELECT * FROM alumni_profiles WHERE student_id = ?', [studentId]);
       if (alRows.length > 0) {
         const alumni = mapAlumniFromDB(alRows[0]);
         const customEmailSubject = customSubject || 'Profile Incomplete Notice | Batanes State College Tracer Program';
-        const customEmailBody = (customBody || `Hello ${alumni.name},\n\nWe noticed that your Batanes State College Graduate Tracer profile is currently at ${alumni.profileCompleteness}% completion.\n\nTo align with official Commission on Higher Education (CHED) Memorandum Orders, please log in with your credentials and update your current employment status and matching skill inventory.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`).replace('{name}', alumni.name);
+        
+        // I-replace ang placeholder tag na '{name}' gamit ang pangalan ng alumni
+        const customEmailBody = (customBody || `Hello {name},\n\nWe noticed that your Batanes State College Graduate Tracer profile is currently at ${alumni.profileCompleteness}% completion.\n\nTo align with official Commission on Higher Education (CHED) Memorandum Orders, please log in with your credentials and update your current employment status and matching skill inventory.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`).replace('{name}', alumni.name);
 
         let emailStatusDetail = `Message dispatched to ${alumni.name}`;
+        
+        // Ipadala gamit ang SMTP kung configured
         if (transporter && alumni.email) {
           try {
             await transporter.sendMail({
@@ -189,8 +203,8 @@ router.post('/send-email', authenticateToken, async (req, res) => {
           console.log(`[Mail Dispatch Log] Fallback logged notification for ${alumni.name} (No active SMTP server).`);
         }
 
+        // I-record din ang abiso sa notifications table para makita sa notification log list ng app
         const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
         await pool.query(
           `INSERT INTO notifications (id, title, text, date, \`read\`) 
            VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
@@ -200,6 +214,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
       }
     }
 
+    // Mag-create ng log event para sa batch send operation na ito
     if (sentCount > 0) {
       const newLog = {
         id: `log-${Date.now()}`,
@@ -219,6 +234,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
       );
     }
 
+    // Kunin ang mga bagong notifications at ibalik sa client
     const [notificationRows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
     res.json({ success: true, notifications: notificationRows.map(mapNotificationFromDB) });
   } catch (err) {
@@ -229,7 +245,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/toggle-notification-read
- * Nagpapalit ng notification status (read / unread).
+ * Endpoint para baguhin ang estado ng notification (Read / Unread) batay sa ID nito.
  */
 router.post('/toggle-notification-read', authenticateToken, async (req, res) => {
   try {

@@ -176,7 +176,7 @@ export default function ChairpersonDashboard({
           </div>
           <h1 className="text-xl font-extrabold text-slate-800 mt-2">Mabuhay, {activeUser.name}! Welcome to your Department Portal</h1>
           <p className="text-xs text-slate-500 mt-1">
-            BSC Tracer Analytics Platform specialized for <span className="text-[#7c191e] font-bold">{chairProgram}</span>. You have exclusive restricted access to your department's resources.
+            BSC Tracer Analytics Platform specialized for <span className="text-[#7c191e] font-bold">{chairProgram}</span>.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2 no-print shrink-0">

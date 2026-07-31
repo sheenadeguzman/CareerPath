@@ -1,17 +1,20 @@
 /**
  * @file mailer.js
- * @description Nodemailer SMTP configuration and shared mail transporter helper.
+ * @description Configuration ng Nodemailer SMTP transporter para sa pagpapadala ng system emails.
  */
 
 import nodemailer from 'nodemailer';
 
+// Ito ang shared mail transporter object na gagamitin sa iba't ibang routes
 export let transporter = null;
 
+// Tiyakin muna kung kumpleto ang SMTP environment variables sa .env file
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // Gumawa ng transport session gamit ang nodemailer credentials
   transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_PORT === '465',
+    secure: process.env.SMTP_PORT === '465', // true para sa SSL (Port 465), false para sa TLS (Port 587)
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
@@ -19,5 +22,6 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
   });
   console.log('Mail Service Configured: SMTP Transporter initialized successfully.');
 } else {
+  // Kapag walang SMTP variables, mag-print ng babala. Ang mga email codes ay makikita na lang sa console logs at database notification tables bilang fallback.
   console.log('Mail Service Warning: SMTP configuration is missing in .env. Emails will be logged to database only (Fallback mode).');
 }

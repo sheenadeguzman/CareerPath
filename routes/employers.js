@@ -1,6 +1,6 @@
 /**
  * @file employers.js
- * @description Router para sa pag-save at pag-verify ng partner employers.
+ * @description Router para sa pag-save, pag-verify, at pag-manage ng mga partner employers.
  */
 
 import express from 'express';
@@ -13,11 +13,14 @@ const router = express.Router();
 
 /**
  * POST /api/save-employer
+ * Endpoint para sa pag-save (insert) o pag-update ng records ng partner employers.
+ * Tumutulong din ito sa pag-verify ng employer profile at pagpapadala ng alert notifications.
  */
 router.post('/save-employer', authenticateToken, async (req, res) => {
   try {
     const { employer, activeUserId } = req.body;
 
+    // Kunin ang active admin/chairperson user para sa verification logging
     let activeUser = null;
     if (activeUserId) {
       const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
@@ -25,9 +28,12 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
     }
 
     const empId = employer.id || `employer-${Date.now()}`;
+    
+    // I-verify kung umiiral na sa db ang employer gamit ang company ID
     const [existing] = await pool.query('SELECT id FROM employers WHERE id = ?', [empId]);
 
     if (existing.length > 0) {
+      // Mag-execute ng UPDATE query kung may record na ang employer
       await pool.query(
         `UPDATE employers SET 
           company_name = ?, industry = ?, address = ?, email = ?, phone = ?, 
@@ -41,6 +47,7 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
         ]
       );
     } else {
+      // Mag-execute ng INSERT query kung bagong partner employer profile ito
       await pool.query(
         `INSERT INTO employers (
           id, company_name, industry, address, email, phone, 
@@ -54,7 +61,7 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
       );
     }
 
-    // Magdagdag ng notification para sa audit ng verification
+    // Mag-generate ng notification entry para sa system notification dashboard
     const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const statusText = employer.isVerified ? 'VERIFIED' : 'UNVERIFIED / PENDING';
     const notificationTitle = `Employer Verification Updated`;
@@ -66,7 +73,7 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
       [notifyId, notificationTitle, notificationContent]
     );
 
-    // I-email ang Employer tungkol sa status update
+    // Magpadala ng status email alert sa contact address ng employer gamit ang configured transporter
     if (transporter && employer.email) {
       try {
         await transporter.sendMail({
@@ -81,7 +88,7 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
       }
     }
 
-    // Mga detalye para sa audit log
+    // I-log ang transaksyon sa activity logs para sa security trail
     const isUpdate = existing.length > 0;
     const newLog = {
       id: `log-${Date.now()}`,
@@ -100,6 +107,7 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Kuhanin ang pinakabagong listahan ng employers at ibalik sa client side
     const [employersRows] = await pool.query('SELECT * FROM employers');
     res.json({ success: true, employers: employersRows.map(mapEmployerFromDB) });
   } catch (err) {

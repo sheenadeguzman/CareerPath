@@ -1,6 +1,6 @@
 /**
  * @file feedback.js
- * @description Router para sa pagsusumite ng curriculum/system feedback mula sa stakeholders.
+ * @description Router para sa pagsusumite ng curriculum/system feedback mula sa stakeholders (Alumni, Employers, etc.).
  */
 
 import express from 'express';
@@ -12,27 +12,34 @@ const router = express.Router();
 
 /**
  * POST /api/submit-feedback
+ * Endpoint para sa pagsusumite ng feedback.
+ * May dalawang uri ito:
+ * 1. Log Event: kapag ang message ay nagsisimula sa '[LOG EVENT]', ito ay ise-save sa activity_logs table.
+ * 2. Normal Feedback: ise-save sa feedbacks table para sa kalidad ng curriculum o system evaluation.
  */
 router.post('/submit-feedback', authenticateToken, async (req, res) => {
   try {
     const { feedback, activeUserId } = req.body;
 
+    // Kunin ang active user details para sa log attribution
     let activeUser = null;
     if (activeUserId) {
       const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
       if (users.length > 0) activeUser = mapUserFromDB(users[0]);
     }
 
+    // Suriin kung log event ito ng system mula sa client side actions
     const isLogEvent = feedback.message && feedback.message.startsWith('[LOG EVENT]');
 
     if (isLogEvent) {
-      // It's a system log activity. Save ONLY to activity_logs table.
+      // Kung log event, kunin ang details at module gamit ang Regular Expression (Regex) matching
       const logId = `log-${Date.now()}`;
       const msg = feedback.message;
       const detailsMatch = msg.match(/^\[LOG EVENT\] (.*) \(Module: (.*)\)$/);
       const details = detailsMatch ? detailsMatch[1] : msg;
       const module = detailsMatch ? detailsMatch[2] : 'System';
 
+      // I-insert nang direkta sa activity_logs table (walang feedback entry na malilikha)
       await pool.query(
         'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
@@ -48,7 +55,7 @@ router.post('/submit-feedback', authenticateToken, async (req, res) => {
         ]
       );
     } else {
-      // It's actual feedback. Save to feedbacks table AND log it.
+      // Kung totoong feedback galing sa user, i-save sa feedbacks table
       const fbId = `fb-${Date.now()}`;
       await pool.query(
         `INSERT INTO feedbacks (id, subject, category, message, rating, submitted_by, alumni_student_id, alumni_name, company_name) 
@@ -66,7 +73,7 @@ router.post('/submit-feedback', authenticateToken, async (req, res) => {
         ]
       );
 
-      // I-log ang quality review feedback ng user
+      // Pagkatapos, i-log ang event na ito sa activity_logs para sa tracking ng Admin
       const newLog = {
         id: `log-${Date.now()}`,
         timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -85,6 +92,7 @@ router.post('/submit-feedback', authenticateToken, async (req, res) => {
       );
     }
 
+    // Kuhanin ang pinakabagong listahan ng feedbacks at ibalik sa client
     const [feedbackRows] = await pool.query('SELECT * FROM feedbacks ORDER BY submitted_at DESC');
     res.json({ success: true, feedbacks: feedbackRows.map(mapFeedbackFromDB) });
   } catch (err) {

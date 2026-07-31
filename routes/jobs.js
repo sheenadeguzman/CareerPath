@@ -1,6 +1,6 @@
 /**
  * @file jobs.js
- * @description Router para sa pag-save at pag-update ng mga bakanteng trabaho.
+ * @description Router para sa pag-save, pag-update, at pag-track ng mga bakanteng trabaho (Job Postings) para sa mga alumni.
  */
 
 import express from 'express';
@@ -12,11 +12,14 @@ const router = express.Router();
 
 /**
  * POST /api/save-job
+ * Endpoint para mag-save o mag-update ng isang job posting.
+ * Awtomatiko nitong kinakalkula ang bilang ng mga aktibong bakanteng trabaho ng employer sa employers table.
  */
 router.post('/save-job', authenticateToken, async (req, res) => {
   try {
     const { job, activeUserId } = req.body;
 
+    // Kunin ang data ng active user para sa pag-audit ng action logs
     let activeUser = null;
     if (activeUserId) {
       const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
@@ -24,11 +27,16 @@ router.post('/save-job', authenticateToken, async (req, res) => {
     }
 
     const jobId = job.id || `job-${Date.now()}`;
+    
+    // I-verify kung may ganito nang trabaho sa db gamit ang job ID
     const [existing] = await pool.query('SELECT id FROM job_postings WHERE id = ?', [jobId]);
+    
+    // I-serialize ang requirements array para maging JSON string
     const reqsStr = JSON.stringify(job.requirements || []);
     const deadline = job.deadline ? job.deadline : null;
 
     if (existing.length > 0) {
+      // Mag-execute ng UPDATE query kapag ine-edit ang trabaho
       await pool.query(
         `UPDATE job_postings SET 
           job_title = ?, employer_name = ?, description = ?, requirements = ?, 
@@ -44,6 +52,7 @@ router.post('/save-job', authenticateToken, async (req, res) => {
         ]
       );
     } else {
+      // Mag-execute ng INSERT query para sa bagong lagay na trabaho
       await pool.query(
         `INSERT INTO job_postings (
           id, job_title, employer_name, description, requirements, 
@@ -59,11 +68,11 @@ router.post('/save-job', authenticateToken, async (req, res) => {
       );
     }
 
-    // I-update ang bilang ng mga bakanteng posisyon para sa reference list ng mga employer
+    // Awtomatikong kalkulahin ang natitirang open jobs ng company at i-sync sa vacancies_count ng employers table
     const [openJobs] = await pool.query('SELECT id FROM job_postings WHERE employer_name = ? AND status = "Open"', [job.employerName]);
     await pool.query('UPDATE employers SET vacancies_count = ? WHERE company_name = ?', [openJobs.length, job.employerName]);
 
-    // I-log ang paggawa ng job posting
+    // Gumawa at i-save ang activity audit log
     const newLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -81,6 +90,7 @@ router.post('/save-job', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Ibalik ang kumpletong bagong listahan ng jobs sa client
     const [jobRows] = await pool.query('SELECT * FROM job_postings ORDER BY created_at DESC');
     res.json({ success: true, jobPostings: jobRows.map(mapJobPostingFromDB) });
   } catch (err) {

@@ -1,6 +1,6 @@
 /**
  * @file alumni.js
- * @description Router para sa pag-sync ng database collections, save/delete/import ng alumni profiles.
+ * @description Router para sa pag-sync ng database collections, pati na rin ang pag-save, pag-delete, at bulk import ng alumni profiles.
  */
 
 import express from 'express';
@@ -24,16 +24,21 @@ const router = express.Router();
 /**
  * GET /api/data
  * Nagbabalik ng kumpletong sync ng lahat ng collections mula sa MySQL database.
+ * Ito ang ginagamit ng frontend app pagka-login para makuha agad ang buong state ng dashboard.
  */
 router.get('/data', async (req, res) => {
   try {
+    // Kuhanin ang bawat table isa-isa mula sa MySQL
     const [usersRows] = await pool.query('SELECT * FROM users');
+    
+    // I-query ang alumni profiles na may kasamang is_initial_password_needed at avatar galing sa users table
     const [alumniRows] = await pool.query(`
       SELECT ap.*, u.is_initial_password_needed, u.avatar as avatar 
       FROM alumni_profiles ap 
       LEFT JOIN users u ON ap.student_id = u.id 
       ORDER BY ap.last_updated DESC
     `);
+    
     const [employersRows] = await pool.query('SELECT * FROM employers');
     const [jobRows] = await pool.query('SELECT * FROM job_postings ORDER BY created_at DESC');
     const [surveyRows] = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
@@ -42,6 +47,7 @@ router.get('/data', async (req, res) => {
     const [notificationRows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
     const [responseRows] = await pool.query('SELECT * FROM survey_responses ORDER BY submitted_at DESC');
 
+    // I-return ang lahat ng data pagkatapos i-map gamit ang helper functions para maging camelCase ang keys
     res.json({
       users: usersRows.map(mapUserFromDB),
       alumni: alumniRows.map(mapAlumniFromDB),
@@ -61,20 +67,25 @@ router.get('/data', async (req, res) => {
 
 /**
  * POST /api/save-alumni
+ * Endpoint para sa pag-save o pag-update ng profile details ng isang alumni.
  */
 router.post('/save-alumni', authenticateToken, async (req, res) => {
   try {
     const { profile, activeUserId } = req.body;
 
+    // Kuhanin ang active user details para sa logging audit trail
     let activeUser = null;
     if (activeUserId) {
       const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
       if (users.length > 0) activeUser = mapUserFromDB(users[0]);
     }
 
+    // I-check muna kung may existing profile na para sa student ID na ito
     const [existing] = await pool.query('SELECT * FROM alumni_profiles WHERE student_id = ?', [profile.studentId]);
     let careerHistory = profile.careerHistory || [];
 
+    // Kung mayroon nang existing profile, titingnan natin kung nagbago ang kanilang trabaho.
+    // Kapag nagbago (halimbawa, naging Unemployed o lumipat ng kumpanya), ia-archive natin ang lumang trabaho sa history list.
     if (existing.length > 0) {
       const oldProfile = existing[0];
       const oldJobExists = oldProfile.employer_name && oldProfile.job_title;
@@ -84,7 +95,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       );
 
       if (hasJobChanged) {
-        // Check if the old job is already archived in incoming history to avoid duplicates
+        // Siguraduhing hindi duplicate sa listahan ng archives ang dating kumpanya at posisyon
         const alreadyExists = careerHistory.some(
           h => h.company && h.company.toLowerCase() === oldProfile.employer_name.toLowerCase() &&
                h.title && h.title.toLowerCase() === oldProfile.job_title.toLowerCase()
@@ -107,6 +118,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       }
     }
 
+    // I-serialize ang array objects (skills, career history, at education history) para maging JSON string sa database
     const skillsStr = JSON.stringify(profile.skills || []);
     const historyStr = JSON.stringify(careerHistory);
     const dob = profile.dateOfBirth ? profile.dateOfBirth : null;
@@ -114,6 +126,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
     const educationStr = JSON.stringify(profile.educationHistory || []);
 
     if (existing.length > 0) {
+      // Mag-execute ng UPDATE query kung may profile na
       await pool.query(
         `UPDATE alumni_profiles SET 
           first_name = ?, middle_name = ?, last_name = ?, suffix = ?, email = ?, phone = ?, gender = ?, civil_status = ?, 
@@ -142,7 +155,8 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.studentId
         ]
       );
-      // I-sync ang avatar at name sa users table
+      
+      // I-sync din ang pangalan, email, at avatar ng alumni sa user credentials (users table)
       await pool.query(
         'UPDATE users SET name = ?, email = ?, avatar = ? WHERE id = ?',
         [
@@ -153,8 +167,11 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
         ]
       );
     } else {
+      // Kung walang existing profile, ibig sabihin bago ito.
+      // 1. I-check muna kung may user na para sa student_id na ito. Kung wala, gagawan natin ito ng user login profile
       const [userCheck] = await pool.query('SELECT id FROM users WHERE id = ?', [profile.studentId]);
       if (userCheck.length === 0) {
+        // Ang password by default ay ang kanilang student_id (na naka-encrypt gamit ang bcrypt)
         const hashedPassword = await bcrypt.hash(profile.studentId, 10);
         await pool.query(
           `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
@@ -171,6 +188,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           ]
         );
       } else {
+        // Kung may user na pero walang profile, i-sync lang natin ang name, email, at avatar
         await pool.query(
           'UPDATE users SET name = ?, email = ?, avatar = ? WHERE id = ?',
           [
@@ -182,6 +200,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
         );
       }
 
+      // 2. I-insert ang bagong data sa alumni_profiles table
       await pool.query(
         `INSERT INTO alumni_profiles (
           student_id, first_name, middle_name, last_name, suffix, email, phone, gender, civil_status, 
@@ -210,6 +229,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       );
     }
 
+    // Gawan ng activity audit log ang pagbabagong ito
     const newLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -227,6 +247,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Kuhanin ang pinakabagong listahan ng alumni at ibalik sa client
     const [alumniRows] = await pool.query(`
       SELECT ap.*, u.is_initial_password_needed, u.avatar as avatar 
       FROM alumni_profiles ap 
@@ -242,6 +263,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/delete-alumni
+ * Endpoint para burahin ang alumni profile. Tanging mga Admins, Super Admins, at Chairperson lang ang pwede rito.
  */
 router.post('/delete-alumni', authenticateToken, async (req, res) => {
   try {
@@ -253,6 +275,7 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
       if (users.length > 0) activeUser = mapUserFromDB(users[0]);
     }
 
+    // Pigilan kung hindi admin, super admin, o chairperson ang nagbubura
     if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
       return res.status(403).json({ error: 'Permission denied: Only Administrators, Super Admins, and Department Chairpersons can delete profiles.' });
     }
@@ -263,8 +286,10 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
     }
     const alumnus = mapAlumniFromDB(alumniRows[0]);
 
+    // Burahin ang user account. Dahil sa CASCADE delete relationship, mabubura rin ang mismong record sa alumni_profiles table.
     await pool.query('DELETE FROM users WHERE id = ?', [studentId]);
 
+    // Itala ang pagbura sa logs
     const newLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -282,6 +307,7 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Kuhanin ang pinakabagong record sets at ibalik sa frontend
     const [updatedAlumniRows] = await pool.query(`
       SELECT ap.*, u.is_initial_password_needed, u.avatar as avatar 
       FROM alumni_profiles ap 
@@ -303,6 +329,7 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/import-alumni
+ * Endpoint para sa bulk importing ng alumni records mula sa CSV o Excel upload file ng admin.
  */
 router.post('/import-alumni', authenticateToken, async (req, res) => {
   try {
@@ -315,6 +342,8 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
     }
 
     let countImported = 0;
+    
+    // Isa-isahing i-verify at i-save ang bawat record row na ipinasa
     for (const row of rows) {
       const studentId = row.studentId || `BSC-2026-${Math.floor(100 + Math.random() * 900)}`;
       const name = row.name || `${row.firstName || 'First'} ${row.lastName || 'Last'}`;
@@ -322,8 +351,10 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
       const program = row.program || 'BS Information Technology';
       const yearGraduated = parseInt(row.yearGraduated) || 2026;
 
+      // I-check kung may active account na para sa student id na ito para hindi maging duplicate user credentials
       const [existing] = await pool.query('SELECT id FROM users WHERE id = ? OR user_id = ?', [studentId, studentId]);
       if (existing.length === 0) {
+        // Gawan ng initial credentials gamit ang default password na 'bsc123'
         const hashedPassword = await bcrypt.hash('bsc123', 10);
         await pool.query(
           `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
@@ -331,9 +362,11 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
           [studentId, studentId, hashedPassword, name, email, 'Alumni', 1, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120']
         );
 
+        // I-parse at i-serialize ang lists (tulad ng skills array)
         const skillsArr = row.skills ? (typeof row.skills === 'string' ? row.skills.split(', ').filter(Boolean) : row.skills) : [];
         const skillsStr = JSON.stringify(skillsArr);
 
+        // Idagdag ang detalye sa alumni_profiles table
         await pool.query(
           `INSERT INTO alumni_profiles (
             student_id, first_name, last_name, email, phone, gender, civil_status, 
@@ -359,6 +392,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
       }
     }
 
+    // Mag-create ng log event kung may kahit isa mang profile na naimport
     if (countImported > 0) {
       const newLog = {
         id: `log-${Date.now()}`,
@@ -378,6 +412,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
       );
     }
 
+    // Ibalik ang kumpletong bagong listahan ng users at alumni sa admin client
     const [usersRows] = await pool.query('SELECT * FROM users');
     const [alumniRows] = await pool.query(`
       SELECT ap.*, u.is_initial_password_needed, u.avatar as avatar 

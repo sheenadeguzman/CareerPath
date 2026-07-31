@@ -1,6 +1,6 @@
 /**
  * @file surveys.js
- * @description Router para sa pag-save ng surveys at pagsusumite ng survey responses ng alumni.
+ * @description Router para sa pag-save ng surveys at pagsusumite ng survey responses ng mga alumni.
  */
 
 import express from 'express';
@@ -13,11 +13,14 @@ const router = express.Router();
 
 /**
  * POST /api/save-survey
+ * Endpoint para gumawa o mag-update ng isang survey questionnaire.
+ * Kapag ang survey ay bagong gawa at naka-set sa "Active" status, awtomatiko nitong aabisuhan ang lahat ng alumni sa pamamagitan ng system notification at email.
  */
 router.post('/save-survey', authenticateToken, async (req, res) => {
   try {
     const { survey, activeUserId } = req.body;
 
+    // Kunin ang admin user credentials para sa audit logging
     let activeUser = null;
     if (activeUserId) {
       const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
@@ -29,9 +32,11 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
     const startDate = survey.startDate ? survey.startDate : null;
     const endDate = survey.endDate ? survey.endDate : null;
 
+    // Suriin kung bago ang survey base sa ID nito
     const [existingSurvey] = await pool.query('SELECT id FROM surveys WHERE id = ?', [surveyId]);
     const isNew = existingSurvey.length === 0;
 
+    // Gamitin ang INSERT ... ON DUPLICATE KEY UPDATE para sa malinis na save o edit operation
     await pool.query(
       `INSERT INTO surveys (id, title, description, start_date, end_date, status, questions, responses_count) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
@@ -45,12 +50,12 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
       ]
     );
 
-    // If it's a new active survey, notify all alumni
+    // Kung bagong active survey, magpadala ng notification at email sa LAHAT ng alumni
     if (isNew && (survey.status || 'Draft') === 'Active') {
       try {
         const [alumniUsers] = await pool.query("SELECT * FROM users WHERE role = 'Alumni'");
         for (const u of alumniUsers) {
-          // Create an individual web notification record for each alumnus
+          // 1. Gumawa ng notification record sa database para sa alumni
           const notifyId = `notify-survey-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
           const notifyTitle = `New Tracer Survey Deployed`;
           const notifyText = `Hi ${u.name}, a new CHED Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
@@ -61,7 +66,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
             [notifyId, notifyTitle, notifyText]
           );
 
-          // Dispatch email notification via SMTP if configured
+          // 2. Mag-dispatch ng email notification gamit ang SMTP transporter
           if (transporter && u.email) {
             try {
               await transporter.sendMail({
@@ -81,7 +86,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
       }
     }
 
-    // I-audit ang survey configuration details
+    // Itala ang configuraton details sa activity logs
     const newLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -99,6 +104,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Kuhanin ang pinakabagong surveys list para ibalik sa client
     const [surveyRows] = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
     res.json({ success: true, surveys: surveyRows.map(mapSurveyFromDB) });
   } catch (err) {
@@ -109,6 +115,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/submit-survey-response
+ * Endpoint para sa mga alumni para isumite ang kanilang mga sagot sa survey questionnaire.
  */
 router.post('/submit-survey-response', authenticateToken, async (req, res) => {
   try {
@@ -117,16 +124,18 @@ router.post('/submit-survey-response', authenticateToken, async (req, res) => {
     const respId = `resp-${Date.now()}`;
     const answersStr = JSON.stringify(answers || {});
 
+    // I-insert ang sagot sa survey_responses table
     await pool.query(
       `INSERT INTO survey_responses (id, survey_id, alumni_id, alumni_name, answers) 
        VALUES (?, ?, ?, ?, ?)`,
       [respId, surveyId, alumniId, alumniName || 'Anonymous Alumnus', answersStr]
     );
 
+    // Kalkulahin ang bagong responses_count para i-update ang surveys table
     const [surveyResponsesCount] = await pool.query('SELECT COUNT(*) as count FROM survey_responses WHERE survey_id = ?', [surveyId]);
     await pool.query('UPDATE surveys SET responses_count = ? WHERE id = ?', [surveyResponsesCount[0].count, surveyId]);
 
-    // I-log ang pagsusumite ng survey ng alumni
+    // I-log ang event na ito sa activity logs ng admin
     const newLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -144,6 +153,7 @@ router.post('/submit-survey-response', authenticateToken, async (req, res) => {
       [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
     );
 
+    // Kuhanin ang pinakabagong listahan ng surveys at responses at ibalik sa client
     const [surveyRows] = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
     const [responseRows] = await pool.query('SELECT * FROM survey_responses ORDER BY submitted_at DESC');
 
