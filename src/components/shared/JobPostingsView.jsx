@@ -6,6 +6,12 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
   const [isEditing, setIsEditing] = useState(false);
   const [successToast, setSuccessToast] = useState('');
 
+  // Pagtukoy kung ang logged-in user ay ang employer
+  const loggedInEmp = activeUser?.role === 'Employer'
+    ? employers.find(e => e.email.toLowerCase() === activeUser.email.toLowerCase())
+    : null;
+  const loggedInEmpName = loggedInEmp ? loggedInEmp.companyName : activeUser?.name || '';
+
   // Mga state para sa pagsala (filter)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmpType, setSelectedEmpType] = useState('All');
@@ -95,7 +101,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
 
     const submission = {
       ...newJob,
-      employerName: activeUser.role === 'Employer' ? activeUser.name : newJob.employerName,
+      employerName: activeUser.role === 'Employer' ? loggedInEmpName : newJob.employerName,
       id: newJob.id || `job-${Date.now()}`,
       requirements: separatedReqs.length > 0 ? separatedReqs : ['None specified'],
       status: newJob.status || 'Open'
@@ -291,11 +297,6 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
             e => e.companyName.trim().toLowerCase() === job.employerName.trim().toLowerCase()
           );
 
-          // Pagtukoy kung ang logged-in user ay ang employer na nag-post nito
-          const loggedInEmp = activeUser?.role === 'Employer'
-            ? employers.find(e => e.email.toLowerCase() === activeUser.email.toLowerCase())
-            : null;
-          const loggedInEmpName = loggedInEmp ? loggedInEmp.companyName : activeUser?.name || '';
           const isOwnJob = activeUser?.role === 'Employer' && job.employerName.trim().toLowerCase() === loggedInEmpName.trim().toLowerCase();
 
           return (
@@ -495,7 +496,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                     <input
                       type="text"
                       disabled
-                      value={activeUser.name}
+                      value={loggedInEmpName}
                       className="w-full bg-slate-100 border border-slate-200 rounded-md p-2 shrink-0 cursor-not-allowed"
                     />
                   ) : (
