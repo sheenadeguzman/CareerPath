@@ -473,12 +473,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
 
         <div className="flex gap-2 shrink-0 no-print" data-html2canvas-ignore="true">
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-          >
-            <Printer className="w-4 h-4" />Print
-          </button>
+          {/* Alisin ang window.print() button alinsunod sa bagong hiling ng user */}
           <button
             onClick={() => {
               // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
