@@ -63,6 +63,10 @@ export default function SurveysView({
    */
   const updateBuilderQuestion = (index, field, value) => {
     const updated = [...builderQuestions];
+    // Kung binago ang type patungong likert at walang pre-existing options, maglagay ng default 5-point Likert scale options
+    if (field === 'type' && value === 'likert' && !updated[index].options) {
+      updated[index].options = 'Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree';
+    }
     updated[index] = { ...updated[index], [field]: value };
     setBuilderQuestions(updated);
   };
@@ -86,7 +90,9 @@ export default function SurveysView({
         id: `q-${idx + 1}`,
         text: q.text.trim(),
         type: q.type,
-        options: q.type === 'select' ? q.options.split(',').map(o => o.trim()).filter(Boolean) : []
+        options: (q.type === 'select' || q.type === 'checkbox' || q.type === 'likert') && q.options 
+          ? q.options.split(',').map(o => o.trim()).filter(Boolean) 
+          : []
       }));
 
     // Pagbuo ng pinal na survey object
@@ -117,6 +123,26 @@ export default function SurveysView({
     setBuilderQuestions([
       { text: 'What is your current job designation?', type: 'text', options: '' }
     ]);
+  };
+
+  /**
+   * handleCheckboxChange
+   * Tagapamahala para sa checkbox input fields para sa multiple choices selection
+   */
+  const handleCheckboxChange = (qId, option, isChecked) => {
+    const currentVal = currentAnswers[qId] || '';
+    let selectedOptions = currentVal ? currentVal.split(', ').filter(Boolean) : [];
+    if (isChecked) {
+      if (!selectedOptions.includes(option)) {
+        selectedOptions.push(option);
+      }
+    } else {
+      selectedOptions = selectedOptions.filter(o => o !== option);
+    }
+    setCurrentAnswers({
+      ...currentAnswers,
+      [qId]: selectedOptions.join(', ')
+    });
   };
 
   /**
@@ -381,18 +407,26 @@ export default function SurveysView({
                               className="w-full bg-white border border-slate-200 rounded p-1.5 text-xs font-bold text-slate-700 focus:outline-none font-sans"
                             >
                               <option value="text">Text Response</option>
-                              <option value="select">Multiple Choice</option>
+                              <option value="select">Multiple Choice (Dropdown)</option>
+                              <option value="checkbox">Checkbox (Multiple Select)</option>
+                              <option value="likert">Likert Scale (1-5)</option>
                             </select>
                           </div>
                         </div>
 
-                        {question.type === 'select' && (
+                        {(question.type === 'select' || question.type === 'checkbox' || question.type === 'likert') && (
                           <div className="animate-fade-in space-y-1">
-                            <label className="block text-[9px] text-slate-400 font-bold mb-0.5">Options (comma-separated list)</label>
+                            <label className="block text-[9px] text-slate-400 font-bold mb-0.5">
+                              {question.type === 'likert' ? 'Likert Options (comma-separated list)' : 'Options (comma-separated list)'}
+                            </label>
                             <input
                               type="text"
                               required
-                              placeholder="e.g. Employed, Unemployed, Self-Employed"
+                              placeholder={
+                                question.type === 'likert' 
+                                  ? 'e.g. Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree' 
+                                  : 'e.g. Option A, Option B, Option C'
+                              }
                               value={question.options || ''}
                               onChange={(e) => updateBuilderQuestion(idx, 'options', e.target.value)}
                               className="w-full bg-white border border-slate-200 rounded p-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#7c191e] font-sans"
@@ -479,6 +513,48 @@ export default function SurveysView({
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
                       </select>
+                    ) : question.type === 'checkbox' ? (
+                      <div className="space-y-2 mt-2 p-2 bg-white rounded-md border border-slate-100">
+                        {/* I-render bilang listahan ng Checkboxes para sa multiple choices selection */}
+                        {question.options && question.options.map(opt => {
+                          const currentVal = currentAnswers[question.id] || '';
+                          const selectedOptions = currentVal ? currentVal.split(', ').filter(Boolean) : [];
+                          const isChecked = selectedOptions.includes(opt);
+                          return (
+                            <label key={opt} className="flex items-center gap-2.5 font-semibold text-slate-700 cursor-pointer select-none text-xs">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => handleCheckboxChange(question.id, opt, e.target.checked)}
+                                className="rounded border-slate-300 text-[#1e4620] focus:ring-[#1e4620] w-4 h-4 cursor-pointer"
+                              />
+                              <span>{opt}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : question.type === 'likert' ? (
+                      <div className="flex flex-col sm:flex-row sm:items-stretch justify-between gap-2 mt-2 p-3 bg-white rounded-md border border-slate-100 font-sans">
+                        {/* I-render bilang horizontal/flex row ng Radio Buttons para sa Likert scale rating system */}
+                        {question.options && question.options.map(opt => {
+                          const isSelected = currentAnswers[question.id] === opt;
+                          return (
+                            <label key={opt} className="flex sm:flex-col items-center gap-2 sm:gap-1.5 cursor-pointer select-none text-slate-705 font-bold text-center flex-1 justify-center p-1.5 hover:bg-slate-50 rounded-lg transition text-xs">
+                              <input
+                                type="radio"
+                                name={`likert-${question.id}`}
+                                checked={isSelected}
+                                onChange={() => setCurrentAnswers({
+                                  ...currentAnswers,
+                                  [question.id]: opt
+                                })}
+                                className="text-[#1e4620] focus:ring-[#1e4620] w-4 h-4 cursor-pointer"
+                              />
+                              <span className="text-[10px] leading-tight mt-0.5">{opt}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     ) : (
                       <textarea
                         required
