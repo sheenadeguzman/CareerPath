@@ -1,50 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, Clock, Mail, Radio } from 'lucide-react';
+import { Bell, Check, Clock, Mail } from 'lucide-react';
 
 export default function NotificationsView({ notifications = [], onMarkRead }) {
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
-  const [socketConnected, setSocketConnected] = useState(false);
   const [localNotifications, setLocalNotifications] = useState([]);
 
   // Sini-sync sa parent notifications state
   useEffect(() => {
     setLocalNotifications(notifications);
   }, [notifications]);
-
-  // Tina-target o sinusubukan ang simulated socket authentication handshake
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSocketConnected(true);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const simulateLiveSocketBroadcast = () => {
-    const mockTitles = [
-      'New Job Bulletin Matches BSIT',
-      'Accreditation Compliance Checklist',
-      'System Audit: Backup Succeeded',
-      'New Employer Account Verified'
-    ];
-    const mockTexts = [
-      'Batanes Telecoms listed a vacancy for Support Engineer. Overlap density matches your curriculum.',
-      'CHED has updated the tracer deadline guidelines. Audits will resume shortly.',
-      'MySQL telemetry dump completed and saved to bsc_careerpath_mysql.sql successfully.',
-      'Pryce Gases Inc. verified by Administrator as official placement partner.'
-    ];
-
-    const randomIdx = Math.floor(Math.random() * mockTitles.length);
-    const mockNotification = {
-      id: `notify-mock-${Date.now()}`,
-      title: `[SOCKET PUSH] ${mockTitles[randomIdx]}`,
-      text: mockTexts[randomIdx],
-      date: new Date().toISOString(),
-      read: false
-    };
-
-    // Idagdag sa lokal na state (pina-parisan o sinusubukan ang real-time WebSocket receipt)
-    setLocalNotifications(prev => [mockNotification, ...prev]);
-  };
 
   const filtered = localNotifications.filter(n => {
     if (filter === 'unread') return !n.read;
@@ -56,37 +20,13 @@ export default function NotificationsView({ notifications = [], onMarkRead }) {
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-6 font-sans">
       
-      {/* Header bar na may dynamic na WebSocket status */}
+      {/* Header bar */}
       <div className="border-b border-slate-100 pb-3 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/10">
         <div>
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
             <Bell className="w-5 h-5 text-[#7c191e]" /> Quality Assurance Notifications Center
           </h2>
           <p className="text-[11px] text-slate-400 mt-0.5">Track systemic mail dispatches, alerts, and pending tracer compliance metrics.</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Tag ng katayuan ng socket connection (Socket status indicator) */}
-          <div className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2 text-[10px] font-bold">
-            <span className="relative flex h-2 w-2">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                socketConnected ? 'bg-emerald-400' : 'bg-amber-400'
-              }`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                socketConnected ? 'bg-emerald-500' : 'bg-amber-500'
-              }`}></span>
-            </span>
-            <span className="text-slate-600 uppercase tracking-wider">
-              {socketConnected ? 'Socket Live Sync' : 'Socket Reconnecting...'}
-            </span>
-          </div>
-
-          <button
-            onClick={simulateLiveSocketBroadcast}
-            className="px-3 py-1 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-extrabold text-[10px] rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1"
-          >
-            <Radio className="w-3 h-3" /> Push Mock Broadcast
-          </button>
         </div>
       </div>
 

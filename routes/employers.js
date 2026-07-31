@@ -7,6 +7,7 @@ import express from 'express';
 import { pool } from '../db.js';
 import { authenticateToken } from './middleware.js';
 import { mapUserFromDB, mapEmployerFromDB } from '../mappers.js';
+import { transporter } from './mailer.js';
 
 const router = express.Router();
 
@@ -64,6 +65,21 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
        VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
       [notifyId, notificationTitle, notificationContent]
     );
+
+    // I-email ang Employer tungkol sa status update
+    if (transporter && employer.email) {
+      try {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
+          to: employer.email.trim(),
+          subject: `Partner Verification Status Updated | BSC CareerPath`,
+          text: `Hello ${employer.contactPerson || 'Representative'},\n\nYour partner employer status at Batanes State College CareerPath has been updated to: ${statusText}.\n\nCompany Name: ${employer.companyName}\nIndustry: ${employer.industry}\nVerification Status: ${statusText}\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`
+        });
+        console.log(`[Employer Verification SMTP Success] Alert email dispatched to: ${employer.email}`);
+      } catch (mailErr) {
+        console.error(`[Employer Verification SMTP Error] Failed to send alert email to ${employer.email}:`, mailErr);
+      }
+    }
 
     // Mga detalye para sa audit log
     const isUpdate = existing.length > 0;
