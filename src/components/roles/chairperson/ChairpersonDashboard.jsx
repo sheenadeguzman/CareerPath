@@ -14,8 +14,7 @@ import {
   ChevronRight, 
   ArrowUpRight, 
   PlusCircle, 
-  FileText,
-  Printer
+  FileText
 } from 'lucide-react';
 import { DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
@@ -201,13 +200,7 @@ export default function ChairpersonDashboard({
               </select>
             </div>
 
-            {/* Button para sa pag-print ng summary ng ulat */}
-            <button
-              onClick={() => window.print()}
-              className="px-3.5 py-1.5 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-extrabold text-[11px] rounded-lg transition flex items-center gap-1.5 uppercase tracking-wider shadow-xs cursor-pointer select-none"
-            >
-              <Printer className="w-3.5 h-3.5" /> Print Summary
-            </button>
+
           </div>
         </div>
       </div>

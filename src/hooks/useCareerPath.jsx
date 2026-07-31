@@ -439,9 +439,10 @@ export function useCareerPath() {
   // PAG-GENERATE NG MGA NAVIGATION ITEMS
   // =========================================================================
 
-  const isAdminOrChair = activeUser?.role === 'Super Admin' || activeUser?.role === 'Administrator' || activeUser?.role === 'Department Chairperson';
+  const isAdmin = activeUser?.role === 'Super Admin' || activeUser?.role === 'Administrator';
+  const isChair = activeUser?.role === 'Department Chairperson';
 
-  const navigationItems = isAdminOrChair
+  const navigationItems = isAdmin
     ? [
         { id: 'Dashboard', name: 'Dashboard', icon: <Layers className="w-4 h-4" /> },
         { id: 'Alumni', name: 'Alumni Profiles', icon: <GraduationCap className="w-4 h-4" /> },
@@ -455,11 +456,23 @@ export function useCareerPath() {
         { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
         { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
         { id: 'Activity Log', name: 'Activity Logs', icon: <Activity className="w-4 h-4" /> },
-        ...((activeUser.role === 'Administrator' || activeUser.role === 'Super Admin')
-          ? [
-              { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> }
-            ]
-          : []),
+        { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> },
+        { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
+      ]
+    : isChair
+    ? [
+        { id: 'Dashboard', name: 'Dashboard', icon: <Layers className="w-4 h-4" /> },
+        { id: 'Alumni', name: 'Alumni Profiles', icon: <GraduationCap className="w-4 h-4" /> },
+        { id: 'Employment', name: 'Employment', icon: <PieChart className="w-4 h-4" /> },
+        { id: 'Employers', name: 'Employers', icon: <Building className="w-4 h-4" /> },
+        { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
+        { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
+        { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
+        { id: 'Curriculum Feedback', name: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'Reports', name: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
+        { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
+        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : activeUser?.role === 'Alumni'
