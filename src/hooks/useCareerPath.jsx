@@ -478,6 +478,7 @@ export function useCareerPath() {
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ];
 
