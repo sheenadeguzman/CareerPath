@@ -29,6 +29,8 @@ export default function MessageEmailView({
 
   // State variables para sa customized message inputs
   const [targetAudience, setTargetAudience] = useState('Incomplete');
+  const [selectedAlumniIds, setSelectedAlumniIds] = useState([]);
+  const [alumniSearchQuery, setAlumniSearchQuery] = useState('');
   const [customSubject, setCustomSubject] = useState('Quarterly Graduate Profile & Tracer Study Update Reminder');
   const [customBody, setCustomBody] = useState(
     `Hello {name},\n\nThis is a quarterly administrative reminder from the Batanes State College Administration.\n\nUnder Commission on Higher Education (CHED) Memorandum Orders, all BSC alumni are requested to immediately audit and update their active employment details.\n\nKindly log into your graduate portal, navigate to the active tracer study tab, and complete any pending questionnaires. This plays a massive role in institutional auditing.\n\nRespectfully,\nOffice of Administrative Affairs\nBatanes State College`
@@ -63,10 +65,17 @@ export default function MessageEmailView({
    * Nagpapadala ng maramihang email/notification reminders sa mga piniling alumni
    */
   const handleBatchDispatch = async () => {
-    const listToTarget = targetAudience === 'Incomplete' ? incompleteAlumni : alumniList;
+    let listToTarget = [];
+    if (targetAudience === 'Incomplete') {
+      listToTarget = incompleteAlumni;
+    } else if (targetAudience === 'All') {
+      listToTarget = alumniList;
+    } else {
+      listToTarget = alumniList.filter(a => selectedAlumniIds.includes(a.studentId));
+    }
     
     if (listToTarget.length === 0) {
-      alert('The target audience queue is empty!');
+      alert('The target audience queue is empty! Please select at least one recipient.');
       return;
     }
 
@@ -131,28 +140,39 @@ export default function MessageEmailView({
             <div className="space-y-4 pt-2 text-xs font-semibold text-slate-600">
               <div>
                 <label className="block text-slate-500 mb-1.5">1. Select Target Recipient Audience</label>
-                <div className="flex gap-2 font-bold">
+                <div className="flex gap-2 font-bold text-[10px]">
                   <button
                     type="button"
                     onClick={() => setTargetAudience('Incomplete')}
-                    className={`flex-1 py-2 px-3 border rounded-lg transition-all text-center ${
+                    className={`flex-1 py-2 px-1 border rounded-lg transition-all text-center cursor-pointer ${
                       targetAudience === 'Incomplete' 
                         ? 'bg-amber-50 text-amber-900 border-amber-300 font-bold' 
                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 font-semibold'
                     }`}
                   >
-                    Pending Profiles ({totalIncompleteCount})
+                    Pending ({totalIncompleteCount})
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetAudience('All')}
-                    className={`flex-1 py-2 px-3 border rounded-lg transition-all text-center ${
+                    className={`flex-1 py-2 px-1 border rounded-lg transition-all text-center cursor-pointer ${
                       targetAudience === 'All' 
                         ? 'bg-emerald-50 text-[#1e4620] border-emerald-300 font-bold' 
                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 font-semibold'
                     }`}
                   >
-                    All active Alumni ({alumniList.length})
+                    All active ({alumniList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTargetAudience('Custom')}
+                    className={`flex-1 py-2 px-1 border rounded-lg transition-all text-center cursor-pointer ${
+                      targetAudience === 'Custom' 
+                        ? 'bg-rose-50 text-rose-900 border-rose-350 font-bold' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 font-semibold'
+                    }`}
+                  >
+                    Manual ({selectedAlumniIds.length})
                   </button>
                 </div>
               </div>
@@ -184,18 +204,91 @@ export default function MessageEmailView({
 
             {/* Silip o preview sa listahan ng mga makakatanggap ng paalala */}
             <div className="space-y-1.5 pt-2">
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase">
-                Notice Queue Preview ({targetAudience === 'Incomplete' ? totalIncompleteCount : alumniList.length} recipients):
-              </span>
-              <div className="max-h-24 overflow-y-auto border border-slate-100 rounded-lg bg-slate-50 p-2.5 divide-y text-[10px] font-bold text-slate-600 space-y-1">
-                {(targetAudience === 'Incomplete' ? incompleteAlumni : alumniList).map(al => (
-                  <div key={al.studentId} className="py-1 flex justify-between">
-                    <span>{al.firstName} {al.lastName} ({al.studentId})</span>
-                    <span className={al.profileCompleteness < 80 ? "text-amber-800" : "text-emerald-800"}>
-                      {al.profileCompleteness}% Completion
-                    </span>
+              <div className="flex justify-between items-center select-none">
+                <span className="text-[10px] text-slate-400 font-extrabold uppercase">
+                  Notice Queue Preview ({targetAudience === 'Incomplete' ? totalIncompleteCount : targetAudience === 'All' ? alumniList.length : selectedAlumniIds.length} recipients):
+                </span>
+                {targetAudience === 'Custom' && (
+                  <div className="flex gap-2 text-[9px] font-bold">
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedAlumniIds(alumniList.map(a => a.studentId))}
+                      className="text-[#1e4620] hover:underline cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-slate-350">|</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedAlumniIds([])}
+                      className="text-rose-700 hover:underline cursor-pointer"
+                    >
+                      Clear All
+                    </button>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {targetAudience === 'Custom' && (
+                <div className="relative mb-2">
+                  <input
+                    type="text"
+                    placeholder="Search alumni by name or program..."
+                    value={alumniSearchQuery}
+                    onChange={(e) => setAlumniSearchQuery(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 pl-8 text-[10px] font-bold text-slate-700 focus:ring-1 focus:ring-[#1e4620] font-sans"
+                  />
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                </div>
+              )}
+
+              <div className="max-h-36 overflow-y-auto border border-slate-100 rounded-lg bg-slate-50 p-2.5 divide-y text-[10px] font-bold text-slate-650 space-y-1 font-sans">
+                {targetAudience === 'Custom' ? (
+                  alumniList
+                    .filter(a => {
+                      const q = alumniSearchQuery.toLowerCase().trim();
+                      if (!q) return true;
+                      return (
+                        (a.firstName + ' ' + a.lastName).toLowerCase().includes(q) ||
+                        (a.studentId || '').toLowerCase().includes(q) ||
+                        (a.program || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map(al => {
+                      const isChecked = selectedAlumniIds.includes(al.studentId);
+                      return (
+                        <label key={al.studentId} className="py-1.5 flex justify-between items-center cursor-pointer hover:bg-slate-100/50 px-1 rounded transition-colors select-none">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) {
+                                  setSelectedAlumniIds(selectedAlumniIds.filter(id => id !== al.studentId));
+                                } else {
+                                  setSelectedAlumniIds([...selectedAlumniIds, al.studentId]);
+                                }
+                              }}
+                              className="w-3.5 h-3.5 rounded border-slate-350 text-[#1e4620] focus:ring-[#1e4620] cursor-pointer"
+                            />
+                            <span className="text-slate-800 font-extrabold">{al.firstName} {al.lastName} ({al.studentId})</span>
+                          </div>
+                          <span className={al.profileCompleteness < 80 ? "text-amber-800" : "text-emerald-800"}>
+                            {al.profileCompleteness}% Completion
+                          </span>
+                        </label>
+                      );
+                    })
+                ) : (
+                  (targetAudience === 'Incomplete' ? incompleteAlumni : alumniList).map(al => (
+                    <div key={al.studentId} className="py-1 flex justify-between px-1">
+                      <span>{al.firstName} {al.lastName} ({al.studentId})</span>
+                      <span className={al.profileCompleteness < 80 ? "text-amber-800" : "text-emerald-800"}>
+                        {al.profileCompleteness}% Completion
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -212,7 +305,7 @@ export default function MessageEmailView({
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5" /> Broadcast Message update to {targetAudience === 'Incomplete' ? totalIncompleteCount : alumniList.length} Alumni
+                  <Send className="w-3.5 h-3.5" /> Broadcast Message update to {targetAudience === 'Incomplete' ? totalIncompleteCount : targetAudience === 'All' ? alumniList.length : selectedAlumniIds.length} Alumni
                 </>
               )}
             </button>
