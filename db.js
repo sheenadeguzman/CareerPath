@@ -46,6 +46,12 @@ export async function initializeDatabase() {
       console.error("Database Migration Error: Failed to alter users.role ENUM:", e);
     }
 
+    // MIGRATION: Add user_id column to notifications table if not exists
+    try {
+      await pool.query('ALTER TABLE notifications ADD COLUMN user_id VARCHAR(255) NULL DEFAULT NULL');
+      console.log('Database Migration: Added user_id column to notifications table.');
+    } catch (e) {}
+
     // MIGRATION: Seed default Super Admin user if not exists
     try {
       const [superCheck] = await pool.query("SELECT id FROM users WHERE id = 'bsc-super-admin'");

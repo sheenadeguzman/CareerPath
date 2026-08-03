@@ -117,9 +117,9 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     // Mag-save din ng alert sa notifications table ng system
     const notifyId = `notify-invite-${Date.now()}`;
     await pool.query(
-      `INSERT INTO notifications (id, title, text, date, \`read\`) 
-       VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
-       [notifyId, emailSubject, `Invitation sent to ${newUser.name} (${cleanEmail}) as ${role}. UserID: ${newUser.userId}, Pass: bsc123`]
+      `INSERT INTO notifications (id, title, text, date, \`read\`, user_id) 
+       VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, ?)`,
+       [notifyId, emailSubject, `Invitation sent to ${newUser.name} (${cleanEmail}) as ${role}. UserID: ${newUser.userId}, Pass: bsc123`, activeUserId || 'bsc-super-admin']
     );
 
     // Itala ang pag-invite sa activity logs para sa trace history ng admin
@@ -221,9 +221,9 @@ router.post('/send-email', authenticateToken, async (req, res) => {
         // I-record din ang abiso sa notifications table para makita sa notification log list ng app
         const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         await pool.query(
-          `INSERT INTO notifications (id, title, text, date, \`read\`) 
-           VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
-          [notifyId, customEmailSubject, customEmailBody]
+          `INSERT INTO notifications (id, title, text, date, \`read\`, user_id) 
+           VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, ?)`,
+          [notifyId, customEmailSubject, customEmailBody, studentId]
         );
         sentCount++;
       }
@@ -266,7 +266,18 @@ router.post('/toggle-notification-read', authenticateToken, async (req, res) => 
   try {
     const { id, read } = req.body;
     await pool.query('UPDATE notifications SET `read` = ? WHERE id = ?', [read ? 1 : 0, id]);
-    const [notificationRows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
+    
+    let notificationRows = [];
+    if (req.user.role === 'Administrator' || req.user.role === 'Super Admin') {
+      const [rows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
+      notificationRows = rows;
+    } else {
+      const [rows] = await pool.query(
+        'SELECT * FROM notifications WHERE user_id = ? OR user_id IS NULL ORDER BY date DESC',
+        [req.user.id]
+      );
+      notificationRows = rows;
+    }
     res.json({ success: true, notifications: notificationRows.map(mapNotificationFromDB) });
   } catch (err) {
     console.error('Toggle notification error:', err);

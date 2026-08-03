@@ -96,7 +96,7 @@ export function useCareerPath() {
    */
   const fetchData = async () => {
     try {
-      const db = await fetchDashboardData();
+      const db = await fetchDashboardData(getAuthHeaders());
       setUsers(db.users || []);
       setAlumniList(db.alumni || []);
       setEmployers(db.employers || []);

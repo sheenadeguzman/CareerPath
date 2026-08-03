@@ -5,8 +5,11 @@
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { pool } from '../db.js';
 import { authenticateToken } from './middleware.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'bsc_careerpath_super_secret_key';
 import {
   mapUserFromDB,
   mapAlumniFromDB,
@@ -44,7 +47,33 @@ router.get('/data', async (req, res) => {
     const [surveyRows] = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
     const [feedbackRows] = await pool.query('SELECT * FROM feedbacks ORDER BY submitted_at DESC');
     const [logRows] = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
-    const [notificationRows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
+    // Parse JWT to filter notifications per user
+    let notificationRows = [];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let decodedUser = null;
+    if (token) {
+      try {
+        decodedUser = jwt.verify(token, JWT_SECRET);
+      } catch (err) {}
+    }
+
+    if (decodedUser) {
+      if (decodedUser.role === 'Administrator' || decodedUser.role === 'Super Admin') {
+        const [rows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
+        notificationRows = rows;
+      } else {
+        const [rows] = await pool.query(
+          'SELECT * FROM notifications WHERE user_id = ? OR user_id IS NULL ORDER BY date DESC',
+          [decodedUser.id]
+        );
+        notificationRows = rows;
+      }
+    } else {
+      const [rows] = await pool.query('SELECT * FROM notifications WHERE user_id IS NULL ORDER BY date DESC');
+      notificationRows = rows;
+    }
+
     const [responseRows] = await pool.query('SELECT * FROM survey_responses ORDER BY submitted_at DESC');
 
     // I-return ang lahat ng data pagkatapos i-map gamit ang helper functions para maging camelCase ang keys

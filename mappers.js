@@ -315,6 +315,7 @@ export function mapNotificationFromDB(row) {
     text: row.text,
     date: row.date,
     read: !!row.read,
+    userId: row.user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };

@@ -20,8 +20,8 @@ async function handleResponse(response) {
 /**
  * Kuhanin ang kumpletong dashboard sync data mula sa database.
  */
-export async function fetchDashboardData() {
-  const response = await fetch('/api/data');
+export async function fetchDashboardData(headers) {
+  const response = await fetch('/api/data', { headers });
   return handleResponse(response);
 }
 
