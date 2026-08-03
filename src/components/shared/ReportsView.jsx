@@ -820,8 +820,6 @@ export default function ReportsView({ alumniList, activeUser }) {
 
           <div className="space-y-3.5 pt-1.5">
             {Object.entries(salaries).map(([bracket, count]) => {
-              const maxVal = Math.max(...Object.values(salaries), 1);
-              const pct = Math.round((count / maxVal) * 100);
               const totalPct = Math.round((count / total) * 100);
               return (
                 <div key={bracket} className="space-y-1 group/row">
@@ -839,7 +837,7 @@ export default function ReportsView({ alumniList, activeUser }) {
                           ? 'bg-slate-400' 
                           : 'bg-gradient-to-r from-emerald-600 to-emerald-500'
                       }`}
-                      style={{ width: `${pct}%` }}
+                      style={{ width: `${totalPct}%` }}
                     />
                   </div>
                 </div>
