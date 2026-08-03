@@ -119,7 +119,6 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
   // Initialize and update the map layers dynamically
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    const total = totalEmployed;
 
     // Initialize Leaflet map instance once
     if (!mapInstanceRef.current) {

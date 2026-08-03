@@ -108,9 +108,9 @@ export default function ReportsView({ alumniList, activeUser }) {
   const totalRegistered = registeredAlumni.length;
   const regRate = Math.round((totalRegistered / total) * 100);
 
-  const localPct = totalEmployed > 0 ? Math.round((localCount / totalEmployed) * 100) : 0;
-  const nationalPct = totalEmployed > 0 ? Math.round((nationalCount / totalEmployed) * 100) : 0;
-  const internationalPct = totalEmployed > 0 ? Math.round((internationalCount / totalEmployed) * 100) : 0;
+  const localPct = total > 0 ? Math.round((localCount / total) * 100) : 0;
+  const nationalPct = total > 0 ? Math.round((nationalCount / total) * 100) : 0;
+  const internationalPct = total > 0 ? Math.round((internationalCount / total) * 100) : 0;
 
   const accredEmployedCount = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
   const accredEmploymentRate = total > 0 ? Math.round((accredEmployedCount / total) * 100) : 0;
@@ -122,7 +122,6 @@ export default function ReportsView({ alumniList, activeUser }) {
   // Initialize and update the map layer
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    const total = totalEmployed;
 
     // Initialize Leaflet map instance once
     if (!mapInstanceRef.current) {
