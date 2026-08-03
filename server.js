@@ -41,7 +41,7 @@ function getNetworkAddress() {
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 10000;
 
   // I-set ang middleware body size limits para sa malalaking JSON payload habang nagba-bulk import
   app.use(express.json({ limit: '10mb' }));
@@ -58,7 +58,7 @@ async function startServer() {
   app.use('/api', jobsRouter);
   app.use('/api', surveysRouter);
   app.use('/api', feedbackRouter);
-  app.use('/api', notificationsRouter);
+  app.use('/api', notificationsRouter); // Idinagdag na ang notifications router dito
 
   // =========================================================================
   // MIDDLEWARE PARA SA PRODUCTION BUILD / DEV SERVER
