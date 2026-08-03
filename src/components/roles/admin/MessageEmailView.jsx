@@ -31,9 +31,9 @@ export default function MessageEmailView({
   const [targetAudience, setTargetAudience] = useState('Incomplete');
   const [selectedAlumniIds, setSelectedAlumniIds] = useState([]);
   const [alumniSearchQuery, setAlumniSearchQuery] = useState('');
-  const [customSubject, setCustomSubject] = useState('Quarterly Graduate Profile & Tracer Study Update Reminder');
+  const [customSubject, setCustomSubject] = useState('Welcome to BSC CareerPath | Batanes State College Graduate Tracer Portal');
   const [customBody, setCustomBody] = useState(
-    `Hello {name},\n\nThis is a quarterly administrative reminder from the Batanes State College Administration.\n\nUnder Commission on Higher Education (CHED) Memorandum Orders, all BSC alumni are requested to immediately audit and update their active employment details.\n\nKindly log into your graduate portal, navigate to the active tracer study tab, and complete any pending questionnaires. This plays a massive role in institutional auditing.\n\nRespectfully,\nOffice of Administrative Affairs\nBatanes State College`
+    `Hello {name},\n\nWelcome to BSC CareerPath, the official Graduate Tracer and Employability Portal of Batanes State College.\n\nYour account has been initialized by the system administrator using your registration details. To comply with Commission on Higher Education (CHED) Memorandum Orders, all graduates are requested to access the portal and update their tracer details.\n\nYou can access your portal here:\nhttps://careerpath-1ed8.onrender.com/\n\nPlease use your Student ID as your User ID. If this is your first time logging in, your temporary password is 'bsc123' (Please change this immediately in the settings tab after logging in for security).\n\nRespectfully,\nAlumni President\nBatanes State College`
   );
 
   // State variables para sa form ng bagong imbitasyon
