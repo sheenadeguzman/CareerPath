@@ -96,10 +96,10 @@ export default function AdminDashboard({
   const sectorPublic = registeredAlumni.filter(a => a.sector === 'Public').length;
   const sectorNGO = registeredAlumni.filter(a => a.sector === 'NGO').length;
   const sectorNA = registeredAlumni.filter(a => a.sector === 'N/A' || !a.sector).length;
-
-  const locLocal = registeredAlumni.filter(a => a.locationRegion === 'Local (Batanes)' || !a.locationRegion).length;
-  const locNational = registeredAlumni.filter(a => a.locationRegion === 'National (Other Provinces)').length;
-  const locInternational = registeredAlumni.filter(a => a.locationRegion === 'International (Overseas)').length;
+  const employedListForLoc = registeredAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
+  const locLocal = employedListForLoc.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
+  const locNational = employedListForLoc.filter(a => a.locationRegion === 'National (Rest of PH)').length;
+  const locInternational = employedListForLoc.filter(a => a.locationRegion === 'International').length;
   
   const totalEmployers = employers.length;
   const openPositions = jobPostings.filter(j => j.status === 'Open').reduce((acc, curr) => acc + curr.slots, 0);

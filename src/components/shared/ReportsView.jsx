@@ -92,10 +92,12 @@ export default function ReportsView({ alumniList, activeUser }) {
   const validAges = filteredAlumni.map(a => calculateAge(a.dateOfBirth)).filter(age => age !== null);
   const averageAge = validAges.length > 0 ? Math.round(validAges.reduce((acc, age) => acc + age, 0) / validAges.length) : 'N/A';
 
-  // Geographical Location Region aggregates
-  const localCount = filteredAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
-  const nationalCount = filteredAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
-  const internationalCount = filteredAlumni.filter(a => a.locationRegion === 'International').length;
+  // Geographical Location Region aggregates (Only for employed graduates)
+  const employedAlumni = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
+  const localCount = employedAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
+  const nationalCount = employedAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
+  const internationalCount = employedAlumni.filter(a => a.locationRegion === 'International').length;
+  const totalEmployed = employedAlumni.length || 1;
 
   // State para sa geographic region hover tooltip
   const [hoveredRegion, setHoveredRegion] = useState(null);
@@ -106,9 +108,9 @@ export default function ReportsView({ alumniList, activeUser }) {
   const totalRegistered = registeredAlumni.length;
   const regRate = Math.round((totalRegistered / total) * 100);
 
-  const localPct = total > 0 ? Math.round((localCount / total) * 100) : 0;
-  const nationalPct = total > 0 ? Math.round((nationalCount / total) * 100) : 0;
-  const internationalPct = total > 0 ? Math.round((internationalCount / total) * 100) : 0;
+  const localPct = totalEmployed > 0 ? Math.round((localCount / totalEmployed) * 100) : 0;
+  const nationalPct = totalEmployed > 0 ? Math.round((nationalCount / totalEmployed) * 100) : 0;
+  const internationalPct = totalEmployed > 0 ? Math.round((internationalCount / totalEmployed) * 100) : 0;
 
   const accredEmployedCount = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
   const accredEmploymentRate = total > 0 ? Math.round((accredEmployedCount / total) * 100) : 0;
@@ -120,6 +122,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   // Initialize and update the map layer
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    const total = totalEmployed;
 
     // Initialize Leaflet map instance once
     if (!mapInstanceRef.current) {

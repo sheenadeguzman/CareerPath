@@ -110,13 +110,16 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
 
   
   const total = filteredAlumni.length || 1;
-  const localCount = filteredAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
-  const nationalCount = filteredAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
-  const internationalCount = filteredAlumni.filter(a => a.locationRegion === 'International').length;
+  const employedAlumni = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
+  const localCount = employedAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
+  const nationalCount = employedAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
+  const internationalCount = employedAlumni.filter(a => a.locationRegion === 'International').length;
+  const totalEmployed = employedAlumni.length || 1;
 
   // Initialize and update the map layers dynamically
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    const total = totalEmployed;
 
     // Initialize Leaflet map instance once
     if (!mapInstanceRef.current) {
