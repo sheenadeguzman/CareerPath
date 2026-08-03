@@ -119,7 +119,7 @@ export default function AdminAlumniListView({
         </div>
 
         {/* Mga quick action button na naa-access lamang ng mga Administrator */}
-        {activeUser.role === 'Administrator' && (
+        {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             
             {/* Pag-import ng listahan (roster) */}
@@ -237,7 +237,7 @@ export default function AdminAlumniListView({
                     </button>
                     
                     {/* Button para sa limitadong pagbura ng profile */}
-                    {onDeleteAlumni && (activeUser.role === 'Administrator' || activeUser.role === 'Department Chairperson') && (
+                    {onDeleteAlumni && (activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson') && (
                       <button
                         onClick={() => setDeletingAlumni(al)}
                         className="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition inline-flex items-center gap-1 opacity-90 cursor-pointer"

@@ -35,8 +35,8 @@ export default function SurveysView({
   // State para sa pagpapakita ng mga responses/submitted survey answers ng graduates
   const [viewingResponsesSurvey, setViewingResponsesSurvey] = useState(null);
 
-  // Tinitingnan kung Administrator o Chairperson ang kasalukuyang user para sa permission checks
-  const isAdminOrChair = activeUser.role === 'Administrator' || activeUser.role === 'Department Chairperson';
+  // Tinitingnan kung Administrator, Super Admin, o Chairperson ang kasalukuyang user para sa permission checks
+  const isAdminOrChair = activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson';
 
   /**
    * addBuilderQuestion

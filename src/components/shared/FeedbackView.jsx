@@ -26,7 +26,7 @@ export default function FeedbackView({
   const [strengths, setStrengths] = useState('');
   const [suggestions, setSuggestions] = useState('');
 
-  const isAdminOrChair = activeUser.role === 'Administrator' || activeUser.role === 'Department Chairperson';
+  const isAdminOrChair = activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson';
   const isEmployer = activeUser.role === 'Employer';
   const isAlumni = activeUser.role === 'Alumni';
 

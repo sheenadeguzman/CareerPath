@@ -110,7 +110,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
         </div>
         
         <div className="flex flex-wrap gap-2 shrink-0">
-          {(activeUser.role === 'Administrator' || activeUser.role === 'Department Chairperson') && (
+          {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson') && (
             <button
               onClick={() => setIsInviting(true)}
               className="px-4 py-2 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase select-none cursor-pointer"
@@ -120,7 +120,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
           )}
 
           {/* I-render ang mga button para sa paglikha para sa system administrator lamang */}
-          {activeUser.role === 'Administrator' && (
+          {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
             <button
               onClick={() => setIsAdding(true)}
               className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase select-none cursor-pointer"
@@ -150,14 +150,14 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
               
               {/* Button para i-toggle ang verification status (disabled para sa mga hindi admin) */}
               <button
-                disabled={activeUser.role !== 'Administrator'}
+                disabled={activeUser.role !== 'Administrator' && activeUser.role !== 'Super Admin'}
                 onClick={() => handleVerifyToggle(emp)}
                 className={`p-1 px-2.5 rounded-full text-[9px] font-bold uppercase transition flex items-center gap-1 ${
                   emp.isVerified 
                     ? 'bg-emerald-100 text-emerald-800 border-emerald-250 border cursor-pointer' 
                     : 'bg-slate-200 text-slate-600 border border-slate-300 cursor-pointer'
                 }`}
-                title={activeUser.role === 'Administrator' ? 'Toggle official state approval' : 'Verified Partner'}
+                title={activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' ? 'Toggle official state approval' : 'Verified Partner'}
               >
                 <Shield className="w-3 h-3" />
                 {emp.isVerified ? 'VERIFIED' : 'PENDING'}
