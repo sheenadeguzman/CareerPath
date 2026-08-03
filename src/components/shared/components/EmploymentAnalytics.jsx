@@ -41,7 +41,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
 
   // Time to First Job representation (mga nakahanap ng trabaho sa loob ng 6 na buwan)
   const fastLandingCount = employedList.filter(a => 
-    a.timeToFirstJob === 'Less than 6 months' || a.timeToFirstJob === '1-3 months' || a.timeToFirstJob === '3-6 months'
+    a.timeToFirstJob === 'Immediate' || a.timeToFirstJob === '1 to 6 months'
   ).length;
   const fastLandingPct = totalInScope > 0 
     ? Math.round((fastLandingCount / totalInScope) * 100) 

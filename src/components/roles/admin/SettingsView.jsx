@@ -897,7 +897,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
               <p>For tracer corrections, password resets, or official student evaluations, contact the IT Bureau.</p>
               <div className="pt-2 text-[10px] font-bold text-slate-500 space-y-1 font-mono dark:text-slate-400">
                 <p>Website: <a href="https://bsc.edu.ph" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">www.bsc.edu.ph</a></p>
-                <p>Helpdesk: support@bsc.edu.ph</p>
+                <p>Helpdesk: <a href="support@bsc.edu.ph" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">support@bsc.edu.ph</a></p>
                 <p>Registrar: (+63) 987 654 3210</p>
               </div>
             </div>

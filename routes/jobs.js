@@ -68,9 +68,10 @@ router.post('/save-job', authenticateToken, async (req, res) => {
       );
     }
 
-    // Awtomatikong kalkulahin ang natitirang open jobs ng company at i-sync sa vacancies_count ng employers table
-    const [openJobs] = await pool.query('SELECT id FROM job_postings WHERE employer_name = ? AND status = "Open"', [job.employerName]);
-    await pool.query('UPDATE employers SET vacancies_count = ? WHERE company_name = ?', [openJobs.length, job.employerName]);
+    // Awtomatikong kalkulahin ang natitirang open slots ng company at i-sync sa vacancies_count ng employers table
+    const [openJobs] = await pool.query('SELECT SUM(slots) as total_slots FROM job_postings WHERE employer_name = ? AND status = "Open"', [job.employerName]);
+    const totalSlots = openJobs[0].total_slots || 0;
+    await pool.query('UPDATE employers SET vacancies_count = ? WHERE company_name = ?', [totalSlots, job.employerName]);
 
     // Gumawa at i-save ang activity audit log
     const newLog = {

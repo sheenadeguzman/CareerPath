@@ -344,6 +344,18 @@ export async function initializeDatabase() {
       await pool.query("UPDATE surveys SET title = 'Graduate Tracer' WHERE id = 'survey-1'");
       console.log("Database Migration: Updated default survey title to 'Graduate Tracer'.");
     } catch (e) {}
+
+    // MIGRATION: I-sync ang vacancies_count sa employers table sa kabuuang slots ng kanilang mga bukas na trabaho
+    try {
+      await pool.query(`
+        UPDATE employers e
+        SET e.vacancies_count = COALESCE(
+          (SELECT SUM(slots) FROM job_postings WHERE employer_name = e.company_name AND status = 'Open'),
+          0
+        )
+      `);
+      console.log("Database Migration: Synchronized employers.vacancies_count with job_postings open slots.");
+    } catch (e) {}
   } catch (err) {
     console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err.message);
   }
