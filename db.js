@@ -48,7 +48,7 @@ export async function initializeDatabase() {
 
     // MIGRATION: Seed default Super Admin user if not exists
     try {
-      const [superCheck] = await pool.query("SELECT id FROM users WHERE user_id = 'superadmin'");
+      const [superCheck] = await pool.query("SELECT id FROM users WHERE id = 'bsc-super-admin'");
       if (superCheck.length === 0) {
         const hashedPassword = await bcrypt.hash('super123', 10);
         await pool.query(
