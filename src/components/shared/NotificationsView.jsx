@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, Clock, Mail } from 'lucide-react';
+import { Bell, Check, Clock, Mail, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function NotificationsView({ notifications = [], onMarkRead }) {
   const [filter, setFilter] = useState('all'); // 'all' or 'unread'
   const [localNotifications, setLocalNotifications] = useState([]);
+  const [expandedIds, setExpandedIds] = useState(new Set());
 
   // Sini-sync sa parent notifications state
   useEffect(() => {
@@ -16,6 +17,18 @@ export default function NotificationsView({ notifications = [], onMarkRead }) {
   });
 
   const unreadCount = localNotifications.filter(n => !n.read).length;
+
+  const toggleExpand = (id) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-6 font-sans">
@@ -67,46 +80,66 @@ export default function NotificationsView({ notifications = [], onMarkRead }) {
 
       {/* Listahan ng mga Notification */}
       <div className="space-y-4">
-        {filtered.map(notify => (
-          <div 
-            key={notify.id} 
-            className={`p-4 rounded-xl border flex items-start justify-between gap-4 transition animate-fade-in ${
-              notify.read 
-                ? 'bg-slate-50 border-slate-100 opacity-80' 
-                : 'bg-[#7c191e]/5 border-[#7c191e]/15'
-            }`}
-          >
-            <div className="flex items-start gap-3.5">
-              <div className={`p-2 bg-white rounded-lg border shrink-0 mt-0.5 shadow-2xs ${
-                notify.read ? 'text-slate-400 border-slate-100' : 'text-[#7c191e] border-[#7c191e]/20'
-              }`}>
-                <Mail className="w-4 h-4" />
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <span className={`block font-extrabold ${notify.read ? 'text-slate-755' : 'text-slate-900'}`}>
-                  {notify.title}
-                </span>
-                <p className="text-slate-600 font-semibold leading-relaxed shrink-0 w-fit">{notify.text}</p>
-                <span className="text-[10px] text-slate-450 font-bold block inline-flex items-center gap-1 font-mono">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" /> {new Date(notify.date).toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => onMarkRead(notify.id)}
-              className={`p-1 px-2.5 bg-white border rounded-md text-[10px] font-bold transition flex items-center gap-1 shrink-0 ${
-                notify.read
-                  ? 'border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                  : 'border-[#7c191e]/20 text-[#7c191e] hover:bg-[#7c191e]/5'
+        {filtered.map(notify => {
+          const isExpanded = expandedIds.has(notify.id);
+          return (
+            <div 
+              key={notify.id} 
+              onClick={() => toggleExpand(notify.id)}
+              className={`p-4 rounded-xl border flex items-start justify-between gap-4 transition cursor-pointer select-none hover:border-slate-350 dark:hover:border-slate-650 animate-fade-in ${
+                notify.read 
+                  ? 'bg-slate-50 border-slate-100 opacity-80' 
+                  : 'bg-[#7c191e]/5 border-[#7c191e]/15'
               }`}
-              title={notify.read ? 'Mark as Unread' : 'Mark as Read'}
             >
-              <Check className={`w-3.5 h-3.5 ${notify.read ? 'text-slate-300' : 'text-[#7c191e]'}`} />
-              {notify.read ? 'Mark Unread' : 'Read'}
-            </button>
-          </div>
-        ))}
+              <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                <div className={`p-2 bg-white rounded-lg border shrink-0 mt-0.5 shadow-2xs ${
+                  notify.read ? 'text-slate-400 border-slate-100' : 'text-[#7c191e] border-[#7c191e]/20'
+                }`}>
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div className="space-y-1.5 text-xs flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-extrabold ${notify.read ? 'text-slate-755' : 'text-slate-900'} truncate`}>
+                      {notify.title}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                    )}
+                  </div>
+                  {isExpanded && (
+                    <div className="space-y-2 mt-2 transition-all duration-300">
+                      <p className="text-slate-600 font-semibold leading-relaxed break-words whitespace-pre-line bg-white/50 p-2.5 rounded-lg border border-slate-100/50">
+                        {notify.text}
+                      </p>
+                      <span className="text-[10px] text-slate-450 font-bold block inline-flex items-center gap-1 font-mono">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" /> {new Date(notify.date).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // Avoid triggering toggleExpand
+                  onMarkRead(notify.id);
+                }}
+                className={`p-1 px-2.5 bg-white border rounded-md text-[10px] font-bold transition flex items-center gap-1 shrink-0 ${
+                  notify.read
+                    ? 'border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                    : 'border-[#7c191e]/20 text-[#7c191e] hover:bg-[#7c191e]/5'
+                }`}
+                title={notify.read ? 'Mark as Unread' : 'Mark as Read'}
+              >
+                <Check className={`w-3.5 h-3.5 ${notify.read ? 'text-slate-300' : 'text-[#7c191e]'}`} />
+                {notify.read ? 'Mark Unread' : 'Read'}
+              </button>
+            </div>
+          );
+        })}
 
         {filtered.length === 0 && (
           <div className="py-12 text-center text-slate-400 text-xs font-semibold bg-slate-50 rounded-xl border border-slate-100">
@@ -118,3 +151,4 @@ export default function NotificationsView({ notifications = [], onMarkRead }) {
     </div>
   );
 }
+
