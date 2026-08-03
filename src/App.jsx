@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Download, X } from 'lucide-react';
+import { RefreshCw, Download, X, Share } from 'lucide-react';
 
 // Synchronous Dark Theme Initialization before component mounts
 if (localStorage.getItem('careerpath_dark_mode') === 'true') {
@@ -139,9 +139,13 @@ export default function App() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Also check if already installed/standalone mode
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      setShowInstallBanner(false);
+    // Initial check for mobile devices to show install guide/banner
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const dismissed = sessionStorage.getItem('pwa_install_dismissed') === 'true';
+
+    if (isMobileDevice && !isStandalone && !dismissed) {
+      setShowInstallBanner(true);
     }
 
     return () => {
@@ -510,8 +514,8 @@ export default function App() {
       })()}
 
       {/* PWA Floating Install Banner for Mobile/Browser */}
-      {showInstallBanner && deferredPrompt && (
-        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-4.5 z-[100] animate-fade-in flex flex-col gap-3 font-sans">
+      {showInstallBanner && (
+        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-5 z-[100] animate-fade-in flex flex-col gap-3 font-sans">
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md shrink-0 overflow-hidden border border-slate-100 p-1">
               <img src="/assets/logo.png" alt="BSC Logo" className="w-full h-full object-contain" />
@@ -519,7 +523,7 @@ export default function App() {
             <div className="flex-1 min-w-0">
               <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Install BSC CareerPath</h4>
               <p className="text-[11px] text-slate-550 dark:text-slate-400 font-semibold leading-normal mt-0.5">
-                Install this application on your phone for faster access, offline stability, and native notifications.
+                Download this application on your phone for faster access, offline stability, and native notifications.
               </p>
             </div>
             <button 
@@ -529,20 +533,28 @@ export default function App() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex items-center justify-end gap-2 pt-1">
-            <button
-              onClick={handleDismissInstall}
-              className="px-3.5 py-1.5 text-[10px] font-bold text-slate-550 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-205 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 rounded-lg transition-all"
-            >
-              Not Now
-            </button>
-            <button
-              onClick={handleInstallApp}
-              className="px-4 py-1.5 text-[10px] font-black text-white bg-[#7c191e] hover:bg-[#601216] rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" /> Install App
-            </button>
-          </div>
+          
+          {deferredPrompt ? (
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                onClick={handleDismissInstall}
+                className="px-3.5 py-1.5 text-[10px] font-bold text-slate-550 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-205 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 rounded-lg transition-all"
+              >
+                Not Now
+              </button>
+              <button
+                onClick={handleInstallApp}
+                className="px-4 py-1.5 text-[10px] font-black text-white bg-[#7c191e] hover:bg-[#601216] rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" /> Install App
+              </button>
+            </div>
+          ) : (
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-350 leading-relaxed font-semibold">
+              <span className="text-[#7c191e] dark:text-[#ea580c] font-bold block mb-1">How to Install on your Device:</span>
+              Tap the <span className="inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 px-1.5 rounded-md font-bold text-slate-700 dark:text-slate-100 shadow-2xs mx-1"><Share className="w-3 h-3 text-slate-500" /> Share</span> button at the bottom of your browser, then select <span className="font-extrabold text-slate-800 dark:text-white">"Add to Home Screen"</span>.
+            </div>
+          )}
         </div>
       )}
 
