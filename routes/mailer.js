@@ -15,33 +15,8 @@ if (typeof dns.setDefaultResultOrder === 'function') {
 // Ito ang shared mail transporter object na gagamitin sa iba't ibang routes
 export let transporter = null;
 
-// Tiyakin muna kung kumpleto ang SMTP environment variables sa .env file
-if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  // Gumawa ng transport session gamit ang nodemailer credentials
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_PORT === '465', // true para sa SSL (Port 465), false para sa TLS (Port 587)
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    },
-    family: 4, // Force IPv4 connection
-    lookup: (hostname, options, callback) => {
-      dns.lookup(hostname, { family: 4 }, callback);
-    },
-    socketTimeout: 60000,
-    connectionTimeout: 60000,
-    tls: {
-      rejectUnauthorized: false
-    },
-    pool: true,
-    maxConnections: 1,
-    rateDelta: 20000,
-    rateLimit: 1
-  });
-  console.log('Mail Service Configured: SMTP Transporter initialized successfully.');
-} else if (process.env.RESEND_API_KEY) {
+// Tiyakin muna kung may Resend API variable para lampasan ang Render SMTP block
+if (process.env.RESEND_API_KEY) {
   // Mock transporter to bypass SMTP block via Resend HTTP API (uses port 443, never blocked by Render)
   transporter = {
     sendMail: async ({ to, subject, text }) => {
@@ -68,6 +43,31 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     }
   };
   console.log('Mail Service Configured: Resend HTTP Transporter initialized successfully.');
+} else if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // Gumawa ng transport session gamit ang nodemailer credentials
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_PORT === '465', // true para sa SSL (Port 465), false para sa TLS (Port 587)
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    },
+    family: 4, // Force IPv4 connection
+    lookup: (hostname, options, callback) => {
+      dns.lookup(hostname, { family: 4 }, callback);
+    },
+    socketTimeout: 60000,
+    connectionTimeout: 60000,
+    tls: {
+      rejectUnauthorized: false
+    },
+    pool: true,
+    maxConnections: 1,
+    rateDelta: 20000,
+    rateLimit: 1
+  });
+  console.log('Mail Service Configured: SMTP Transporter initialized successfully.');
 } else {
   // Kapag walang SMTP variables, mag-print ng babala. Ang mga email codes ay makikita na lang sa console logs at database notification tables bilang fallback.
   console.log('Mail Service Warning: SMTP configuration and RESEND_API_KEY are missing in environment. Fallback mode.');
