@@ -29,7 +29,16 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     family: 4, // Force IPv4 connection
     lookup: (hostname, options, callback) => {
       dns.lookup(hostname, { family: 4 }, callback);
-    }
+    },
+    socketTimeout: 60000,
+    connectionTimeout: 60000,
+    tls: {
+      rejectUnauthorized: false
+    },
+    pool: true,
+    maxConnections: 1,
+    rateDelta: 20000,
+    rateLimit: 1
   });
   console.log('Mail Service Configured: SMTP Transporter initialized successfully.');
 } else {
