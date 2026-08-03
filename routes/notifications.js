@@ -208,7 +208,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
         await pool.query(
           `INSERT INTO notifications (id, title, text, date, \`read\`) 
            VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
-          [notifyId, customEmailSubject, `${emailStatusDetail}: ${customEmailBody.substring(0, 100)}...`]
+          [notifyId, customEmailSubject, customEmailBody]
         );
         sentCount++;
       }

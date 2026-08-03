@@ -266,8 +266,12 @@ export function useCareerPath() {
     try {
       await sendBatchReminders(targetIds, activeUser?.id, customSubject, customBody, getAuthHeaders());
       await fetchData();
+      if (targetIds.length > 1) {
+        showSuccessToast(`Successfully sent reminders to ${targetIds.length} alumni!`);
+      }
     } catch (err) {
       console.error('Failed to dispatch emails:', err);
+      showSuccessToast('Failed to dispatch reminder emails.');
     }
   };
 
@@ -292,8 +296,15 @@ export function useCareerPath() {
   };
 
   const handleTriggerSingleEmailNudge = async (studentId) => {
-    await handleSendBatchReminders([studentId]);
-    alert('Email Reminder safely dispatched from Batanes State College!');
+    try {
+      const alumnus = alumniList.find(a => a.studentId === studentId);
+      const nameStr = alumnus ? alumnus.name : 'Alumnus';
+      await handleSendBatchReminders([studentId]);
+      showSuccessToast(`Tracer reminder email sent successfully to ${nameStr}!`);
+    } catch (err) {
+      console.error(err);
+      showSuccessToast('Failed to dispatch reminder email.');
+    }
   };
 
   const handleMarkNotifyRead = async (id) => {
