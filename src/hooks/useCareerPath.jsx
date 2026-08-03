@@ -472,7 +472,6 @@ export function useCareerPath() {
         { id: 'Reports', name: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
         { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
         { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
-        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : activeUser?.role === 'Alumni'
@@ -483,7 +482,6 @@ export function useCareerPath() {
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
         { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
-        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : [
@@ -491,7 +489,6 @@ export function useCareerPath() {
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
-        { id: 'Notifications', name: 'Notifications', icon: <Bell className="w-4 h-4" />, count: scopedNotifications.filter(n => !n.read).length },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ];
 
