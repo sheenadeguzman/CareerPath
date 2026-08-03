@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Download, X } from 'lucide-react';
 
 // Synchronous Dark Theme Initialization before component mounts
 if (localStorage.getItem('careerpath_dark_mode') === 'true') {
@@ -123,6 +123,45 @@ import { useCareerPath } from './hooks/useCareerPath';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('careerpath_dark_mode') === 'true');
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  // Handle PWA installation prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      const dismissed = sessionStorage.getItem('pwa_install_dismissed') === 'true';
+      if (!dismissed) {
+        setShowInstallBanner(true);
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Also check if already installed/standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      setShowInstallBanner(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
+
+  const handleDismissInstall = () => {
+    sessionStorage.setItem('pwa_install_dismissed', 'true');
+    setShowInstallBanner(false);
+  };
 
   // Kuhanin ang application states, data listings, at state mutators mula sa ating custom hook
   const {
@@ -469,6 +508,43 @@ export default function App() {
           </div>
         );
       })()}
+
+      {/* PWA Floating Install Banner for Mobile/Browser */}
+      {showInstallBanner && deferredPrompt && (
+        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-4.5 z-[100] animate-fade-in flex flex-col gap-3 font-sans">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md shrink-0 overflow-hidden border border-slate-100 p-1">
+              <img src="/assets/logo.png" alt="BSC Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Install BSC CareerPath</h4>
+              <p className="text-[11px] text-slate-550 dark:text-slate-400 font-semibold leading-normal mt-0.5">
+                Install this application on your phone for faster access, offline stability, and native notifications.
+              </p>
+            </div>
+            <button 
+              onClick={handleDismissInstall}
+              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <button
+              onClick={handleDismissInstall}
+              className="px-3.5 py-1.5 text-[10px] font-bold text-slate-550 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-205 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 rounded-lg transition-all"
+            >
+              Not Now
+            </button>
+            <button
+              onClick={handleInstallApp}
+              className="px-4 py-1.5 text-[10px] font-black text-white bg-[#7c191e] hover:bg-[#601216] rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" /> Install App
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
