@@ -4,6 +4,13 @@
  */
 
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+
+// Force Node.js to prefer IPv4 over IPv6. This resolves ENETUNREACH / ETIMEDOUT 
+// errors on cloud hostings like Render that lack IPv6 outbound routing.
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 // Ito ang shared mail transporter object na gagamitin sa iba't ibang routes
 export let transporter = null;

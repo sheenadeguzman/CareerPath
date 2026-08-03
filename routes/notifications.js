@@ -171,6 +171,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
     }
 
     let sentCount = 0;
+    const dispatchResults = [];
     
     // Ipadala ang nudge email sa bawat isa sa napiling target list
     for (const studentId of targetAlumniIds) {
@@ -183,6 +184,8 @@ router.post('/send-email', authenticateToken, async (req, res) => {
         const customEmailBody = (customBody || `Hello {name},\n\nWe noticed that your Batanes State College Graduate Tracer profile is currently at ${alumni.profileCompleteness}% completion.\n\nTo align with official Commission on Higher Education (CHED) Memorandum Orders, please log in with your credentials and update your current employment status and matching skill inventory.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`).replace('{name}', alumni.name);
 
         let emailStatusDetail = `Message dispatched to ${alumni.name}`;
+        let sendSuccess = true;
+        let errorMessage = '';
         
         // Ipadala gamit ang SMTP kung configured
         if (transporter && alumni.email) {
@@ -196,12 +199,24 @@ router.post('/send-email', authenticateToken, async (req, res) => {
             emailStatusDetail = `Email sent successfully to ${alumni.name} (${alumni.email})`;
             console.log(`[Mail Dispatch] Dispatched real email to ${alumni.email}`);
           } catch (mailErr) {
+            sendSuccess = false;
+            errorMessage = mailErr.message;
             emailStatusDetail = `Failed to send email to ${alumni.name}: ${mailErr.message}`;
             console.error(`[Mail Dispatch Error] Failed to send to ${alumni.email}:`, mailErr);
           }
         } else {
+          sendSuccess = false;
+          errorMessage = transporter ? 'Missing recipient email' : 'SMTP configuration is missing (Fallback mode)';
           console.log(`[Mail Dispatch Log] Fallback logged notification for ${alumni.name} (No active SMTP server).`);
         }
+
+        dispatchResults.push({
+          studentId,
+          name: alumni.name,
+          email: alumni.email,
+          success: sendSuccess,
+          error: errorMessage
+        });
 
         // I-record din ang abiso sa notifications table para makita sa notification log list ng app
         const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -236,7 +251,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
 
     // Kunin ang mga bagong notifications at ibalik sa client
     const [notificationRows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
-    res.json({ success: true, notifications: notificationRows.map(mapNotificationFromDB) });
+    res.json({ success: true, results: dispatchResults, notifications: notificationRows.map(mapNotificationFromDB) });
   } catch (err) {
     console.error('Send email error:', err);
     res.status(500).json({ error: 'Internal Server Error' });

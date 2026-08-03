@@ -264,14 +264,21 @@ export function useCareerPath() {
 
   const handleSendBatchReminders = async (targetIds, customSubject, customBody) => {
     try {
-      await sendBatchReminders(targetIds, activeUser?.id, customSubject, customBody, getAuthHeaders());
+      const res = await sendBatchReminders(targetIds, activeUser?.id, customSubject, customBody, getAuthHeaders());
       await fetchData();
       if (targetIds.length > 1) {
-        showSuccessToast(`Successfully sent reminders to ${targetIds.length} alumni!`);
+        const failed = res.results ? res.results.filter(r => !r.success) : [];
+        if (failed.length === 0) {
+          showSuccessToast(`Successfully sent reminders to all ${targetIds.length} alumni!`);
+        } else {
+          showSuccessToast(`Sent reminders: ${targetIds.length - failed.length} succeeded, ${failed.length} failed.`);
+        }
       }
+      return res;
     } catch (err) {
       console.error('Failed to dispatch emails:', err);
       showSuccessToast('Failed to dispatch reminder emails.');
+      throw err;
     }
   };
 
@@ -299,8 +306,15 @@ export function useCareerPath() {
     try {
       const alumnus = alumniList.find(a => a.studentId === studentId);
       const nameStr = alumnus ? alumnus.name : 'Alumnus';
-      await handleSendBatchReminders([studentId]);
-      showSuccessToast(`Tracer reminder email sent successfully to ${nameStr}!`);
+      const res = await handleSendBatchReminders([studentId]);
+      
+      const resultObj = res.results && res.results[0];
+      if (resultObj && resultObj.success) {
+        showSuccessToast(`Tracer reminder email sent successfully to ${nameStr}!`);
+      } else {
+        const errorMsg = resultObj ? resultObj.error : 'SMTP connection failed';
+        showSuccessToast(`Failed to send email: ${errorMsg}`);
+      }
     } catch (err) {
       console.error(err);
       showSuccessToast('Failed to dispatch reminder email.');
