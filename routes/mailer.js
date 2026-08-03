@@ -41,7 +41,34 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     rateLimit: 1
   });
   console.log('Mail Service Configured: SMTP Transporter initialized successfully.');
+} else if (process.env.RESEND_API_KEY) {
+  // Mock transporter to bypass SMTP block via Resend HTTP API (uses port 443, never blocked by Render)
+  transporter = {
+    sendMail: async ({ to, subject, text }) => {
+      console.log(`[Mail Dispatch] Sending email via Resend HTTP API to ${to}...`);
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+        },
+        body: JSON.stringify({
+          from: process.env.SMTP_FROM || 'BSC CareerPath <onboarding@resend.dev>',
+          to: typeof to === 'string' ? [to] : to,
+          subject: subject,
+          text: text
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || `Resend API Error! Status: ${response.status}`);
+      }
+      return data;
+    }
+  };
+  console.log('Mail Service Configured: Resend HTTP Transporter initialized successfully.');
 } else {
   // Kapag walang SMTP variables, mag-print ng babala. Ang mga email codes ay makikita na lang sa console logs at database notification tables bilang fallback.
-  console.log('Mail Service Warning: SMTP configuration is missing in .env. Emails will be logged to database only (Fallback mode).');
+  console.log('Mail Service Warning: SMTP configuration and RESEND_API_KEY are missing in environment. Fallback mode.');
 }
