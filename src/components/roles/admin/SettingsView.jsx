@@ -120,7 +120,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
         avatar: profileForm.avatar 
       };
       setActiveUser(updatedUser);
-      localStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
     }
 
     setTimeout(() => {
@@ -143,7 +143,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
 
     setIsUpdatingUsername(true);
     try {
-      const token = localStorage.getItem('careerpath_token');
+      const token = sessionStorage.getItem('careerpath_token');
       const response = await fetch('/api/update-username', {
         method: 'POST',
         headers: {
@@ -167,9 +167,9 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
           onUpdateSession(result.user, result.token);
         } else if (setActiveUser) {
           setActiveUser(result.user);
-          localStorage.setItem('careerpath_user', JSON.stringify(result.user));
+          sessionStorage.setItem('careerpath_user', JSON.stringify(result.user));
           if (result.token) {
-            localStorage.setItem('careerpath_token', result.token);
+            sessionStorage.setItem('careerpath_token', result.token);
           }
         }
         setShowStatus(result.message || 'Username updated successfully!');

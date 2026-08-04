@@ -73,7 +73,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     let localUsers = users || [];
     if (localUsers.length === 0) {
       try {
-        const cached = localStorage.getItem('careerpath_dashboard_cache');
+        const cached = sessionStorage.getItem('careerpath_dashboard_cache');
         if (cached) {
           const db = JSON.parse(cached);
           localUsers = db.users || [];
