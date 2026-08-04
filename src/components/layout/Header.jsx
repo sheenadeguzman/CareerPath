@@ -28,7 +28,7 @@ export default function Header({
         </div>
         <div>
           <span className="block text-[13px] font-sans font-black text-[#7c191e] uppercase tracking-wide leading-none">CareerPath</span>
-          <span className="block text-[9px] text-slate-400 font-bold mt-1.5 tracking-tight font-sans uppercase">Batanes State College</span>
+          <span className="hidden sm:block text-[9px] text-slate-400 font-bold mt-1.5 tracking-tight font-sans uppercase">Batanes State College</span>
         </div>
       </div>
 
@@ -37,9 +37,9 @@ export default function Header({
 
         {/* Connection Status Indicator */}
         {!isOnline ? (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+          <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider animate-pulse" title="Offline Mode">
             <WifiOff className="w-3.5 h-3.5" />
-            <span>Offline</span>
+            <span className="hidden sm:inline">Offline</span>
             {pendingSyncCount > 0 && <span className="bg-amber-200 px-1.5 py-0.2 rounded-full ml-1">{pendingSyncCount}</span>}
           </div>
         ) : isSyncing ? (
@@ -50,11 +50,12 @@ export default function Header({
         ) : pendingSyncCount > 0 ? (
           <button 
             onClick={triggerManualSync}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1e4620]/10 text-[#1e4620] border border-[#1e4620]/20 text-[10px] font-bold uppercase tracking-wider hover:bg-[#1e4620]/25 transition cursor-pointer"
+            className="flex items-center gap-1 px-1.5 py-1 sm:gap-1.5 sm:px-2.5 rounded-full bg-[#1e4620]/10 text-[#1e4620] border border-[#1e4620]/20 text-[10px] font-bold uppercase tracking-wider hover:bg-[#1e4620]/25 transition cursor-pointer"
             title="Click to sync changes now"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Sync ({pendingSyncCount})</span>
+            <span className="hidden sm:inline">Sync ({pendingSyncCount})</span>
+            <span className="inline sm:hidden">({pendingSyncCount})</span>
           </button>
         ) : (
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-semibold">
@@ -91,7 +92,7 @@ export default function Header({
         <div className="relative">
           <button
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-            className="flex items-center gap-2.5 hover:bg-slate-50 p-1 px-2.5 rounded-xl transition text-left cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2.5 hover:bg-slate-50 p-1 sm:px-2.5 rounded-xl transition text-left cursor-pointer"
           >
             {activeUser.avatar ? (
               <img
@@ -112,7 +113,7 @@ export default function Header({
                 {activeUser.role}
               </span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <ChevronDown className="hidden sm:block w-3.5 h-3.5 text-slate-400" />
           </button>
 
           {/* Dropdown Action Menu para sa Profile Settings, Alerts, at Sign Out */}
