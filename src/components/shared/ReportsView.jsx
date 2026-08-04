@@ -76,7 +76,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   // Kinukuha ang mga unique graduation years nang dynamic para sa selection filters
   const graduationYears = Array.from(new Set(alumniList.map(a => a.yearGraduated.toString()))).sort();
 
-  // Sinasala ang mga alumni base sa piniling graduation year at program specialization
+  // Fina-filter ang mga alumni base sa piniling graduation year at program specialization
   const filteredAlumni = alumniList.filter(a => {
     const matchesYear = selectedYear === 'All' || a.yearGraduated.toString() === selectedYear;
     const matchesProgram = selectedProgram === 'All' || (

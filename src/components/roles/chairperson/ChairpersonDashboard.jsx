@@ -29,7 +29,7 @@ export default function ChairpersonDashboard({
   // Gagamit ng dynamic mapping (DEPARTMENT_TO_PROGRAMS) para masakop ang maramihang programs ng kaniyang department.
   const chairProgram = activeUser?.program || 'Information and Communication Technology Department';
   
-  // Sinasala ang global list ng alumni para isama LANG ang mga graduate sa ilalim ng department ng chairperson
+  // Fina-filter ang global list ng alumni para isama LANG ang mga graduate sa ilalim ng department ng chairperson
   const deptAlumni = alumni.filter(a => {
     if (!a.program) return false;
     const normalizedAl = a.program.toLowerCase();
@@ -53,7 +53,7 @@ export default function ChairpersonDashboard({
   // Dynamic na kinukuha ang mga natatanging graduation years mula sa listahan ng mga graduate ng departamento
   const graduationYears = Array.from(new Set(deptAlumni.map(a => a.yearGraduated.toString()))).sort();
 
-  // Sinasala ang listahan ng alumni ng departamento base sa napiling taon ng pagtatapos
+  // Fina-filter ang listahan ng alumni ng departamento base sa napiling taon ng pagtatapos
   const filteredDeptAlumni = selectedYear === 'All'
     ? deptAlumni
     : deptAlumni.filter(a => a.yearGraduated.toString() === selectedYear);
@@ -75,7 +75,7 @@ export default function ChairpersonDashboard({
   const employedCount = employedAlumni + freelanceAlumni + selfEmployedAlumni;
   const employmentRate = totalDeptAlumni > 0 ? ((employedCount / totalDeptAlumni) * 100).toFixed(1) : '0';
 
-  // Sinasala ang feedback ng employer na tumutugma sa mga graduate ng program na ito
+  // Fina-filter ang feedback ng employer na tumutugma sa mga graduate ng program na ito
   const deptFeedbacks = feedbacks.filter(fb => {
     const matchAlum = filteredDeptAlumni.find(a => 
       a.studentId === fb.alumniStudentId || 

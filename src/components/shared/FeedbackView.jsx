@@ -175,7 +175,7 @@ export default function FeedbackView({
     setIsSubmitting(false);
   };
 
-  // Sinasala ang mga feedback base sa role ng kasalukuyang user
+  // Fina-filter ang mga feedback base sa role ng kasalukuyang user
   const feedbackList = feedbacks || [];
   const displayFeedbacks = feedbackList.filter(fb => {
     if (isAdminOrChair) return true;

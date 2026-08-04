@@ -16,7 +16,7 @@ export default function MessageEmailView({
 }) {
   
   // Mga istatistika para sa profile completeness ng mga alumni
-  // Sinasala ang mga alumni na mas mababa sa 80% ang profile completeness
+  // Fina-filter ang mga alumni na mas mababa sa 80% ang profile completeness
   const incompleteAlumni = alumniList.filter(al => al.profileCompleteness < 80);
   const totalIncompleteCount = incompleteAlumni.length;
 

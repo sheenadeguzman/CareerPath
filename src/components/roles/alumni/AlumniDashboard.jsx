@@ -34,7 +34,7 @@ export default function AlumniDashboard({
   const currentStatus = myAlumni?.employmentStatus || 'Not Declared yet';
 
   /**
-   * Sinasala ang mga job posting nang dynamic para tumugma sa college program ng graduate
+   * Fina-filter ang mga job posting nang dynamic para tumugma sa college program ng graduate
    * o kaya naman ay sa mga partikular na skill competencies nito.
    */
   const matchedJobs = jobPostings.filter(job => {

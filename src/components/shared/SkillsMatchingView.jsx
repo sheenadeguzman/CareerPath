@@ -4,8 +4,8 @@ import { Check, AlertTriangle, BookOpen } from 'lucide-react';
 /**
  * SkillsMatchingView Component
  * @description View component na naghahambing ng mga kasanayan ng mga graduates (alumni skills) 
- * laban sa mga kinakailangan ng mga trabaho (job posting requirements) upang makita ang skill gaps
- * at magbigay ng dynamic na rekomendasyon para sa pagpapabuti ng kurikulum.
+ laban sa mga kinakailangan ng mga trabaho (job posting requirements) upang makita ang skill gaps
+ at magbigay ng dynamic na rekomendasyon para sa pagpapabuti ng kurikulum.
  */
 export default function SkillsMatchingView({ jobPostings = [], alumniList = [], activeUser, employers = [] }) {
   const isEmployer = activeUser?.role === 'Employer';
@@ -24,7 +24,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
   // State hook para sa ID ng kasalukuyang piniling trabaho (job vacancy)
   const [selectedJobID, setSelectedJobID] = useState(filteredJobPostings[0]?.id || '');
   
-  // Kung ang selectedJobID ay wala sa sinalang listahan (hal. kapag nagpalit ng role), gamitin ang una sa sinala
+  // Kung ang selectedJobID ay wala sa filtered na listahan (hal. kapag nagpalit ng role), gamitin ang una sa filtered list
   const hasSelectedJob = filteredJobPostings.some(j => j.id === selectedJobID);
   const activeJob = hasSelectedJob
     ? filteredJobPostings.find(j => j.id === selectedJobID)
@@ -32,12 +32,12 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
 
   const reqSkills = activeJob ? activeJob.requirements : [];
 
-  // Sinasala lamang ang mga rehistradong alumni para sa gagawing pagtutugma
+  // Fina-filter lamang ang mga rehistradong alumni para sa gagawing pagtutugma
   const registeredAlumniList = alumniList.filter(al => al.isRegistered);
 
   // Algoritmo sa Pagtutugma (Match Algorithm): tinitingnan kung gaano karaming kasanayan ng alumni ang tumutugma sa requirements ng activeJob
   const matchedAlumni = registeredAlumniList.map(al => {
-    // Sinasala ang mga overlapping skills gamit ang case-insensitive comparison
+    // Fina-filter ang mga overlapping skills gamit ang case-insensitive comparison
     const overlappingSkills = al.skills.filter(skill => 
       reqSkills.some(req => req.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(req.toLowerCase()))
     );

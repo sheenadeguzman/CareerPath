@@ -32,7 +32,7 @@ export default function AdminDashboard({
   // Dynamic na pagkuha ng mga unique graduation years mula sa listahan ng alumni
   const graduationYears = Array.from(new Set(alumni.map(a => a.yearGraduated.toString()))).sort();
 
-  // Sinasala ang dataset ng alumni base sa napiling taon ng pagtatapos
+  // Fina-filter ang dataset ng alumni base sa napiling taon ng pagtatapos
   const filteredAlumni = selectedYear === 'All'
     ? alumni
     : alumni.filter(a => a.yearGraduated.toString() === selectedYear);

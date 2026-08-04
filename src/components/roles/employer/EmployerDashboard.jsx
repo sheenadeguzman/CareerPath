@@ -31,17 +31,17 @@ export default function EmployerDashboard({
   );
   const myCompanyName = myEmployerProfile?.companyName || 'Enterprise Partner';
 
-  // Sinasala ang mga job posting na inilunsad ng partikular na kumpanyang ito
+  // Fina-filter ang mga job posting na inilunsad ng partikular na kumpanyang ito
   const myJobs = jobPostings.filter(job => job.employerName.trim().toLowerCase() === myCompanyName.trim().toLowerCase());
   const myActiveJobsCount = myJobs.filter(job => job.status === 'Open').length;
   const myTotalPendingSlots = myJobs.filter(job => job.status === 'Open').reduce((acc, curr) => acc + curr.slots, 0);
 
-  // Sinasala ang mga alumni graduates na nakalistang nagtatrabaho sa kumpanyang ito
+  // Fina-filter ang mga alumni graduates na nakalistang nagtatrabaho sa kumpanyang ito
   const myEmployedAlumni = alumni.filter(
     a => a.employerName.trim().toLowerCase() === myCompanyName.trim().toLowerCase() && a.employmentStatus === 'Employed'
   );
 
-  // Sinasala ang kabuuang feedback reviews na isinumite ng employer na ito
+  // Fina-filter ang kabuuang feedback reviews na isinumite ng employer na ito
   const myFeedbacksCount = feedbacks.filter(fb => {
     const fbCompany = (fb.companyName || '').trim().toLowerCase();
     const myComp = myCompanyName.toLowerCase().trim();

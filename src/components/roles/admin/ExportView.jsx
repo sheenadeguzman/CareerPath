@@ -26,7 +26,7 @@ export default function ExportView({ alumniList = [] }) {
   // Dito ginagawa ang mga kalkulasyon at statistical aggregations para sa dashboard cards
   const totalAlumniCount = alumniList.length;
   
-  // Sinasala ang mga graduate na registered na
+  // Fina-filter ang mga graduate na registered na
   const registeredAlumni = alumniList.filter(a => a.isRegistered);
   const totalRegistered = registeredAlumni.length;
   
