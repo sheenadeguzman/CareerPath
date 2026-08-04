@@ -1,8 +1,6 @@
 /**
- * @file bscData.js
- * @description Standard static/specimen datasets na kumakatawan sa degree programs, default users,
- * alumni profiles, partner employers, job postings, tracer surveys, employer feedbacks, activity logs,
- * at notifications. Ginagamit ito bilang reference metrics at seed configurations para sa database imports.
+  @file bscData.js
+  @description 
  */
 
 // Listahan ng mga opisyal na kurso o degree programs na inaalok sa Batanes State College (BSC)
