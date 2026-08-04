@@ -117,6 +117,20 @@ export function useCareerPath() {
         }
       } catch (err) {
         console.error(`Failed to sync action: ${item.action}`, err);
+        const isAuthError = err.message.includes('Access Denied') || 
+                            err.message.includes('Token Missing') || 
+                            err.message.includes('status: 401') || 
+                            err.message.includes('status: 403');
+        if (isAuthError) {
+          showSuccessToast('Session expired. Please log in again to sync changes.');
+          setActiveUser(null);
+          setToken(null);
+          localStorage.removeItem('careerpath_user');
+          localStorage.removeItem('careerpath_token');
+          localStorage.removeItem('careerpath_tab');
+          failedItems = currentQueue.slice(currentQueue.indexOf(item));
+          break;
+        }
         // If it's a network/connection error, stop syncing and keep the rest
         if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
           failedItems = currentQueue.slice(currentQueue.indexOf(item));
@@ -148,7 +162,7 @@ export function useCareerPath() {
 
   const [activeUser, setActiveUser] = useState(() => {
     try {
-      const savedUser = sessionStorage.getItem('careerpath_user');
+      const savedUser = localStorage.getItem('careerpath_user');
       return savedUser ? JSON.parse(savedUser) : null;
     } catch (err) {
       console.error('Failed to parse active user session:', err);
@@ -157,11 +171,11 @@ export function useCareerPath() {
   });
 
   const [token, setToken] = useState(() => {
-    return sessionStorage.getItem('careerpath_token') || null;
+    return localStorage.getItem('careerpath_token') || null;
   });
 
   const getAuthHeaders = (tokenOverride) => {
-    const activeToken = tokenOverride || token || sessionStorage.getItem('careerpath_token');
+    const activeToken = tokenOverride || token || localStorage.getItem('careerpath_token');
     return {
       'Content-Type': 'application/json',
       ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
@@ -169,7 +183,7 @@ export function useCareerPath() {
   };
 
   const [currentTab, setCurrentTab] = useState(() => {
-    return sessionStorage.getItem('careerpath_tab') || 'Dashboard';
+    return localStorage.getItem('careerpath_tab') || 'Dashboard';
   });
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -251,14 +265,14 @@ export function useCareerPath() {
 
   useEffect(() => {
     if (activeUser) {
-      sessionStorage.setItem('careerpath_user', JSON.stringify(activeUser));
+      localStorage.setItem('careerpath_user', JSON.stringify(activeUser));
     } else {
-      sessionStorage.removeItem('careerpath_user');
+      localStorage.removeItem('careerpath_user');
     }
   }, [activeUser]);
 
   useEffect(() => {
-    sessionStorage.setItem('careerpath_tab', currentTab);
+    localStorage.setItem('careerpath_tab', currentTab);
   }, [currentTab]);
 
   // =========================================================================
@@ -269,7 +283,7 @@ export function useCareerPath() {
     setActiveUser(user);
     if (loginToken) {
       setToken(loginToken);
-      sessionStorage.setItem('careerpath_token', loginToken);
+      localStorage.setItem('careerpath_token', loginToken);
     }
     if (user.role === 'Alumni') {
       setCurrentTab('My Profile');
@@ -289,9 +303,9 @@ export function useCareerPath() {
     }
     setActiveUser(null);
     setToken(null);
-    sessionStorage.removeItem('careerpath_user');
-    sessionStorage.removeItem('careerpath_tab');
-    sessionStorage.removeItem('careerpath_token');
+    localStorage.removeItem('careerpath_user');
+    localStorage.removeItem('careerpath_tab');
+    localStorage.removeItem('careerpath_token');
   };
 
   const appendActivity = async (action, module, details, userOverride, tokenOverride) => {
@@ -578,10 +592,10 @@ export function useCareerPath() {
 
   const handleUpdateUserSession = (updatedUser, newToken) => {
     setActiveUser(updatedUser);
-    sessionStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
+    localStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
     if (newToken) {
       setToken(newToken);
-      sessionStorage.setItem('careerpath_token', newToken);
+      localStorage.setItem('careerpath_token', newToken);
     }
   };
 

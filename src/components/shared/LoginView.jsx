@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, BookOpen, Users, Briefcase, Eye, EyeOff, Lock, RefreshCw, Key, Mail, ShieldAlert } from 'lucide-react';
+import bcrypt from 'bcryptjs';
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   // Step 1: Role Selection panel (Administrator, Department Chairperson, Alumni, Employer)
@@ -59,6 +60,63 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     setErrorMessage('');
   };
 
+  const tryOfflineLogin = () => {
+    let localUsers = users || [];
+    if (localUsers.length === 0) {
+      try {
+        const cached = localStorage.getItem('careerpath_dashboard_cache');
+        if (cached) {
+          const db = JSON.parse(cached);
+          localUsers = db.users || [];
+        }
+      } catch (e) {
+        console.error('Failed to parse cached users for offline login:', e);
+      }
+    }
+
+    const inputId = userIdInput.trim().toLowerCase();
+    const matchedUser = localUsers.find(u => u.userId && u.userId.toLowerCase() === inputId);
+
+    if (!matchedUser) {
+      setErrorMessage('Offline Mode: User ID not found in local cache. You must log in online at least once.');
+      return false;
+    }
+
+    if (matchedUser.role !== selectedRole) {
+      setErrorMessage(`Account detected, but role is registered as '${matchedUser.role}' rather than requested '${selectedRole}'.`);
+      return false;
+    }
+
+    let isMatch = false;
+    try {
+      isMatch = bcrypt.compareSync(passwordInput.trim(), matchedUser.password);
+    } catch (err) {
+      console.error('Bcrypt comparison failed:', err);
+    }
+
+    if (isMatch || passwordInput.trim() === matchedUser.password) {
+      if (matchedUser.isInitialPasswordNeeded) {
+        setErrorMessage('Password reset requires an active internet connection.');
+        return false;
+      }
+
+      const mockToken = `offline_token_${matchedUser.id}_${Date.now()}`;
+      
+      onAddActivity(
+        'Offline Portal Entrance',
+        'Authentication',
+        `Logged in successfully (Offline) as ${matchedUser.name} (${matchedUser.role})`,
+        matchedUser,
+        mockToken
+      );
+      onLoginSuccess(matchedUser, mockToken);
+      return true;
+    } else {
+      setErrorMessage('Offline Mode: Incorrect Password.');
+      return false;
+    }
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!userIdInput.trim() || !passwordInput.trim()) {
@@ -107,7 +165,14 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       onLoginSuccess(authenticatedUser, result.token);
 
     } catch (err) {
-      setErrorMessage(err.message || 'Authentication rejected.');
+      if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        const loggedIn = tryOfflineLogin();
+        if (!loggedIn) {
+          // tryOfflineLogin already sets setErrorMessage
+        }
+      } else {
+        setErrorMessage(err.message || 'Authentication rejected.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -167,7 +232,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       }, 1800);
 
     } catch (err) {
-      setResetError(err.message || 'Failed to update password.');
+      if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setResetError('Password reset requires an active internet connection.');
+      } else {
+        setResetError(err.message || 'Failed to update password.');
+      }
     }
   };
 
@@ -188,7 +257,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       setRecoverySuccess('A 6-digit verification code has been generated and sent.');
       setRecoveryStep(2);
     } catch (err) {
-      setRecoveryError(err.message);
+      if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setRecoveryError('Password recovery requires an active internet connection.');
+      } else {
+        setRecoveryError(err.message);
+      }
     }
   };
 
@@ -251,7 +324,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
         }
       }, 1500);
     } catch (err) {
-      setRecoveryError(err.message);
+      if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setRecoveryError('Password reset recovery requires an active internet connection.');
+      } else {
+        setRecoveryError(err.message);
+      }
     }
   };
 
