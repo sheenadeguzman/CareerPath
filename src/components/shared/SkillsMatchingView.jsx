@@ -35,6 +35,58 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
   // Fina-filter lamang ang mga rehistradong alumni para sa gagawing pagtutugma
   const registeredAlumniList = alumniList.filter(al => al.isRegistered);
 
+  // Helper function para sa Department / Course Compatibility Score (Academic Program Alignment)
+  const calculateProgramAlignment = (alumniProgram, jobTitle, jobDescription) => {
+    const title = (jobTitle || '').toLowerCase();
+    const desc = (jobDescription || '').toLowerCase();
+    const prog = (alumniProgram || '').toLowerCase();
+
+    // Define department keywords
+    const ictKeywords = ["developer", "programmer", "software", "web", "it", "net", "system", "database", "tech", "programming", "coding", "ict", "computer", "network"];
+    const htmKeywords = ["hotel", "tourism", "food", "resort", "guide", "travel", "barista", "chef", "homestay", "restaurant", "hospitality", "cook", "dining", "tour"];
+    const educKeywords = ["teacher", "instructor", "educator", "lesson", "school", "secondary", "elementary", "education", "academic", "teaching"];
+    const agriKeywords = ["farm", "crop", "pest", "plant", "organic", "farming", "soil", "agriculture", "livestock", "agriculturist"];
+    const techKeywords = ["circuit", "electronic", "technician", "soldering", "machinery", "repair", "wiring", "industrial", "automotive", "mechanic", "maintenance"];
+
+    // Check which department keywords are matched in the job title/description
+    const matchesICT = ictKeywords.some(kw => title.includes(kw) || desc.includes(kw));
+    const matchesHTM = htmKeywords.some(kw => title.includes(kw) || desc.includes(kw));
+    const matchesEduc = educKeywords.some(kw => title.includes(kw) || desc.includes(kw));
+    const matchesAgri = agriKeywords.some(kw => title.includes(kw) || desc.includes(kw));
+    const matchesTech = techKeywords.some(kw => title.includes(kw) || desc.includes(kw));
+
+    // Determine the primary department required by the job
+    let requiredDept = null;
+    if (matchesICT) requiredDept = 'ict';
+    else if (matchesEduc) requiredDept = 'educ';
+    else if (matchesHTM) requiredDept = 'htm';
+    else if (matchesAgri) requiredDept = 'agri';
+    else if (matchesTech) requiredDept = 'tech';
+
+    // If no specific department is matched, default to general compatibility (100%)
+    if (!requiredDept) return 100;
+
+    // Check alumnus program
+    const isIT = prog.includes("information technology") || prog.includes("ict");
+    const isEduc = prog.includes("education") || prog.includes("teacher");
+    const isHTM = prog.includes("hospitality") || prog.includes("tourism") || prog.includes("htm");
+    const isAgri = prog.includes("agriculture");
+    const isTech = prog.includes("industrial technology") || prog.includes("technology");
+
+    if (requiredDept === 'ict' && isIT) return 100;
+    if (requiredDept === 'educ' && isEduc) return 100;
+    if (requiredDept === 'htm' && isHTM) return 100;
+    if (requiredDept === 'agri' && isAgri) return 100;
+    if (requiredDept === 'tech' && isTech) return 100;
+
+    // Closely related departments (e.g. BSIT and Industrial Tech)
+    if (requiredDept === 'ict' && isTech) return 40;
+    if (requiredDept === 'tech' && isIT) return 40;
+    if (requiredDept === 'htm' && isEduc) return 20;
+
+    return 10; // Baseline fit score
+  };
+
   // Algoritmo sa Pagtutugma (Match Algorithm): tinitingnan kung gaano karaming kasanayan ng alumni ang tumutugma sa requirements ng activeJob
   const matchedAlumni = registeredAlumniList.map(al => {
     // Fina-filter ang mga overlapping skills gamit ang case-insensitive comparison
@@ -42,18 +94,28 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
       reqSkills.some(req => req.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(req.toLowerCase()))
     );
 
-    // Kinakalkula ang match score bilang porsyento ng overlapping skills laban sa total required skills
-    const matchScore = reqSkills.length > 0 
+    // 1. Skills Overlap Score (60% weight)
+    const skillsScore = reqSkills.length > 0 
       ? Math.round((overlappingSkills.length / reqSkills.length) * 100) 
       : 0;
+
+    // 2. Academic Program Alignment Score (40% weight)
+    const programAlignment = activeJob 
+      ? calculateProgramAlignment(al.program, activeJob.jobTitle, activeJob.description) 
+      : 100;
+
+    // 3. Hybrid Fit Score
+    const hybridScore = Math.round((skillsScore * 0.6) + (programAlignment * 0.4));
 
     return {
       alumni: al,
       overlappingSkills,
-      matchScore
+      skillsScore,
+      programAlignment,
+      hybridScore
     };
-  }).filter(item => item.matchScore > 0) // Pinapakita lamang ang mga alumni na may kahit kaunting overlap sa kasanayan
-    .sort((a, b) => b.matchScore - a.matchScore); // Pinagsusunod-sunod mula sa pinakamataas na match score pababa
+  }).filter(item => item.skillsScore > 0 || item.hybridScore >= 30) // Pinapakita lamang ang mga alumni na may kahit kaunting overlap o katuturan
+    .sort((a, b) => b.hybridScore - a.hybridScore); // Pinagsusunod-sunod mula sa pinakamataas na hybrid score pababa
 
   // --- BAGONG DYNAMIC FEATURE: Pagsusuri sa Skill-Gap ng Kurikulum ---
   // Kinakalkula ang density o porsyento ng bawat kinakailangang kasanayan sa kabuuang listahan ng rehistradong alumni.
@@ -75,16 +137,14 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
     };
   }).sort((a, b) => b.gap - a.gap); // Inilalabas muna ang may pinakamalalaking gaps sa kurikulum
 
-
-
   return (
     <div className="space-y-6">
       
       {/* Intro Banner ng pahina */}
       <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 font-sans">
         <div>
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Interactive Skills Overlap &amp; Talent Analytics</h2>
-          <p className="text-[11px] text-slate-405 mt-0.5">Comparing graduate competencies with vacancy credentials required by partner firms.</p>
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Interactive Hybrid Skills Overlap &amp; Talent Analytics</h2>
+          <p className="text-[11px] text-slate-405 mt-0.5">Comparing graduate competencies and program specialization with vacancy credentials required by partner firms.</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Select Target Vacancy:</label>
@@ -127,6 +187,28 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Explainer card for Hybrid Algorithm Model */}
+            <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-5 space-y-3">
+              <span className="block text-[10px] font-extrabold text-[#7c191e] uppercase tracking-wider">Algorithm Model Explainer</span>
+              <p className="text-[11.5px] text-slate-500 leading-relaxed font-semibold">
+                This system runs a **Hybrid Skills-Academic Compatibility Placement Matching Algorithm**:
+              </p>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-205 space-y-2 font-mono text-[10px]">
+                <div className="font-bold text-[#7c191e] text-center border-b border-slate-200 pb-1.5 mb-1">
+                  Hybrid Fit Score = (S &times; 0.6) + (P &times; 0.4)
+                </div>
+                <div>
+                  <strong>S (Skills Match):</strong> Overlap ratio of graduate skills against job requirements.
+                </div>
+                <div className="pt-1">
+                  <strong>P (Program Fit):</strong> Dynamic alignment checking if the graduate's degree program matches the job's domain.
+                </div>
+              </div>
+              <span className="text-[9px] text-slate-405 block leading-tight font-medium">
+                Designed to comply with capstone novelty guidelines for hybrid matching.
+              </span>
             </div>
 
             {/* Card para sa pagsusuri ng Curriculum Skill-Gap base sa napiling bakanteng trabaho */}
@@ -180,7 +262,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           <div className="lg:col-span-2 bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-5">
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Matching Graduates Profile Pool ({matchedAlumni.length})</span>
-              <span className="text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold">Best Fit Score Engine</span>
+              <span className="text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold">Hybrid Match Score Engine</span>
             </div>
 
             {matchedAlumni.length === 0 ? (
@@ -213,7 +295,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 font-medium">
-                          Graduated: <span className="font-bold">{item.alumni.program}</span> &bull; {item.alumni.yearGraduated}
+                          Graduated: <span className="font-bold text-[#7c191e]">{item.alumni.program}</span> &bull; {item.alumni.yearGraduated}
                         </p>
                         
                         {/* Pagpapakita ng mga katugmang kasanayan (overlapping skills) */}
@@ -227,27 +309,33 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                       </div>
                     </div>
 
-                    {/* Score metric sa kanang panig (Match Density score at mabilisang aksyon) */}
-                    <div className="text-left sm:text-right space-y-1 sm:self-center shrink-0">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Match Density</div>
-                      <div className="flex items-center gap-2">
+                    {/* Score metric sa kanang panig (Hybrid Placement Fit score at mabilisang aksyon) */}
+                    <div className="text-left sm:text-right space-y-1 sm:self-center shrink-0 min-w-[120px]">
+                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Hybrid Fit Score</div>
+                      <div className="flex items-center gap-2 justify-start sm:justify-end">
                         <span className={`text-sm font-extrabold ${
-                          item.matchScore >= 70 ? 'text-emerald-600' : 'text-amber-500'
+                          item.hybridScore >= 70 ? 'text-emerald-600' : item.hybridScore >= 40 ? 'text-amber-500' : 'text-slate-500'
                         }`}>
-                          {item.matchScore}% Overlap
+                          {item.hybridScore}%
                         </span>
                         <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block border border-slate-200/50">
                           <div 
-                            className={`h-full rounded-full transition-all duration-500 ${item.matchScore >= 70 ? 'bg-emerald-600' : 'bg-amber-500'}`} 
-                            style={{ width: `${item.matchScore}%` }}
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              item.hybridScore >= 70 ? 'bg-emerald-650' : item.hybridScore >= 40 ? 'bg-amber-500' : 'bg-slate-400'
+                            }`} 
+                            style={{ width: `${item.hybridScore}%` }}
                           />
                         </div>
+                      </div>
+                      <div className="text-[9px] text-slate-450 leading-tight">
+                        Skills Overlap: <strong className="text-slate-700">{item.skillsScore}%</strong><br/>
+                        Program Fit: <strong className="text-slate-700">{item.programAlignment}%</strong>
                       </div>
                       <button 
                         onClick={() => {
                           alert(`Initiating administrative contact invite with ${item.alumni.name} for ${activeJob.jobTitle}...`);
                         }}
-                        className="text-[10px] text-[#1e4620] hover:underline block font-bold cursor-pointer"
+                        className="text-[10px] text-[#1e4620] hover:underline block font-bold cursor-pointer mt-1 sm:ml-auto"
                       >
                         Contact Talented Grad &rarr;
                       </button>
@@ -267,8 +355,6 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
             : "Please add partner job bulletins and vacancies to calculate skills overlaps."}
         </div>
       )}
-
-
     </div>
   );
 }
