@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { HelpCircle, Star, MessageSquare, Check, Plus, ShieldCheck, Award, Eye, Building, GraduationCap, CornerDownRight, AlertCircle } from 'lucide-react';
 
-export default function FeedbackView({ 
-  feedbacks, 
-  alumniList, 
-  employers = [], 
-  activeUser, 
-  onSubmitFeedback 
+export default function FeedbackView({
+  feedbacks,
+  alumniList,
+  employers = [],
+  activeUser,
+  onSubmitFeedback
 }) {
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -31,9 +31,9 @@ export default function FeedbackView({
   const isAlumni = activeUser.role === 'Alumni';
 
   // Hinahanap ang pangalan ng kumpanya ng employer base sa activeUser.companyId o email matching
-  const matchingEmployer = employers.find(e => 
-    e.id === activeUser.companyId || 
-    e.email?.toLowerCase() === activeUser.email?.toLowerCase() || 
+  const matchingEmployer = employers.find(e =>
+    e.id === activeUser.companyId ||
+    e.email?.toLowerCase() === activeUser.email?.toLowerCase() ||
     e.contactPerson?.toLowerCase() === activeUser.name?.toLowerCase()
   );
 
@@ -53,8 +53,8 @@ export default function FeedbackView({
             1: '★ Poor: Curriculum is severely outdated/needs overhaul.'
           },
           messageLabel: 'Assessment Observations & Suggestions *',
-          placeholder: isAlumni 
-            ? "e.g., 'The Web Programming syllabus was useful, but adding modern frontend frameworks like React would align better with current jobs...'" 
+          placeholder: isAlumni
+            ? "e.g., 'The Web Programming syllabus was useful, but adding modern frontend frameworks like React would align better with current jobs...'"
             : "e.g., 'Graduates have good database fundamentals, but need more training in modern frontend frameworks...'"
         };
       case 'Employability':
@@ -194,7 +194,7 @@ export default function FeedbackView({
     if (fb.message && fb.message.startsWith('{"type":"Evaluation"')) {
       try {
         return { ...fb, evalData: JSON.parse(fb.message) };
-      } catch (e) {}
+      } catch (e) { }
     }
     return null;
   }).filter(Boolean);
@@ -207,13 +207,13 @@ export default function FeedbackView({
   const avgTeam = totalEvals > 0 ? (evaluations.reduce((acc, ev) => acc + (ev.evalData.ratings?.teamwork || 5), 0) / totalEvals).toFixed(1) : '0.0';
 
   // Kinakalkula ang average rating ng feedbacks; ibinabalik ang 'N/A' kapag wala pang naitalang feedback records
-  const averageRating = displayFeedbacks.length > 0 
+  const averageRating = displayFeedbacks.length > 0
     ? (displayFeedbacks.reduce((acc, current) => acc + (current.rating || 5), 0) / displayFeedbacks.length).toFixed(1)
     : 'N/A';
 
   return (
     <div className="space-y-6 font-sans">
-      
+
       {/* Popup ng Toast Notification */}
       {successMsg && (
         <div id="feedback-success-toast" className="p-4 bg-emerald-50 text-emerald-950 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-2 animate-bounce">
@@ -227,11 +227,11 @@ export default function FeedbackView({
         <div>
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Curriculum Evaluation &amp; QA Feedback</h2>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            {isAlumni 
+            {isAlumni
               ? 'Evaluate Batanes State College (BSC) curriculum and suggest improvements based on your active career experiences.'
               : isEmployer
-              ? 'Provide feedback regarding the skills, performance, and curriculum relevance of BSC graduates in your organization.'
-              : 'Audit and inspect curriculum feedback submitted by graduates to adjust course syllabi.'}
+                ? 'Provide feedback regarding the skills, performance, and curriculum relevance of BSC graduates in your organization.'
+                : 'Audit and inspect curriculum feedback submitted by graduates to adjust course syllabi.'}
           </p>
         </div>
         {(isAlumni || isEmployer) && (
@@ -242,7 +242,7 @@ export default function FeedbackView({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* ========================================================== */}
         {/* FORM SECTION (PARA SA ALUMNI AT EMPLOYERS)                 */}
         {/* ========================================================== */}
@@ -255,8 +255,8 @@ export default function FeedbackView({
                   {isAlumni ? 'Submit Curriculum Feedback' : 'Submit Employer Evaluation'}
                 </h3>
                 <span className="block text-[10px] text-slate-400 font-bold mt-0.5">
-                  {isAlumni 
-                    ? 'Help improve course alignment with current industry needs' 
+                  {isAlumni
+                    ? 'Help improve course alignment with current industry needs'
                     : 'Evaluate graduate capabilities and suggest curriculum enhancements'}
                 </span>
               </div>
@@ -271,9 +271,8 @@ export default function FeedbackView({
                   placeholder={details.subjectPlaceholder}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none ${
-                    isAlumni ? 'focus:ring-[#1e4620]' : 'focus:ring-[#7c191e]'
-                  }`}
+                  className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none ${isAlumni ? 'focus:ring-[#1e4620]' : 'focus:ring-[#7c191e]'
+                    }`}
                 />
               </div>
 
@@ -295,7 +294,7 @@ export default function FeedbackView({
                 // Structured Employer Questionnaire
                 <div className="space-y-4">
                   <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Graduate Performance Ratings</span>
-                  
+
                   {/* Technical & Job Skills */}
                   <div>
                     <label className="block text-slate-550 mb-1 font-bold">1. Technical &amp; Practical Skills (e.g. coding, operations)</label>
@@ -305,9 +304,8 @@ export default function FeedbackView({
                           key={star}
                           type="button"
                           onClick={() => setRatingTechnical(star)}
-                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${
-                            ratingTechnical >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
-                          }`}
+                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${ratingTechnical >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
+                            }`}
                         >
                           <Star className="w-5 h-5 fill-current" />
                         </button>
@@ -324,9 +322,8 @@ export default function FeedbackView({
                           key={star}
                           type="button"
                           onClick={() => setRatingCommunication(star)}
-                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${
-                            ratingCommunication >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
-                          }`}
+                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${ratingCommunication >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
+                            }`}
                         >
                           <Star className="w-5 h-5 fill-current" />
                         </button>
@@ -343,9 +340,8 @@ export default function FeedbackView({
                           key={star}
                           type="button"
                           onClick={() => setRatingProblemSolving(star)}
-                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${
-                            ratingProblemSolving >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
-                          }`}
+                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${ratingProblemSolving >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
+                            }`}
                         >
                           <Star className="w-5 h-5 fill-current" />
                         </button>
@@ -362,9 +358,8 @@ export default function FeedbackView({
                           key={star}
                           type="button"
                           onClick={() => setRatingWorkEthics(star)}
-                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${
-                            ratingWorkEthics >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
-                          }`}
+                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${ratingWorkEthics >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
+                            }`}
                         >
                           <Star className="w-5 h-5 fill-current" />
                         </button>
@@ -381,9 +376,8 @@ export default function FeedbackView({
                           key={star}
                           type="button"
                           onClick={() => setRatingTeamwork(star)}
-                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${
-                            ratingTeamwork >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
-                          }`}
+                          className={`p-0.5 focus:outline-none transition-all cursor-pointer ${ratingTeamwork >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
+                            }`}
                         >
                           <Star className="w-5 h-5 fill-current" />
                         </button>
@@ -428,9 +422,8 @@ export default function FeedbackView({
                           key={star}
                           type="button"
                           onClick={() => setRating(star)}
-                          className={`p-1 focus:outline-none transition-all cursor-pointer ${
-                            rating >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
-                          }`}
+                          className={`p-1 focus:outline-none transition-all cursor-pointer ${rating >= star ? 'text-amber-500 scale-105' : 'text-slate-300'
+                            }`}
                         >
                           <Star className="w-6 h-6 fill-current" />
                         </button>
@@ -449,9 +442,8 @@ export default function FeedbackView({
                       placeholder={details.placeholder}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none text-slate-700 font-medium font-sans ${
-                        isAlumni ? 'focus:ring-[#1e4620]' : 'focus:ring-[#7c191e]'
-                      }`}
+                      className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:outline-none text-slate-700 font-medium font-sans ${isAlumni ? 'focus:ring-[#1e4620]' : 'focus:ring-[#7c191e]'
+                        }`}
                     />
                   </div>
                 </>
@@ -460,9 +452,8 @@ export default function FeedbackView({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full py-2.5 text-white font-extrabold uppercase text-xs rounded-lg transition-all shadow-md inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-                  isAlumni ? 'bg-[#1e4620] hover:bg-[#112d12]' : 'bg-[#7c191e] hover:bg-[#581014]'
-                }`}
+                className={`w-full py-2.5 text-white font-extrabold uppercase text-xs rounded-lg transition-all shadow-md inline-flex items-center justify-center gap-1.5 cursor-pointer ${isAlumni ? 'bg-[#1e4620] hover:bg-[#112d12]' : 'bg-[#7c191e] hover:bg-[#581014]'
+                  }`}
               >
                 <Check className="w-4 h-4" /> Submit Feedback
               </button>
@@ -478,7 +469,7 @@ export default function FeedbackView({
             <span className="block text-xs font-bold text-[#7c191e] uppercase tracking-wider">
               Employer Evaluation QA Dashboard
             </span>
-            
+
             <div className="p-4 bg-slate-50 border border-slate-100 rounded-lg text-center space-y-1">
               <span className="text-[10px] text-slate-400 uppercase font-bold block">
                 Overall Quality Rating
@@ -499,7 +490,7 @@ export default function FeedbackView({
             {totalEvals > 0 ? (
               <div className="space-y-3 pt-2">
                 <span className="block text-[9px] uppercase font-extrabold text-slate-400 tracking-wider">Graduate Competency Scores</span>
-                
+
                 {/* Technical Skills */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px] font-bold text-slate-655">
@@ -575,8 +566,8 @@ export default function FeedbackView({
         <div className="lg:col-span-2 bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-5 font-sans">
           <div className="flex justify-between items-center border-b border-slate-50 pb-2">
             <span className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
-              {isAdminOrChair 
-                ? 'All Curriculum Feedback Records' 
+              {isAdminOrChair
+                ? 'All Curriculum Feedback Records'
                 : 'My Submitted Feedback History'}
             </span>
             <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold uppercase">
@@ -597,7 +588,7 @@ export default function FeedbackView({
             <div className="divide-y divide-slate-100">
               {displayFeedbacks.map((fb) => (
                 <div key={fb.id} className="py-4 space-y-3.5 animate-fade-in text-xs font-semibold text-slate-600">
-                  
+
                   {/* Detalye ng Koneksyon: TARGET ALUMNUS O NAGSUBMIT NA KUMPANYA */}
                   <div className="p-3 bg-slate-55 border border-slate-105 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div className="space-y-1">
@@ -661,7 +652,7 @@ export default function FeedbackView({
                       try {
                         evD = JSON.parse(fb.message);
                         isEv = true;
-                      } catch (e) {}
+                      } catch (e) { }
                     }
 
                     if (isEv && evD) {
