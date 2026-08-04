@@ -34,9 +34,18 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
     setErrorMessage('');
+
+    // Check if there is a remembered username for this role in localStorage
+    const rememberedUsername = localStorage.getItem(`careerpath_last_username_${role}`);
+    if (rememberedUsername) {
+      setUserIdInput(rememberedUsername);
+      setPasswordInput('');
+      return;
+    }
+
     // Awtomatikong nilalagyan ang mga field ng username para sa madaling pag-test, ngunit iniiwang blanko ang password
     if (role === 'Super Admin') {
-      setUserIdInput('superadmin');
+      setUserIdInput('superadministrator');
       setPasswordInput('');
     } else if (role === 'Administrator') {
       setUserIdInput('admin');

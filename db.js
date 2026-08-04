@@ -62,7 +62,7 @@ export async function initializeDatabase() {
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             'bsc-super-admin',
-            'superadmin',
+            'superadministrator',
             hashedPassword,
             'Super Administrator',
             'superadmin@bsc.edu.ph',
@@ -71,7 +71,7 @@ export async function initializeDatabase() {
             'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=120'
           ]
         );
-        console.log("Database Migration: Seeded default Super Admin user (UserID: superadmin / Pass: super123)");
+        console.log("Database Migration: Seeded default Super Admin user (UserID: superadministrator / Pass: super123)");
       }
     } catch (e) {
       console.error("Database Migration Error: Failed to seed Super Admin user:", e);
