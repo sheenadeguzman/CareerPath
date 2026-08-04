@@ -169,7 +169,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
               <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-100/50 flex gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <span className="text-[9px] text-amber-800 font-semibold leading-snug">
-                  <strong>Advice:</strong> Integrating these missing skills directly into Batanes State College courses will boost placement rates by up to <strong>14%</strong>.
+                  <strong>Advice:</strong> Integrating these missing skills directly into Batanes State College courses will significantly align our curriculum with active industry requirements and enhance graduate employability.
                 </span>
               </div>
             </div>
