@@ -69,6 +69,31 @@ self.addEventListener('fetch', event => {
               caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
             }
             return networkResponse;
+          })
+          .catch(async (err) => {
+            // FALLBACK: Kung offline at hindi nahanap ang partikular na hashed asset (hal. bagong JS/CSS),
+            // subukang hanapin sa cache ang kahit anong kahalintulad na file.
+            const url = new URL(event.request.url);
+            if (url.pathname.includes('/assets/index-')) {
+              const cache = await caches.open(CACHE_NAME);
+              const keys = await cache.keys();
+              
+              // Hanapin ang tugmang file type (.js o .css)
+              const isJS = url.pathname.endsWith('.js');
+              const isCSS = url.pathname.endsWith('.css');
+              
+              for (const key of keys) {
+                const keyUrl = new URL(key.url);
+                if (keyUrl.pathname.includes('/assets/index-')) {
+                  if ((isJS && keyUrl.pathname.endsWith('.js')) || (isCSS && keyUrl.pathname.endsWith('.css'))) {
+                    console.log('SW Fallback: Serving cached asset:', key.url);
+                    const cachedRes = await cache.match(key);
+                    if (cachedRes) return cachedRes;
+                  }
+                }
+              }
+            }
+            throw err;
           });
       })
   );
