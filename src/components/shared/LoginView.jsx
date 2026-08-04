@@ -136,6 +136,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     setIsSubmitting(true);
     setErrorMessage('');
 
+    let fetchSuccessful = false;
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -144,10 +145,12 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
+        const errData = await response.json().catch(() => ({}));
+        fetchSuccessful = true;
         throw new Error(errData.error || 'Login failed');
       }
 
+      fetchSuccessful = true;
       const result = await response.json();
       const authenticatedUser = result.user;
 
@@ -174,7 +177,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       onLoginSuccess(authenticatedUser, result.token);
 
     } catch (err) {
-      if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+      if (!fetchSuccessful) {
         const loggedIn = tryOfflineLogin();
         if (!loggedIn) {
           // tryOfflineLogin already sets setErrorMessage
