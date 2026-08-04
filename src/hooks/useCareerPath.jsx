@@ -81,7 +81,7 @@ export function useCareerPath() {
         notifications,
         surveyResponses
       };
-      sessionStorage.setItem('careerpath_dashboard_cache', JSON.stringify(updatedDB));
+      localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(updatedDB));
     }, 200);
     showSuccessToast('Offline: Saved change locally. Will sync when back online.');
   };
@@ -128,7 +128,6 @@ export function useCareerPath() {
           sessionStorage.removeItem('careerpath_user');
           sessionStorage.removeItem('careerpath_token');
           sessionStorage.removeItem('careerpath_tab');
-          sessionStorage.removeItem('careerpath_dashboard_cache');
           failedItems = currentQueue.slice(currentQueue.indexOf(item));
           break;
         }
@@ -232,12 +231,12 @@ export function useCareerPath() {
       setNotifications(db.notifications || []);
       setSurveyResponses(db.surveyResponses || []);
       
-      // Save cache to sessionStorage
-      sessionStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
+      // Save cache to localStorage
+      localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
     } catch (err) {
       console.error('Failed to sync backend state:', err);
       // Fallback to cache if available
-      const cached = sessionStorage.getItem('careerpath_dashboard_cache');
+      const cached = localStorage.getItem('careerpath_dashboard_cache');
       if (cached) {
         try {
           const db = JSON.parse(cached);
@@ -310,7 +309,6 @@ export function useCareerPath() {
     sessionStorage.removeItem('careerpath_user');
     sessionStorage.removeItem('careerpath_tab');
     sessionStorage.removeItem('careerpath_token');
-    sessionStorage.removeItem('careerpath_dashboard_cache');
   };
 
   // Idle timeout / Inactivity logout
