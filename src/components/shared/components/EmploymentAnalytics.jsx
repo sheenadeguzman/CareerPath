@@ -54,13 +54,18 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const alignedPct = totalInScope > 0 
     ? Math.round((courseAlignedCount / totalInScope) * 100) 
     : 0;
+  const courseUnresponsiveCount = totalInScope - (courseAlignedCount + courseAlignedPart + courseAlignedNo);
+  const courseUnregisteredPct = totalInScope > 0 ? Math.round((courseUnresponsiveCount / totalInScope) * 100) : 0;
 
   // Status distributions
   const fullTimeCount = employedList.filter(a => a.employmentStatus === 'Employed').length;
   const freelanceCount = employedList.filter(a => a.employmentStatus === 'Freelance').length;
   const selfCount = employedList.filter(a => a.employmentStatus === 'Self-Employed').length;
   const studyCount = registeredInScope.filter(a => a.employmentStatus === 'Further Studies').length;
-  const unemployedCount = registeredInScope.filter(a => a.employmentStatus === 'Unemployed').length + (totalInScope - totalRegisteredCount);
+  const unemployedCount = registeredInScope.filter(a => a.employmentStatus === 'Unemployed').length;
+  const noResponseStatusCount = registeredInScope.filter(a => 
+    !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
+  ).length;
 
   // Salary brackets distributions
   const salaryBrackets = {
@@ -69,6 +74,13 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     '30k - 40k': employedList.filter(a => a.monthlyIncome === '30,001 - 40,000').length,
     'Above 40k': employedList.filter(a => a.monthlyIncome === 'Above 40,000').length,
   };
+  const salUnresponsiveCount = totalInScope - (
+    salaryBrackets['10k - 20k'] + 
+    salaryBrackets['20k - 30k'] + 
+    salaryBrackets['30k - 40k'] + 
+    salaryBrackets['Above 40k']
+  );
+  const salUnregisteredPct = totalInScope > 0 ? Math.round((salUnresponsiveCount / totalInScope) * 100) : 0;
 
   // Industry distributions
   const industryCounts = {
@@ -208,13 +220,39 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             {/* Unemployed */}
             <div className="space-y-1">
               <div className="flex justify-between font-bold text-slate-705 text-[11px]">
-                <span>Unemployed / Unresponsive</span>
+                <span>Unemployed</span>
                 <span>{unemployedCount} {unemployedCount <= 1 ? 'grad' : 'grads'}</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="bg-slate-350 h-full" style={{ width: `${totalInScope > 0 ? (unemployedCount / totalInScope) * 100 : 0}%` }} />
+                <div className="bg-rose-500 h-full" style={{ width: `${totalInScope > 0 ? (unemployedCount / totalInScope) * 100 : 0}%` }} />
               </div>
             </div>
+
+            {/* No Response */}
+            {noResponseStatusCount > 0 && (
+              <div className="space-y-1">
+                <div className="flex justify-between font-bold text-slate-705 text-[11px]">
+                  <span>No Response</span>
+                  <span>{noResponseStatusCount} {noResponseStatusCount <= 1 ? 'grad' : 'grads'}</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="bg-slate-500 h-full" style={{ width: `${totalInScope > 0 ? (noResponseStatusCount / totalInScope) * 100 : 0}%` }} />
+                </div>
+              </div>
+            )}
+
+            {/* Unregistered */}
+            {unregisteredCount > 0 && (
+              <div className="space-y-1">
+                <div className="flex justify-between font-bold text-slate-705 text-[11px]">
+                  <span>Unregistered</span>
+                  <span>{unregisteredCount} {unregisteredCount <= 1 ? 'grad' : 'grads'}</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="bg-slate-400 h-full" style={{ width: `${totalInScope > 0 ? (unregisteredCount / totalInScope) * 100 : 0}%` }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -240,14 +278,14 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 </div>
               );
             })}
-            {unregisteredCount > 0 && (
+            {salUnresponsiveCount > 0 && (
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-[10.5px]">
                   <span className="font-extrabold text-slate-400">No Response / Unregistered</span>
-                  <span className="font-mono text-slate-455 font-bold">{unregisteredCount} {unregisteredCount <= 1 ? 'grad' : 'grads'} ({Math.round((unregisteredCount / totalInScope) * 100)}%)</span>
+                  <span className="font-mono text-slate-455 font-bold">{salUnresponsiveCount} {salUnresponsiveCount <= 1 ? 'grad' : 'grads'} ({salUnregisteredPct}%)</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                  <div className="h-full bg-slate-400 rounded-full" style={{ width: `${Math.round((unregisteredCount / totalInScope) * 100)}%` }} />
+                  <div className="h-full bg-slate-400 rounded-full" style={{ width: `${salUnregisteredPct}%` }} />
                 </div>
               </div>
             )}
@@ -306,16 +344,16 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             </div>
           </div>
            {/* Unregistered / No Response */}
-            {unregisteredCount > 0 && (
+            {courseUnresponsiveCount > 0 && (
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-bold text-slate-705">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 bg-slate-400 rounded-full block" /> Unregistered / No Response
                   </span>
-                  <span>{unregisteredCount} {unregisteredCount <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((unregisteredCount / totalInScope) * 100) : 0}%)</span>
+                  <span>{courseUnresponsiveCount} {courseUnresponsiveCount <= 1 ? 'grad' : 'grads'} ({courseUnregisteredPct}%)</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                  <div className="h-full bg-slate-400" style={{ width: `${totalInScope > 0 ? (unregisteredCount / totalInScope) * 100 : 0}%` }} />
+                  <div className="h-full bg-slate-400" style={{ width: `${courseUnregisteredPct}%` }} />
                 </div>
               </div>
             )}

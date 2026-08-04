@@ -50,20 +50,25 @@ export default function AdminDashboard({
   const selfEmployedAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
   const furtherStudiesAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
   const unemployedAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Unemployed').length;
+  const noResponseAlumni = registeredAlumni.filter(a => 
+    !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
+  ).length;
   
   // Pinagsasama ang mga may trabaho (Employed, Freelance, Self-Employed) para makuha ang porsyento ng employment rate
   const employedCount = employedAlumni + freelanceAlumni + selfEmployedAlumni;
   const employmentRate = totalAlumni > 0 ? ((employedCount / totalAlumni) * 100).toFixed(1) : '0';
 
   // Breakdown of registeredAlumni syllabus relevance
-  const relevanceYes = registeredAlumni.filter(a => a.jobRelatedToCourse === 'Yes').length;
-  const relevancePartially = registeredAlumni.filter(a => a.jobRelatedToCourse === 'Partially').length;
-  const relevanceNo = registeredAlumni.filter(a => a.jobRelatedToCourse === 'No').length;
+  const relevanceYes = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
+  const relevancePartially = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
+  const relevanceNo = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
+  const relevanceNoResponse = registeredAlumni.filter(a => !a.employmentStatus).length;
   const relevanceDenominator = totalAlumni || 1;
   const relevanceYesPct = Math.round((relevanceYes / relevanceDenominator) * 100);
   const relevancePartiallyPct = Math.round((relevancePartially / relevanceDenominator) * 100);
   const relevanceNoPct = Math.round((relevanceNo / relevanceDenominator) * 100);
-  const relevanceUnregisteredPct = Math.max(0, 100 - (relevanceYesPct + relevancePartiallyPct + relevanceNoPct));
+  const relevanceNoResponsePct = Math.round((relevanceNoResponse / relevanceDenominator) * 100);
+  const relevanceUnregisteredPct = Math.round((unregisteredAlumni / relevanceDenominator) * 100);
 
   // Time to Land First Job
   const timeImmediate = registeredAlumni.filter(a => a.timeToFirstJob === 'Immediate').length;
@@ -75,6 +80,7 @@ export default function AdminDashboard({
   const time1to6Pct = Math.round((time1to6 / timeDenominator) * 100);
   const time7to11Pct = Math.round((time7to11 / timeDenominator) * 100);
   const time1YearPlusPct = Math.round((time1YearPlus / timeDenominator) * 100);
+  const timeUnresponsiveCount = totalAlumni - (timeImmediate + time1to6 + time7to11 + time1YearPlus);
   const timeUnregisteredPct = Math.max(0, 100 - (timeImmediatePct + time1to6Pct + time7to11Pct + time1YearPlusPct));
 
   // Monthly Salary Bracket (PHP)
@@ -89,6 +95,7 @@ export default function AdminDashboard({
   const sal20to30kPct = Math.round((sal20to30k / salDenominator) * 100);
   const sal30to40kPct = Math.round((sal30to40k / salDenominator) * 100);
   const salOver40kPct = Math.round((salOver40k / salDenominator) * 100);
+  const salUnresponsiveCount = totalAlumni - (salUnder10k + sal10to20k + sal20to30k + sal30to40k + salOver40k);
   const salUnregisteredPct = Math.max(0, 100 - (salUnder10kPct + sal10to20kPct + sal20to30kPct + sal30to40kPct + salOver40kPct));
 
   // Sector and Location
@@ -178,6 +185,7 @@ export default function AdminDashboard({
     const selfPct = Math.round((selfEmployedAlumni / total) * 100);
     const furtherPct = Math.round((furtherStudiesAlumni / total) * 100);
     const unemployedPct = Math.round((unemployedAlumni / total) * 100);
+    const noResponsePct = Math.round((noResponseAlumni / total) * 100);
     const unregisteredPct = Math.round((unregisteredAlumni / total) * 100);
 
     return {
@@ -186,6 +194,7 @@ export default function AdminDashboard({
       self: selfPct,
       furtherStudies: furtherPct,
       unemployed: unemployedPct,
+      noResponse: noResponsePct,
       unregistered: unregisteredPct
     };
   })();
@@ -215,6 +224,8 @@ export default function AdminDashboard({
         return { label: 'Further Studies', value: `${pieSegments.furtherStudies}%`, sub: `${furtherStudiesAlumni} / ${totalAlumni} ${totalGradLabel}` };
       case 'unemployed':
         return { label: 'Unemployed', value: `${pieSegments.unemployed}%`, sub: `${unemployedAlumni} / ${totalAlumni} ${totalGradLabel}` };
+      case 'noResponse':
+        return { label: 'No Response', value: `${pieSegments.noResponse}%`, sub: `${noResponseAlumni} / ${totalAlumni} ${totalGradLabel}` };
       case 'unregistered':
         return { label: 'Unregistered', value: `${pieSegments.unregistered}%`, sub: `${unregisteredAlumni} / ${totalAlumni} ${totalGradLabel}` };
       default:
@@ -453,11 +464,35 @@ export default function AdminDashboard({
                   }}
                 />
 
-                {/* Hindi pa naka-register sa portal */}
+                 {/* No Response */}
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#64748b" 
+                  strokeWidth={hoveredInstSegment === 'noResponse' ? 18 : 12}
+                  strokeDasharray={`${(pieSegments.noResponse / 100) * 251.2} 251.2`} 
+                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed) / 100) * 251.2}`}
+                  className="donut-chart-segment cursor-pointer"
+                  onMouseEnter={(e) => {
+                    setHoveredInstSegment('noResponse');
+                    setTooltip({
+                      x: e.clientX,
+                      y: e.clientY,
+                      title: 'No Response',
+                      value: `${noResponseAlumni} Graduates (${pieSegments.noResponse}%)`
+                    });
+                  }}
+                  onMouseMove={(e) => {
+                    setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredInstSegment(null);
+                    setTooltip(null);
+                  }}
+                />
+
+                {/* Hindi pa naka-register sa portal (Unregistered) */}
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" 
                   strokeWidth={hoveredInstSegment === 'unregistered' ? 18 : 12}
                   strokeDasharray={`${(pieSegments.unregistered / 100) * 251.2} 251.2`} 
-                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed) / 100) * 251.2}`}
+                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed + pieSegments.noResponse) / 100) * 251.2}`}
                   className="donut-chart-segment cursor-pointer"
                   onMouseEnter={(e) => {
                     setHoveredInstSegment('unregistered');
@@ -524,7 +559,14 @@ export default function AdminDashboard({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-[#cca43b]/40 rounded-xs inline-block" />
+                <span className="w-3 h-3 bg-slate-500 rounded-xs inline-block" />
+                <div>
+                  <span className="block text-xs font-bold text-slate-700 leading-none">No Response</span>
+                  <span className="block text-[10px] text-slate-400 mt-0.5">{noResponseAlumni} Graduates &bull; {pieSegments.noResponse}%</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-slate-400 rounded-xs inline-block" />
                 <div>
                   <span className="block text-xs font-bold text-slate-700 leading-none">Unregistered</span>
                   <span className="block text-[10px] text-slate-400 mt-0.5">{unregisteredAlumni} Graduates &bull; {pieSegments.unregistered}%</span>
@@ -621,11 +663,23 @@ export default function AdminDashboard({
                   <div className="h-full bg-rose-500 rounded-full" style={{ width: `${relevanceNoPct}%` }} />
                 </div>
               </div>
-              {/* Unregistered / No response */}
+              {/* No Response */}
+              {relevanceNoResponse > 0 && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-400">No Response</span>
+                    <span className="text-slate-500 font-bold">{relevanceNoResponse} ({relevanceNoResponsePct}%)</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${relevanceNoResponsePct}%` }} />
+                  </div>
+                </div>
+              )}
+              {/* Unregistered */}
               {unregisteredAlumni > 0 && (
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-400">Unregistered / No Response</span>
+                    <span className="text-slate-400">Unregistered</span>
                     <span className="text-slate-500 font-bold">{unregisteredAlumni} ({relevanceUnregisteredPct}%)</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -659,10 +713,10 @@ export default function AdminDashboard({
                 <div className="text-lg font-black text-slate-800">{time1YearPlus}</div>
                 <span className="text-[10px] text-rose-500 font-bold block">{time1YearPlusPct}% of cohort</span>
               </div>
-              {unregisteredAlumni > 0 && (
+              {timeUnresponsiveCount > 0 && (
                 <div className="p-3 bg-slate-50/70 border border-slate-200/60 rounded-lg text-center space-y-1 col-span-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Unregistered / No Response</span>
-                  <div className="text-lg font-black text-slate-505">{unregisteredAlumni}</div>
+                  <div className="text-lg font-black text-slate-505">{timeUnresponsiveCount}</div>
                   <span className="text-[10px] text-slate-455 font-bold block">{timeUnregisteredPct}% of cohort</span>
                 </div>
               )}
@@ -721,13 +775,13 @@ export default function AdminDashboard({
                 <span className="font-extrabold text-slate-700 w-12 text-right">{salUnder10k} ({salUnder10kPct}%)</span>
               </div>
               {/* Unregistered / No response */}
-              {unregisteredAlumni > 0 && (
+              {salUnresponsiveCount > 0 && (
                 <div className="flex items-center justify-between text-xs border-t border-slate-50 pt-2.5">
                   <span className="text-slate-400 w-24">No Response</span>
                   <div className="flex-1 mx-3 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-slate-400 rounded-full" style={{ width: `${salUnregisteredPct}%` }} />
                   </div>
-                  <span className="font-extrabold text-slate-500 w-12 text-right">{unregisteredAlumni} ({salUnregisteredPct}%)</span>
+                  <span className="font-extrabold text-slate-500 w-12 text-right">{salUnresponsiveCount} ({salUnregisteredPct}%)</span>
                 </div>
               )}
             </div>
