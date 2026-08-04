@@ -189,28 +189,6 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
               </div>
             </div>
 
-            {/* Explainer card for Hybrid Algorithm Model */}
-            <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-5 space-y-3">
-              <span className="block text-[10px] font-extrabold text-[#7c191e] uppercase tracking-wider">Algorithm Model Explainer</span>
-              <p className="text-[11.5px] text-slate-500 leading-relaxed font-semibold">
-                This system runs a **Hybrid Skills-Academic Compatibility Placement Matching Algorithm**:
-              </p>
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-205 space-y-2 font-mono text-[10px]">
-                <div className="font-bold text-[#7c191e] text-center border-b border-slate-200 pb-1.5 mb-1">
-                  Hybrid Fit Score = (S &times; 0.6) + (P &times; 0.4)
-                </div>
-                <div>
-                  <strong>S (Skills Match):</strong> Overlap ratio of graduate skills against job requirements.
-                </div>
-                <div className="pt-1">
-                  <strong>P (Program Fit):</strong> Dynamic alignment checking if the graduate's degree program matches the job's domain.
-                </div>
-              </div>
-              <span className="text-[9px] text-slate-405 block leading-tight font-medium">
-                Designed to comply with capstone novelty guidelines for hybrid matching.
-              </span>
-            </div>
-
             {/* Card para sa pagsusuri ng Curriculum Skill-Gap base sa napiling bakanteng trabaho */}
             <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-5 space-y-4">
               <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
