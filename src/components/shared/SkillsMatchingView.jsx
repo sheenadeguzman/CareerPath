@@ -146,12 +146,12 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Interactive Hybrid Skills Overlap &amp; Talent Analytics</h2>
           <p className="text-[11px] text-slate-405 mt-0.5">Comparing graduate competencies and program specialization with vacancy credentials required by partner firms.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Select Target Vacancy:</label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto shrink-0">
+          <label className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Select Target Vacancy:</label>
           <select
             value={selectedJobID}
             onChange={(e) => setSelectedJobID(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-xs font-bold p-2.5 rounded-lg text-slate-800 focus:bg-white cursor-pointer"
+            className="bg-slate-50 border border-slate-200 text-xs font-bold p-2.5 rounded-lg text-slate-800 focus:bg-white cursor-pointer w-full sm:w-72 md:w-80 lg:w-96 truncate"
           >
             {filteredJobPostings.map(job => (
               <option key={job.id} value={job.id}>{job.jobTitle} ({job.employerName})</option>
