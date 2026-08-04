@@ -299,7 +299,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                         <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block border border-slate-200/50">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ${
-                              item.hybridScore >= 70 ? 'bg-emerald-650' : item.hybridScore >= 40 ? 'bg-amber-500' : 'bg-slate-400'
+                              item.hybridScore >= 70 ? 'bg-emerald-600' : item.hybridScore >= 40 ? 'bg-amber-500' : 'bg-slate-400'
                             }`} 
                             style={{ width: `${item.hybridScore}%` }}
                           />
