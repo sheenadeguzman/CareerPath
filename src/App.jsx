@@ -207,7 +207,11 @@ export default function App() {
     handleMarkNotifyRead,
     handleTabChange,
     handleUpdateUserSession,
-    appendActivity
+    appendActivity,
+    isOnline,
+    pendingSyncCount,
+    isSyncing,
+    triggerManualSync
   } = useCareerPath();
 
   const handleToggleDarkMode = () => {
@@ -282,6 +286,10 @@ export default function App() {
         handleLogout={handleLogout}
         darkMode={darkMode}
         onToggleDarkMode={handleToggleDarkMode}
+        isOnline={isOnline}
+        pendingSyncCount={pendingSyncCount}
+        isSyncing={isSyncing}
+        triggerManualSync={triggerManualSync}
       />
 
       {/* Main Layout Container (Sidebar + Content Stage Area) */}

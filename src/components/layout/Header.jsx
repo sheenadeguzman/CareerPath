@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, ChevronDown, Settings, LogOut, X, Menu, Sun, Moon } from 'lucide-react';
+import { Bell, ChevronDown, Settings, LogOut, X, Menu, Sun, Moon, WifiOff, RefreshCw } from 'lucide-react';
 
 export default function Header({
   activeUser,
@@ -11,7 +11,11 @@ export default function Header({
   setMobileMenuOpen,
   handleLogout,
   darkMode,
-  onToggleDarkMode
+  onToggleDarkMode,
+  isOnline = true,
+  pendingSyncCount = 0,
+  isSyncing = false,
+  triggerManualSync = () => {}
 }) {
 
   return (
@@ -30,6 +34,34 @@ export default function Header({
 
       {/* Kanang Bahagi: Mga aksyon para sa active user (Dark Mode, Notifications, Profile) */}
       <div className="flex items-center gap-1 sm:gap-3">
+
+        {/* Connection Status Indicator */}
+        {!isOnline ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>Offline</span>
+            {pendingSyncCount > 0 && <span className="bg-amber-200 px-1.5 py-0.2 rounded-full ml-1">{pendingSyncCount}</span>}
+          </div>
+        ) : isSyncing ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold uppercase tracking-wider">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            <span>Syncing</span>
+          </div>
+        ) : pendingSyncCount > 0 ? (
+          <button 
+            onClick={triggerManualSync}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1e4620]/10 text-[#1e4620] border border-[#1e4620]/20 text-[10px] font-bold uppercase tracking-wider hover:bg-[#1e4620]/25 transition cursor-pointer"
+            title="Click to sync changes now"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Sync ({pendingSyncCount})</span>
+          </button>
+        ) : (
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Connected</span>
+          </div>
+        )}
 
         {/* Toggle para sa Dark Mode Switcher */}
         <button

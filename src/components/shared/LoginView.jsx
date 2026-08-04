@@ -101,7 +101,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
         'User Secured Portal Entrance',
         'Authentication',
         `Logged in successfully as ${authenticatedUser.name} (${authenticatedUser.role})`,
-          authenticatedUser,
+        authenticatedUser,
         result.token
       );
       onLoginSuccess(authenticatedUser, result.token);
@@ -221,7 +221,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
         throw new Error(errData.error || 'Reset failed.');
       }
       setRecoverySuccess('Password reset successfully! Logging you in...');
-      
+
       setTimeout(async () => {
         try {
           const loginRes = await fetch('/api/data');
@@ -402,11 +402,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   {/* NOTE: Binago natin ito para maging dynamic depende sa role ng user. Dati kasi, laging 'administrative credentials' ang nakalagay kahit Alumni o Employer ang nag-login gamit ang temporary password. */}
                   Hi <span className="font-semibold text-slate-800">{passwordResetUser.name}</span>, you are logging in using {
                     passwordResetUser.role === 'Super Admin' ? 'super admin credentials' :
-                    passwordResetUser.role === 'Administrator' ? 'administrative credentials' :
-                    passwordResetUser.role === 'Department Chairperson' ? 'chairperson credentials' :
-                    passwordResetUser.role === 'Alumni' ? 'temporary alumni credentials' :
-                    passwordResetUser.role === 'Employer' ? 'temporary employer credentials' :
-                    'temporary credentials'
+                      passwordResetUser.role === 'Administrator' ? 'administrative credentials' :
+                        passwordResetUser.role === 'Department Chairperson' ? 'chairperson credentials' :
+                          passwordResetUser.role === 'Alumni' ? 'temporary alumni credentials' :
+                            passwordResetUser.role === 'Employer' ? 'temporary employer credentials' :
+                              'temporary credentials'
                   }.
                   For security, BSC standards require you to submit a private password before accessing the system.
                 </p>
@@ -447,25 +447,25 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   />
 
                   <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Confirm New Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter password to verify"
-                    className="w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium"
-                  />
-                  {confirmPassword && (
-                    <div className="text-[10px] mt-1">
-                      {newPassword === confirmPassword ? (
-                        <span className="text-green-600 font-bold">✓ Passwords match</span>
-                      ) : (
-                        <span className="text-red-500 font-bold">✗ Passwords do not match yet</span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Confirm New Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter password to verify"
+                      className="w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium"
+                    />
+                    {confirmPassword && (
+                      <div className="text-[10px] mt-1">
+                        {newPassword === confirmPassword ? (
+                          <span className="text-green-600 font-bold">✓ Passwords match</span>
+                        ) : (
+                          <span className="text-red-500 font-bold">✗ Passwords do not match yet</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Indicator Checklist para sa Lakas ng Password (Password Strength) */}
                   {/* NOTE: Binago natin mula text-emerald-600 papuntang text-green-600 para maging totoong green ang font color ng satisfied items, kasi yung text-emerald-600 ay na-override globally sa index.css bilang gold/yellow/amber. */}
@@ -504,7 +504,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   </div>
                 </div>
 
-                
+
 
                 <button
                   type="submit"
@@ -540,7 +540,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
               </div>
 
               <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
-                 <button
+                <button
                   id="role-btn-super-admin"
                   onClick={() => handleRoleSelect('Super Admin')}
                   className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
@@ -665,7 +665,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                         : selectedRole === 'Administrator'
                           ? 'e.g., admin'
                           : selectedRole === 'Department Chairperson'
-                           ? 'e.g., chair_it, chair_htm'
+                            ? 'e.g., chair_it, chair_htm'
                             : 'Enter User ID / Username'
                     }
                     className="w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium"
@@ -723,7 +723,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   )}
                 </button>
 
-               
+
               </form>
             </div>
           )}

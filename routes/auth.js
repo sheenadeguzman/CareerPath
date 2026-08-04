@@ -24,7 +24,7 @@ const resetCodes = new Map();
 router.post('/login', async (req, res) => {
   try {
     const { userId, password } = req.body;
-    
+
     // Hanapin muna ang user sa database gamit ang case-insensitive match sa user_id (LOWER)
     const [rows] = await pool.query('SELECT * FROM users WHERE LOWER(user_id) = ?', [userId.trim().toLowerCase()]);
 
@@ -40,7 +40,7 @@ router.post('/login', async (req, res) => {
     let isMatch = false;
     try {
       isMatch = await bcrypt.compare(password, user.password);
-    } catch (err) {}
+    } catch (err) { }
 
     // Kung match ang password (o kung match sa default plaintext para sa mga bagong gawang account)
     if (isMatch || password === user.password) {
@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
-      
+
       // I-return ang token at mga kailangang user details sa frontend client
       return res.json({
         success: true,
@@ -95,7 +95,7 @@ router.post('/forgot-password', async (req, res) => {
     }
 
     const user = mapUserFromDB(rows[0]);
-    
+
     // Gumawa ng random 6-digit code at magtakda ng 10 minutes expiration duration
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expires = Date.now() + 10 * 60 * 1000; // 10 minutes mula ngayon
@@ -107,7 +107,7 @@ router.post('/forgot-password', async (req, res) => {
     const body = `Hello ${user.name},\n\nYour temporary password verification code is: ${code}\n\nThis code will expire in 10 minutes.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`;
 
     let emailStatusDetail = `Verification code generated for ${user.name}`;
-    
+
     // Ipadala ang verification code sa email ng user kung configured ang nodemailer transporter
     if (transporter && user.email) {
       try {
@@ -132,7 +132,7 @@ router.post('/forgot-password', async (req, res) => {
     await pool.query(
       `INSERT INTO notifications (id, title, text, date, \`read\`) 
        VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
-       [notifyId, subject, `Verification code: ${code}. Sent to ${user.name} (${email}).`]
+      [notifyId, subject, `Verification code: ${code}. Sent to ${user.name} (${email}).`]
     );
 
     // I-audit ang recovery request na ito sa activity logs para sa trace history ng admin
@@ -351,8 +351,8 @@ router.post('/update-username', authenticateToken, async (req, res) => {
       const daysDiff = timeDiff / (1000 * 3600 * 24);
       if (daysDiff < 30) {
         const daysRemaining = Math.ceil(30 - daysDiff);
-        return res.status(400).json({ 
-          error: `You can only change your username once a month. Please wait ${daysRemaining} day(s) before trying again.` 
+        return res.status(400).json({
+          error: `You can only change your username once a month. Please wait ${daysRemaining} day(s) before trying again.`
         });
       }
     }
@@ -368,14 +368,14 @@ router.post('/update-username', authenticateToken, async (req, res) => {
     await pool.query(
       'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
-        logId, 
-        new Date().toISOString().slice(0, 19).replace('T', ' '), 
-        user.id, 
-        user.email, 
-        user.name, 
-        user.role, 
-        'Changed Username', 
-        'Account Settings', 
+        logId,
+        new Date().toISOString().slice(0, 19).replace('T', ' '),
+        user.id,
+        user.email,
+        user.name,
+        user.role,
+        'Changed Username',
+        'Account Settings',
         `User changed username from '${user.userId}' to '${trimmedUsername}'`
       ]
     );
@@ -391,9 +391,9 @@ router.post('/update-username', authenticateToken, async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    res.json({ 
-      success: true, 
-      message: 'Username updated successfully!', 
+    res.json({
+      success: true,
+      message: 'Username updated successfully!',
       user: updatedUser,
       token
     });

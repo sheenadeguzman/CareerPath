@@ -30,6 +30,119 @@ import {
 export function useCareerPath() {
   
   // =========================================================================
+  // OFFLINE & BACKGROUND SYNC STATE
+  // =========================================================================
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingSync, setPendingSync] = useState(() => {
+    try {
+      const saved = localStorage.getItem('careerpath_offline_queue');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to parse offline sync queue:', e);
+      return [];
+    }
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showSuccessToast('Internet connection restored! Syncing pending data...');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      showSuccessToast('You are offline. Changes will be saved locally.');
+    };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('careerpath_offline_queue', JSON.stringify(pendingSync));
+  }, [pendingSync]);
+
+  const queueOfflineAction = (action, payload, stateUpdater) => {
+    setPendingSync(prev => [...prev, { action, payload, id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 5)}` }]);
+    stateUpdater();
+    // Cache the updated state locally so a reload keeps it
+    setTimeout(() => {
+      const updatedDB = {
+        users,
+        alumni: alumniList,
+        employers,
+        jobPostings,
+        surveys,
+        feedbacks,
+        logs,
+        notifications,
+        surveyResponses
+      };
+      localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(updatedDB));
+    }, 200);
+    showSuccessToast('Offline: Saved change locally. Will sync when back online.');
+  };
+
+  const syncPendingData = async (queueToSync = pendingSync) => {
+    if (queueToSync.length === 0 || isSyncing || !navigator.onLine) return;
+    setIsSyncing(true);
+    
+    let currentQueue = [...queueToSync];
+    let failedItems = [];
+    
+    for (const item of currentQueue) {
+      try {
+        const headers = getAuthHeaders();
+        if (item.action === 'saveAlumni') {
+          await saveAlumni(item.payload.profile, item.payload.activeUserId, headers);
+        } else if (item.action === 'saveEmployer') {
+          await saveEmployer(item.payload.employer, item.payload.activeUserId, headers);
+        } else if (item.action === 'saveJob') {
+          await saveJob(item.payload.job, item.payload.activeUserId, headers);
+        } else if (item.action === 'saveSurvey') {
+          await saveSurvey(item.payload.survey, item.payload.activeUserId, headers);
+        } else if (item.action === 'submitSurveyResponse') {
+          await submitSurveyResponse(
+            item.payload.surveyId, 
+            item.payload.alumniId, 
+            item.payload.alumniName, 
+            item.payload.answers, 
+            headers
+          );
+        } else if (item.action === 'saveFeedback') {
+          await submitFeedback(item.payload.feedback, item.payload.activeUserId, headers);
+        }
+      } catch (err) {
+        console.error(`Failed to sync action: ${item.action}`, err);
+        // If it's a network/connection error, stop syncing and keep the rest
+        if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+          failedItems = currentQueue.slice(currentQueue.indexOf(item));
+          break;
+        }
+      }
+    }
+    
+    setPendingSync(failedItems);
+    setIsSyncing(false);
+    
+    if (failedItems.length === 0) {
+      showSuccessToast('Offline sync completed successfully!');
+      fetchData();
+    } else {
+      showSuccessToast(`Sync paused. ${failedItems.length} items remaining.`);
+    }
+  };
+
+  useEffect(() => {
+    if (isOnline && pendingSync.length > 0) {
+      syncPendingData();
+    }
+  }, [isOnline, pendingSync.length]);
+  
+  // =========================================================================
   // PAMAMAHALA NG AUTHENTICATION & SESSION STATE
   // =========================================================================
 
@@ -91,9 +204,6 @@ export function useCareerPath() {
     };
   }, []);
 
-  /**
-   * Nag-se-sync ng dashboard data mula sa API service.
-   */
   const fetchData = async () => {
     try {
       const db = await fetchDashboardData(getAuthHeaders());
@@ -106,8 +216,30 @@ export function useCareerPath() {
       setLogs(db.logs || []);
       setNotifications(db.notifications || []);
       setSurveyResponses(db.surveyResponses || []);
+      
+      // Save cache to localStorage
+      localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
     } catch (err) {
       console.error('Failed to sync backend state:', err);
+      // Fallback to cache if available
+      const cached = localStorage.getItem('careerpath_dashboard_cache');
+      if (cached) {
+        try {
+          const db = JSON.parse(cached);
+          setUsers(db.users || []);
+          setAlumniList(db.alumni || []);
+          setEmployers(db.employers || []);
+          setJobPostings(db.jobPostings || []);
+          setSurveys(db.surveys || []);
+          setFeedbacks(db.feedbacks || []);
+          setLogs(db.logs || []);
+          setNotifications(db.notifications || []);
+          setSurveyResponses(db.surveyResponses || []);
+          showSuccessToast('Offline: Loaded cached dashboard data.');
+        } catch (e) {
+          console.error('Failed to parse cached dashboard data:', e);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +313,34 @@ export function useCareerPath() {
   };
 
   const handleSaveAlumni = async (profile) => {
+    if (!isOnline) {
+      queueOfflineAction('saveAlumni', { profile, activeUserId: activeUser?.id }, () => {
+        setAlumniList(prev => {
+          const idx = prev.findIndex(a => a.studentId === profile.studentId);
+          const updatedProfile = { ...profile, lastUpdated: new Date().toISOString() };
+          if (idx !== -1) {
+            const copy = [...prev];
+            copy[idx] = { ...copy[idx], ...updatedProfile };
+            return copy;
+          } else {
+            return [updatedProfile, ...prev];
+          }
+        });
+        setUsers(prev => {
+          const idx = prev.findIndex(u => u.id === profile.studentId);
+          const fullName = [profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ');
+          const updatedUser = { id: profile.studentId, name: fullName, email: profile.email, avatar: profile.avatar || null };
+          if (idx !== -1) {
+            const copy = [...prev];
+            copy[idx] = { ...copy[idx], ...updatedUser };
+            return copy;
+          } else {
+            return [updatedUser, ...prev];
+          }
+        });
+      });
+      return;
+    }
     try {
       await saveAlumni(profile, activeUser?.id, getAuthHeaders());
       await fetchData();
@@ -191,6 +351,22 @@ export function useCareerPath() {
   };
 
   const handleSaveEmployer = async (employer) => {
+    if (!isOnline) {
+      queueOfflineAction('saveEmployer', { employer, activeUserId: activeUser?.id }, () => {
+        setEmployers(prev => {
+          const idx = prev.findIndex(e => e.id === employer.id || e.email === employer.email);
+          if (idx !== -1) {
+            const copy = [...prev];
+            copy[idx] = { ...copy[idx], ...employer };
+            return copy;
+          } else {
+            const newEmp = { ...employer, id: employer.id || `temp_emp_${Date.now()}` };
+            return [newEmp, ...prev];
+          }
+        });
+      });
+      return;
+    }
     try {
       await saveEmployer(employer, activeUser?.id, getAuthHeaders());
       await fetchData();
@@ -201,6 +377,22 @@ export function useCareerPath() {
   };
 
   const handleSaveJob = async (job) => {
+    if (!isOnline) {
+      queueOfflineAction('saveJob', { job, activeUserId: activeUser?.id }, () => {
+        setJobPostings(prev => {
+          const idx = prev.findIndex(j => j.id === job.id);
+          if (idx !== -1) {
+            const copy = [...prev];
+            copy[idx] = { ...copy[idx], ...job };
+            return copy;
+          } else {
+            const newJob = { ...job, id: job.id || `temp_job_${Date.now()}`, createdAt: new Date().toISOString() };
+            return [newJob, ...prev];
+          }
+        });
+      });
+      return;
+    }
     try {
       await saveJob(job, activeUser?.id, getAuthHeaders());
       await fetchData();
@@ -211,6 +403,22 @@ export function useCareerPath() {
   };
 
   const handleSaveSurvey = async (survey) => {
+    if (!isOnline) {
+      queueOfflineAction('saveSurvey', { survey, activeUserId: activeUser?.id }, () => {
+        setSurveys(prev => {
+          const idx = prev.findIndex(s => s.id === survey.id);
+          if (idx !== -1) {
+            const copy = [...prev];
+            copy[idx] = { ...copy[idx], ...survey };
+            return copy;
+          } else {
+            const newSurvey = { ...survey, id: survey.id || `temp_survey_${Date.now()}`, createdAt: new Date().toISOString() };
+            return [newSurvey, ...prev];
+          }
+        });
+      });
+      return;
+    }
     try {
       await saveSurvey(survey, activeUser?.id, getAuthHeaders());
       await fetchData();
@@ -221,6 +429,21 @@ export function useCareerPath() {
   };
 
   const handleSubmitSurveyResponse = async (surveyId, answers) => {
+    if (!isOnline) {
+      queueOfflineAction('submitSurveyResponse', { surveyId, alumniId: activeUser?.id, alumniName: activeUser?.name, answers }, () => {
+        setSurveyResponses(prev => {
+          const newResponse = {
+            surveyId,
+            alumniId: activeUser?.id,
+            alumniName: activeUser?.name,
+            answers,
+            submittedAt: new Date().toISOString()
+          };
+          return [newResponse, ...prev];
+        });
+      });
+      return;
+    }
     try {
       await submitSurveyResponse(surveyId, activeUser?.id, activeUser?.name, answers, getAuthHeaders());
       await fetchData();
@@ -231,6 +454,21 @@ export function useCareerPath() {
   };
 
   const handleSaveFeedback = async (feedback) => {
+    if (!isOnline) {
+      queueOfflineAction('saveFeedback', { feedback, activeUserId: activeUser?.id }, () => {
+        setFeedbacks(prev => {
+          const newFeedback = {
+            ...feedback,
+            id: `temp_fb_${Date.now()}`,
+            submittedAt: new Date().toISOString(),
+            alumniStudentId: activeUser?.role === 'Alumni' ? activeUser.id : null,
+            alumniName: activeUser?.role === 'Alumni' ? activeUser.name : null
+          };
+          return [newFeedback, ...prev];
+        });
+      });
+      return;
+    }
     try {
       await submitFeedback(feedback, activeUser?.id, getAuthHeaders());
       await fetchData();
@@ -559,6 +797,10 @@ export function useCareerPath() {
     handleMarkNotifyRead,
     handleTabChange,
     handleUpdateUserSession,
-    appendActivity
+    appendActivity,
+    isOnline,
+    pendingSyncCount: pendingSync.length,
+    isSyncing,
+    triggerManualSync: () => syncPendingData()
   };
 }
