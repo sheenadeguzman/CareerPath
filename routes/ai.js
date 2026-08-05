@@ -77,13 +77,34 @@ Guidelines:
 - Keep it concise, focused, and directly actionable.
 `;
 
-    // Patakbuhin ang call gamit ang gemini-2.5-flash (libre sa Google AI Studio)
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
+    let response;
+    let text;
 
-    const text = response.text;
+    // Subukang tawagan ang Gemini gamit ang pinakabagong models (may fallbacks para sa robustness)
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`Subukang tawagan ang Gemini gamit ang model: ${modelName}`);
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+        });
+        text = response.text;
+        if (text) {
+          console.log(`Matagumpay na nakonekta gamit ang ${modelName}!`);
+          break;
+        }
+      } catch (err) {
+        console.warn(`Failed with model ${modelName}:`, err.message);
+        lastError = err;
+      }
+    }
+
+    if (!text) {
+      throw new Error(lastError ? lastError.message : 'Hindi nakakonekta sa anumang Gemini models.');
+    }
 
     res.json({
       success: true,

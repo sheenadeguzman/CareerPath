@@ -12,7 +12,8 @@ async function handleResponse(response) {
   if (!response.ok) {
     // Pag may error, kuhanin ang error text galing sa server response kung mayroon
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    const errMsg = errorData.message || errorData.error || `HTTP error! status: ${response.status}`;
+    throw new Error(errMsg);
   }
   return response.json();
 }
