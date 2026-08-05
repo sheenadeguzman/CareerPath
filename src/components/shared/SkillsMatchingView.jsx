@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Check, AlertTriangle, BookOpen } from 'lucide-react';
+import { Check, AlertTriangle, BookOpen, Sparkles, Brain, Cpu, RefreshCw, Copy, CheckCheck } from 'lucide-react';
+import { getGeminiMatch } from '../../services/api';
 
 /**
  * SkillsMatchingView Component
@@ -9,6 +10,12 @@ import { Check, AlertTriangle, BookOpen } from 'lucide-react';
  */
 export default function SkillsMatchingView({ jobPostings = [], alumniList = [], activeUser, employers = [] }) {
   const isEmployer = activeUser?.role === 'Employer';
+
+  // AI-related states
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [aiError, setAiError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   // NOTE: Hahanapin ang profile ng Employer para makuha ang kumpanya nila.
   const myEmployerProfile = isEmployer
@@ -137,6 +144,78 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
     };
   }).sort((a, b) => b.gap - a.gap); // Inilalabas muna ang may pinakamalalaking gaps sa kurikulum
 
+  // --- DYNAMIC AI FUNCTIONS FOR GEMINI INTEGRATION ---
+  const formatBoldText = (inputText) => {
+    if (!inputText) return '';
+    const parts = inputText.split('**');
+    return parts.map((part, idx) => {
+      if (idx % 2 === 1) {
+        return <strong key={idx} className="font-extrabold text-slate-900 bg-amber-50 px-0.5 rounded">{part}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const renderMarkdown = (text) => {
+    if (!text) return null;
+    return text.split('\n').map((line, idx) => {
+      const cleanLine = line.trim();
+      if (cleanLine.startsWith('### ')) {
+        return <h4 key={idx} className="text-[11.5px] font-extrabold text-slate-800 uppercase tracking-wide mt-4 mb-2 flex items-center gap-1.5"><Brain className="w-3.5 h-3.5 text-[#1e4620]" /> {cleanLine.replace('### ', '')}</h4>;
+      }
+      if (cleanLine.startsWith('## ')) {
+        return <h3 key={idx} className="text-xs font-extrabold text-[#1e4620] uppercase mt-5 mb-3 border-b border-slate-200 pb-1.5 flex items-center gap-2"><Cpu className="w-4 h-4 text-[#7c191e]" /> {cleanLine.replace('## ', '')}</h3>;
+      }
+      if (cleanLine.startsWith('# ')) {
+        return <h2 key={idx} className="text-sm font-black text-[#7c191e] mt-6 mb-3 flex items-center gap-2 border-b-2 border-[#7c191e]/20 pb-2">{cleanLine.replace('# ', '')}</h2>;
+      }
+      if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+        return <li key={idx} className="text-[11px] text-slate-650 ml-5 list-disc mb-1.5 leading-relaxed">{formatBoldText(cleanLine.substring(2))}</li>;
+      }
+      if (cleanLine === '') {
+        return <div key={idx} className="h-2.5" />;
+      }
+      return <p key={idx} className="text-[11px] text-slate-600 leading-relaxed mb-2.5">{formatBoldText(cleanLine)}</p>;
+    });
+  };
+
+  const handleGenerateAiAnalysis = async () => {
+    if (!activeJob) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiResult('');
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+      // Ipasa ang kasalukuyang trabaho at ang top matching alumni
+      const data = await getGeminiMatch(activeJob, matchedAlumni.slice(0, 5), headers);
+      if (data.success) {
+        setAiResult(data.analysis);
+      } else {
+        setAiError(data.message || 'Hindi nakabuo ng AI analysis ang server.');
+      }
+    } catch (err) {
+      console.error(err);
+      if (err.message && err.message.includes('API_KEY_MISSING')) {
+        setAiError('API_KEY_MISSING');
+      } else {
+        setAiError(err.message || 'Hindi makakonekta sa AI server. Subukan muli mamaya.');
+      }
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleCopyText = () => {
+    if (!aiResult) return;
+    navigator.clipboard.writeText(aiResult);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="space-y-6">
       
@@ -161,7 +240,8 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
       </div>
 
       {activeJob ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
           
           {/* Card na naglalaman ng deskripsyon ng napiling trabaho (target vacancy) */}
           <div className="space-y-6 lg:col-span-1">
@@ -326,7 +406,128 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           </div>
 
         </div>
-      ) : (
+
+        {/* Gemini AI Match & Syllabus Analytics Card */}
+        <div className="bg-white rounded-xl shadow-xs border border-slate-200/60 p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-150 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-800">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  Gemini AI Talent Match &amp; Curriculum Gap Optimizer
+                </h3>
+                <p className="text-[11px] text-slate-405 mt-0.5">
+                  Advanced machine learning analysis of competencies, syllabus fit, and hiring readiness.
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 flex items-center gap-2">
+              <span className="text-[9px] bg-emerald-600/10 text-emerald-800 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">
+                Gemini 2.5 Flash
+              </span>
+            </div>
+          </div>
+
+          {!aiLoading && !aiResult && !aiError && (
+            <div className="text-center py-6 space-y-4">
+              <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed font-sans">
+                Nais mo bang makita ang mas malalim na pagsusuri? Gamitin ang Gemini AI upang ma-optimize ang kurikulum ng Batanes State College at awtomatikong gumawa ng custom interview invites para sa mga alumni.
+              </p>
+              <button
+                onClick={handleGenerateAiAnalysis}
+                className="bg-[#1e4620] hover:bg-[#1e4620]/90 text-white font-extrabold text-xs px-5 py-2.5 rounded-lg flex items-center gap-2 mx-auto cursor-pointer shadow-sm hover:shadow transition"
+              >
+                <Sparkles className="w-4 h-4" /> Generate Gemini AI Match Analysis
+              </button>
+            </div>
+          )}
+
+          {aiLoading && (
+            <div className="text-center py-10 space-y-3.5">
+              <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+              <p className="text-xs text-slate-500 font-semibold animate-pulse font-sans">
+                Sinusuri ang profiles ng mga graduates at kinakalkula ang program alignment...
+              </p>
+            </div>
+          )}
+
+          {aiError && (
+            <div className="p-4 bg-rose-50 border border-rose-200/50 rounded-lg space-y-3 font-sans">
+              <div className="flex gap-2">
+                <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-rose-800 uppercase">AI Execution Error</h4>
+                  {aiError === 'API_KEY_MISSING' ? (
+                    <div className="text-[11.5px] text-rose-700 leading-relaxed mt-1 space-y-2">
+                      <p>
+                        <strong>Nawawala ang Gemini API Key sa server.</strong> Upang paganahin ang Machine Learning features, kailangan mong maglagay ng libreng API key mula sa Google AI Studio.
+                      </p>
+                      <p className="font-bold text-slate-700">Paano Ayusin:</p>
+                      <ol className="list-decimal list-inside text-slate-600 space-y-1">
+                        <li>Pumunta sa <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="underline font-bold text-emerald-700 hover:text-emerald-800">Google AI Studio</a> at gumawa ng libreng API Key.</li>
+                        <li>Buksan ang <code>.env</code> file sa root directory ng project.</li>
+                        <li>Ilagay ang API key sa variable na ito: <code>GEMINI_API_KEY=iyong_api_key</code></li>
+                        <li>I-restart ang Express server sa terminal.</li>
+                      </ol>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-rose-700 leading-relaxed mt-0.5">
+                      {aiError}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleGenerateAiAnalysis}
+                  className="bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[10px] px-3.5 py-1.5 rounded-md cursor-pointer transition flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3 h-3" /> Retry Generation
+                </button>
+              </div>
+            </div>
+          )}
+
+          {aiResult && (
+            <div className="space-y-4 font-sans text-left">
+              <div className="p-5 bg-slate-50 border border-slate-150 rounded-xl space-y-1">
+                <div className="prose prose-slate max-w-none">
+                  {renderMarkdown(aiResult)}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <button
+                  onClick={handleGenerateAiAnalysis}
+                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1.5 cursor-pointer font-bold transition"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Re-Analyze / Regenerate
+                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopyText}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-lg cursor-pointer transition flex items-center gap-1.5"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCheck className="w-4 h-4 text-emerald-600" /> Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" /> Copy Analysis Report
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
         <div className="text-center py-12 bg-white rounded-xl border border-slate-100 p-6 text-slate-400 text-xs font-semibold">
           {isEmployer 
             ? "You have no active job vacancies. Please post a vacancy under 'Job Vacancies' first to run skills matching."

@@ -22,6 +22,7 @@ import jobsRouter from './routes/jobs.js';
 import surveysRouter from './routes/surveys.js';
 import feedbackRouter from './routes/feedback.js';
 import notificationsRouter from './routes/notifications.js';
+import aiRouter from './routes/ai.js';
 
 /**
  * Kinukuha ang local IPv4 address ng host machine.
@@ -59,6 +60,7 @@ async function startServer() {
   app.use('/api', surveysRouter);
   app.use('/api', feedbackRouter);
   app.use('/api', notificationsRouter); // Idinagdag na ang notifications router dito
+  app.use('/api', aiRouter);
 
   // =========================================================================
   // MIDDLEWARE PARA SA PRODUCTION BUILD / DEV SERVER

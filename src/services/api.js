@@ -168,3 +168,15 @@ export async function deleteUser(userId, activeUserId, headers) {
   });
   return handleResponse(response);
 }
+
+/**
+ * Tawagin ang Gemini AI para sa matching analysis ng job at alumni candidates.
+ */
+export async function getGeminiMatch(job, matchedAlumni, headers) {
+  const response = await fetch('/api/gemini-match', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ job, matchedAlumni })
+  });
+  return handleResponse(response);
+}
