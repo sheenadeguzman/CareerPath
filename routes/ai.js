@@ -204,7 +204,7 @@ Guidelines:
  * POST /api/ai-feedback-summary
  * Gumagawa ng SWOT analysis at syllabus improvement recommendations batay sa employer feedbacks.
  */
-router.post('/api/ai-feedback-summary', authenticateToken, async (req, res) => {
+router.post('/ai-feedback-summary', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
@@ -254,7 +254,7 @@ Specific, actionable changes that Batanes State College should integrate into th
  * POST /api/ai-survey-analytics
  * Pinaproseso ang qualitative answers ng survey upang makita ang sentiment at employment trends.
  */
-router.post('/api/ai-survey-analytics', authenticateToken, async (req, res) => {
+router.post('/ai-survey-analytics', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
@@ -298,7 +298,7 @@ Format your response using exactly these three headings:
  * POST /api/ai-predictive-placement
  * Nagbibigay ng simulated employability index, target career path, at tips base sa credential tags.
  */
-router.post('/api/ai-predictive-placement', authenticateToken, async (req, res) => {
+router.post('/ai-predictive-placement', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
