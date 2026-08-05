@@ -81,7 +81,7 @@ Guidelines:
     let text;
 
     // Subukang tawagan ang Gemini gamit ang pinakabagong models (may fallbacks para sa robustness)
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    const modelsToTry = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3-flash', 'gemini-2.5-flash'];
     let lastError = null;
 
     for (const modelName of modelsToTry) {
