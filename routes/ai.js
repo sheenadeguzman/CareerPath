@@ -61,13 +61,13 @@ ${alumniListString}
 Based on this information, please provide a professional analysis containing exactly these three parts:
 
 1. ## AI Candidate Match & Fit Analysis
-Analyze why these specific graduates are good fits, which candidate stands out as the strongest fit, and explain any skill advantages they possess. Write this analysis in professional, friendly Tagalog or Taglish.
+Analyze why these specific graduates are good fits, which candidate stands out as the strongest fit, and explain any skill advantages they possess. Write this analysis in professional, friendly English.
 
 2. ## Curriculum & Syllabus Gap Recommendations
 Provide actionable recommendations for Batanes State College (BSC) on how to improve its curriculum. Based on what the employer requires and what graduates lack, specify which modern technologies, methodologies, or specific topics should be integrated into the syllabus (e.g. BSIT, BSHM, BSED, etc.) to bridge this gap.
 
 3. ## Draft Invitation Message for Employer
-Provide a ready-to-copy recruitment/invitation email or chat message draft (written in professional Taglish) that the employer can send to their top recommended candidate to invite them for an interview or discuss the vacancy.
+Provide a ready-to-copy recruitment/invitation email or chat message draft (written in professional English) that the employer can send to their top recommended candidate to invite them for an interview or discuss the vacancy.
 
 Guidelines:
 - Output your response in clean, standard markdown.
