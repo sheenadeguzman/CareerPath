@@ -1302,6 +1302,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
             handleDownloadPDF={handleDownloadCV}
             handleDownloadWord={handleDownloadWord}
             selfEditForm={selfEditForm}
+            setSelfEditForm={setSelfEditForm}
           />
           {/* ResumePreview: Nagpapakita ng live visual representation ng CV ng user */}
           <div className="lg:col-span-2 overflow-x-auto p-1 bg-slate-100 rounded-2xl border border-slate-200">

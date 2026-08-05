@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle } from 'lucide-react';
+import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw } from 'lucide-react';
+import { aiAnalyzeSurveys } from '../../services/api';
 
 /**
  * SurveysView Component
@@ -18,6 +19,71 @@ export default function SurveysView({
   const [isAddingSurvey, setIsAddingSurvey] = useState(false);
   // State hook para sa mensaheng ipapakita sa toast status alert
   const [showComment, setShowComment] = useState('');
+
+  // AI Survey Analytics States
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [aiError, setAiError] = useState('');
+  const [aiCopied, setAiCopied] = useState(false);
+
+  const handleGenerateAiSurveySummary = async () => {
+    if (!surveyResponses || surveyResponses.length === 0) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiResult('');
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+      const data = await aiAnalyzeSurveys(surveyResponses, headers);
+      if (data.success) {
+        setAiResult(data.analysis);
+      } else {
+        setAiError(data.message || 'Failed to analyze surveys.');
+      }
+    } catch (err) {
+      console.error(err);
+      setAiError(err.message || 'Failed to connect to AI server.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleCopyText = () => {
+    if (!aiResult) return;
+    navigator.clipboard.writeText(aiResult);
+    setAiCopied(true);
+    setTimeout(() => setAiCopied(false), 2000);
+  };
+
+  const renderMarkdown = (text) => {
+    if (!text) return null;
+    return text.split('\n').map((line, idx) => {
+      const cleanLine = line.trim();
+      if (cleanLine.startsWith('### ')) {
+        return <h4 key={idx} className="text-[11.5px] font-extrabold text-slate-800 uppercase tracking-wide mt-4 mb-2 flex items-center gap-1.5"><Brain className="w-3.5 h-3.5 text-[#1e4620]" /> {cleanLine.replace('### ', '')}</h4>;
+      }
+      if (cleanLine.startsWith('## ')) {
+        return <h3 key={idx} className="text-xs font-extrabold text-[#1e4620] uppercase mt-5 mb-3 border-b border-slate-200 pb-1.5 flex items-center gap-2"><Cpu className="w-4 h-4 text-[#7c191e]" /> {cleanLine.replace('## ', '')}</h3>;
+      }
+      if (cleanLine.startsWith('# ')) {
+        return <h2 key={idx} className="text-sm font-black text-[#7c191e] mt-6 mb-3 flex items-center gap-2 border-b-2 border-[#7c191e]/20 pb-2">{cleanLine.replace('# ', '')}</h2>;
+      }
+      if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+        const parts = cleanLine.substring(2).split('**');
+        const formatted = parts.map((p, i) => i % 2 === 1 ? <strong key={i} className="font-extrabold text-slate-900 bg-amber-50 px-0.5 rounded">{p}</strong> : p);
+        return <li key={idx} className="text-[11px] text-slate-655 ml-5 list-disc mb-1.5 leading-relaxed">{formatted}</li>;
+      }
+      if (cleanLine === '') {
+        return <div key={idx} className="h-2.5" />;
+      }
+      const parts = cleanLine.split('**');
+      const formatted = parts.map((p, i) => i % 2 === 1 ? <strong key={i} className="font-extrabold text-slate-900 bg-amber-50 px-0.5 rounded">{p}</strong> : p);
+      return <p key={idx} className="text-[11px] text-slate-600 leading-relaxed mb-2.5">{formatted}</p>;
+    });
+  };
 
   // Mga state para sa form ng paggawa ng bagong tracer survey
   const [title, setTitle] = useState('');
@@ -290,6 +356,73 @@ export default function SurveysView({
           );
         })}
       </div>
+
+      {/* NEW: AI Responses Thematic & Sentiment Analytics (Admin / Chairperson) */}
+      {isAdminOrChair && (
+        <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-4 font-sans text-left mt-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <span className="block text-xs font-bold text-[#1e4620] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                Gemini AI Graduate Survey Insights
+              </span>
+              <p className="text-[10px] text-slate-500 leading-relaxed font-semibold mt-0.5">
+                Extract sentiment trends, employment blockers, and recommendations from all qualitative submissions across active surveys.
+              </p>
+            </div>
+            
+            <button
+              onClick={handleGenerateAiSurveySummary}
+              disabled={aiLoading || surveyResponses.length === 0}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 disabled:opacity-50 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all shadow-md flex items-center gap-1.5 border-0 cursor-pointer select-none shrink-0"
+            >
+              {aiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              Run AI Sentiment Analysis
+            </button>
+          </div>
+
+          {aiLoading && !aiResult && (
+            <div className="text-center py-10 space-y-2">
+              <RefreshCw className="w-7 h-7 text-[#1e4620] animate-spin mx-auto" />
+              <p className="text-[11px] text-slate-400 font-semibold animate-pulse">Running thematic extraction on all graduate answers...</p>
+            </div>
+          )}
+
+          {aiError && (
+            <div className="p-3.5 bg-rose-50 border border-rose-100 rounded-lg text-rose-800 text-[10.5px] font-semibold leading-relaxed">
+              {aiError}
+            </div>
+          )}
+
+          {aiResult && (
+            <div className="p-5 bg-slate-50 border border-slate-250 rounded-2xl space-y-4 relative animate-fade-in">
+              <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                <span className="text-[10px] font-black text-[#1e4620] uppercase flex items-center gap-1">
+                  <Brain className="w-3.5 h-3.5" /> AI Analysis Summary
+                </span>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCopyText}
+                    className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1 border-0 bg-transparent cursor-pointer font-bold uppercase"
+                  >
+                    {aiCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {aiCopied ? 'Copied' : 'Copy'}
+                  </button>
+                  <button
+                    onClick={() => setAiResult('')}
+                    className="text-[10px] text-slate-400 hover:text-slate-655 border-0 bg-transparent cursor-pointer font-bold uppercase"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-[400px] overflow-y-auto pr-1 select-text">
+                {renderMarkdown(aiResult)}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================== */}
       {/* MODAL PARA SA PAGGAWA NG BAGONG TRACER SURVEY (PANG-ADMIN) */}

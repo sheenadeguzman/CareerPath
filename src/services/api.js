@@ -181,3 +181,63 @@ export async function getGeminiMatch(job, matchedAlumni, headers) {
   });
   return handleResponse(response);
 }
+
+/**
+ * Tawagin ang Gemini AI upang ma-optimize ang "About Me" summary ng candidate.
+ */
+export async function aiOptimizeSummary(profile, headers) {
+  const response = await fetch('/api/ai-optimize-summary', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ profile })
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Tawagin ang Gemini AI upang gumawa ng cover letter para sa napiling trabaho.
+ */
+export async function aiGenerateCoverLetter(profile, job, headers) {
+  const response = await fetch('/api/ai-cover-letter', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ profile, job })
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Tawagin ang Gemini AI upang i-summarize ang feedback ng mga employers.
+ */
+export async function aiSummarizeFeedback(feedbacks, headers) {
+  const response = await fetch('/api/ai-feedback-summary', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ feedbacks })
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Tawagin ang Gemini AI upang i-analyze ang survey responses.
+ */
+export async function aiAnalyzeSurveys(responses, headers) {
+  const response = await fetch('/api/ai-survey-analytics', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ responses })
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Tawagin ang Gemini AI upang i-estimate ang employability score at career trajectory.
+ */
+export async function aiPredictPlacement(profile, headers) {
+  const response = await fetch('/api/ai-predictive-placement', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ profile })
+  });
+  return handleResponse(response);
+}

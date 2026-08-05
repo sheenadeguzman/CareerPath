@@ -5,7 +5,7 @@
  * sa academic program at skills catalog ng graduate), quality rating averages, action shortcuts, at survey alerts.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   GraduationCap, 
   CheckSquare, 
@@ -13,8 +13,16 @@ import {
   Award, 
   ChevronRight, 
   Building, 
-  MapPin 
+  MapPin,
+  Sparkles,
+  Brain,
+  Cpu,
+  Copy,
+  CheckCheck,
+  RefreshCw,
+  X
 } from 'lucide-react';
+import { aiPredictPlacement } from '../../../services/api';
 
 export default function AlumniDashboard({ 
   alumni = [], 
@@ -29,6 +37,71 @@ export default function AlumniDashboard({
     a => a.email.toLowerCase() === activeUser.email.toLowerCase() ||
          a.name.toLowerCase() === activeUser.name.toLowerCase()
   );
+
+  // AI Placement Assessment States
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [aiError, setAiError] = useState('');
+  const [aiCopied, setAiCopied] = useState(false);
+
+  const handleAssessEmployability = async () => {
+    if (!myAlumni) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiResult('');
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+      const data = await aiPredictPlacement(myAlumni, headers);
+      if (data.success) {
+        setAiResult(data.prediction);
+      } else {
+        setAiError(data.message || 'Failed to estimate placement.');
+      }
+    } catch (err) {
+      console.error(err);
+      setAiError(err.message || 'Failed to connect to AI server.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleCopyText = () => {
+    if (!aiResult) return;
+    navigator.clipboard.writeText(aiResult);
+    setAiCopied(true);
+    setTimeout(() => setAiCopied(false), 2000);
+  };
+
+  const renderMarkdown = (text) => {
+    if (!text) return null;
+    return text.split('\n').map((line, idx) => {
+      const cleanLine = line.trim();
+      if (cleanLine.startsWith('### ')) {
+        return <h4 key={idx} className="text-[11.5px] font-extrabold text-slate-800 uppercase tracking-wide mt-4 mb-2 flex items-center gap-1.5"><Brain className="w-3.5 h-3.5 text-[#7c191e]" /> {cleanLine.replace('### ', '')}</h4>;
+      }
+      if (cleanLine.startsWith('## ')) {
+        return <h3 key={idx} className="text-xs font-extrabold text-[#7c191e] uppercase mt-5 mb-3 border-b border-slate-200 pb-1.5 flex items-center gap-2"><Cpu className="w-4 h-4 text-[#7c191e]" /> {cleanLine.replace('## ', '')}</h3>;
+      }
+      if (cleanLine.startsWith('# ')) {
+        return <h2 key={idx} className="text-sm font-black text-[#7c191e] mt-6 mb-3 flex items-center gap-2 border-b-2 border-[#7c191e]/20 pb-2">{cleanLine.replace('# ', '')}</h2>;
+      }
+      if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+        const parts = cleanLine.substring(2).split('**');
+        const formatted = parts.map((p, i) => i % 2 === 1 ? <strong key={i} className="font-extrabold text-slate-900 bg-amber-50 px-0.5 rounded">{p}</strong> : p);
+        return <li key={idx} className="text-[11px] text-slate-655 ml-5 list-disc mb-1.5 leading-relaxed">{formatted}</li>;
+      }
+      if (cleanLine === '') {
+        return <div key={idx} className="h-2.5" />;
+      }
+      const parts = cleanLine.split('**');
+      const formatted = parts.map((p, i) => i % 2 === 1 ? <strong key={i} className="font-extrabold text-slate-900 bg-amber-50 px-0.5 rounded">{p}</strong> : p);
+      return <p key={idx} className="text-[11px] text-slate-600 leading-relaxed mb-2.5">{formatted}</p>;
+    });
+  };
 
   const profileCompleteness = myAlumni?.profileCompleteness || 25;
   const currentStatus = myAlumni?.employmentStatus || 'Not Declared yet';
@@ -234,6 +307,65 @@ export default function AlumniDashboard({
             >
               Go to Surveys Center <ChevronRight className="w-4 h-4" />
             </button>
+          </div>
+
+          {/* NEW: AI Placement & Employability Estimator widget */}
+          <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-5 space-y-4 h-fit font-sans text-left">
+            <span className="block text-xs font-bold text-[#7c191e] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+              AI Placement &amp; Employability Estimator
+            </span>
+            <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">
+              Evaluate your current skills, program alignment, and status to compute an estimated employability index and matching career tracks.
+            </p>
+
+            <button
+              onClick={handleAssessEmployability}
+              disabled={aiLoading}
+              className="w-full py-2.5 bg-gradient-to-r from-[#7c191e] to-rose-700 hover:from-[#7c191e]/90 hover:to-rose-800 disabled:opacity-50 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-all shadow flex items-center justify-center gap-1.5 cursor-pointer border-0 select-none"
+            >
+              {aiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              Assess Employability Index
+            </button>
+
+            {aiLoading && !aiResult && (
+              <div className="text-center py-6 space-y-2">
+                <RefreshCw className="w-6 h-6 text-[#7c191e] animate-spin mx-auto" />
+                <p className="text-[10px] text-slate-400 font-semibold animate-pulse font-sans">Evaluating placement probabilities...</p>
+              </div>
+            )}
+
+            {aiError && (
+              <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-800 text-[10.5px] font-semibold leading-relaxed">
+                {aiError}
+              </div>
+            )}
+
+            {aiResult && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative animate-fade-in select-text text-left font-normal font-sans">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <span className="text-[9px] font-black text-[#7c191e] uppercase">AI Assessment Details</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCopyText}
+                      className="text-[9px] text-slate-500 hover:text-slate-800 flex items-center gap-1 border-0 bg-transparent cursor-pointer font-bold uppercase font-sans"
+                    >
+                      {aiCopied ? <CheckCheck className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      {aiCopied ? 'Copied' : 'Copy'}
+                    </button>
+                    <button
+                      onClick={() => setAiResult('')}
+                      className="text-[9px] text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer font-bold uppercase font-sans"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-[350px] overflow-y-auto pr-1">
+                  {renderMarkdown(aiResult)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Check, 
   Download, 
   FileText, 
-  Image 
+  Image,
+  Sparkles,
+  RefreshCw,
+  Copy,
+  CheckCheck,
+  X
 } from 'lucide-react';
+import { aiOptimizeSummary, aiGenerateCoverLetter } from '../../../../services/api';
 
 export default function ResumeBuilder({
   selectedTemplate,
@@ -15,8 +21,99 @@ export default function ResumeBuilder({
   setPaperSize,
   handleDownloadPDF,
   handleDownloadWord,
-  selfEditForm
+  selfEditForm,
+  setSelfEditForm
 }) {
+  // AI State variables
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiSummaryResult, setAiSummaryResult] = useState('');
+  const [aiSummaryError, setAiSummaryError] = useState('');
+  const [showSummaryResult, setShowSummaryResult] = useState(false);
+
+  // Cover Letter Modal states
+  const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
+  const [aiLetterLoading, setAiLetterLoading] = useState(false);
+  const [aiLetterResult, setAiLetterResult] = useState('');
+  const [aiLetterError, setAiLetterError] = useState('');
+  const [targetJobTitle, setTargetJobTitle] = useState('');
+  const [targetCompanyName, setTargetCompanyName] = useState('');
+  const [targetJobDesc, setTargetJobDesc] = useState('');
+  const [letterCopied, setLetterCopied] = useState(false);
+
+  // Handlers
+  const handleOptimizeSummary = async () => {
+    setAiSummaryLoading(true);
+    setAiSummaryError('');
+    setAiSummaryResult('');
+    setShowSummaryResult(true);
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+      const data = await aiOptimizeSummary(selfEditForm, headers);
+      if (data.success) {
+        setAiSummaryResult(data.summary);
+      } else {
+        setAiSummaryError(data.message || 'Failed to optimize summary.');
+      }
+    } catch (err) {
+      console.error(err);
+      setAiSummaryError(err.message || 'Error occurred while communicating with Gemini.');
+    } finally {
+      setAiSummaryLoading(false);
+    }
+  };
+
+  const applySummaryToProfile = () => {
+    if (!aiSummaryResult || !setSelfEditForm) return;
+    setSelfEditForm(prev => ({
+      ...prev,
+      aboutMe: aiSummaryResult
+    }));
+    setShowSummaryResult(false);
+  };
+
+  const handleGenerateCoverLetter = async (e) => {
+    e.preventDefault();
+    if (!targetJobTitle || !targetJobDesc) return;
+    setAiLetterLoading(true);
+    setAiLetterError('');
+    setAiLetterResult('');
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
+      const mockJob = {
+        jobTitle: targetJobTitle,
+        employerName: targetCompanyName || 'Prospective Employer',
+        description: targetJobDesc,
+        requirements: []
+      };
+      const data = await aiGenerateCoverLetter(selfEditForm, mockJob, headers);
+      if (data.success) {
+        setAiLetterResult(data.coverLetter);
+      } else {
+        setAiLetterError(data.message || 'Failed to generate cover letter.');
+      }
+    } catch (err) {
+      console.error(err);
+      setAiLetterError(err.message || 'Error communicating with Gemini.');
+    } finally {
+      setAiLetterLoading(false);
+    }
+  };
+
+  const copyCoverLetter = () => {
+    if (!aiLetterResult) return;
+    navigator.clipboard.writeText(aiLetterResult);
+    setLetterCopied(true);
+    setTimeout(() => setLetterCopied(false), 2000);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-5 h-fit no-print-resume">
       <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider border-b border-slate-100 pb-2">
@@ -237,6 +334,162 @@ export default function ResumeBuilder({
           </button>
         </div>
       </div>
+
+      {/* NEW: Gemini AI Career Assistant Section */}
+      <div className="pt-4 border-t border-slate-100 space-y-3 font-sans text-left">
+        <label className="block text-xs font-bold text-slate-550 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+          Gemini AI Career Assistant
+        </label>
+        
+        <div className="space-y-2">
+          {/* AI Optimize Profile Summary */}
+          <button
+            onClick={handleOptimizeSummary}
+            disabled={aiSummaryLoading}
+            className="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 text-white font-bold text-[10px] uppercase tracking-wide rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer select-none border-0"
+          >
+            {aiSummaryLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            AI Write "About Me" Profile
+          </button>
+
+          {/* AI Profile Summary rewrite panel */}
+          {showSummaryResult && (
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2 mt-2">
+              <div className="flex justify-between items-center text-[9px] font-extrabold text-[#7c191e] uppercase">
+                <span>Suggested AI Profile Summary</span>
+                <button onClick={() => setShowSummaryResult(false)} className="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              {aiSummaryLoading ? (
+                <p className="text-[11px] text-slate-400 italic animate-pulse">Writing a professional profile summary for you...</p>
+              ) : aiSummaryError ? (
+                <p className="text-[11px] text-rose-600">{aiSummaryError}</p>
+              ) : (
+                <>
+                  <p className="text-[11px] text-slate-600 leading-relaxed italic">"{aiSummaryResult}"</p>
+                  <button
+                    onClick={applySummaryToProfile}
+                    className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[9.5px] font-extrabold uppercase rounded transition cursor-pointer border-0"
+                  >
+                    Apply to Resume &amp; Profile
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* AI Cover Letter Generator Launcher */}
+          <button
+            onClick={() => setShowCoverLetterModal(true)}
+            className="w-full py-2 bg-gradient-to-r from-[#7c191e] to-rose-700 hover:from-[#7c191e]/90 hover:to-rose-800 text-white font-bold text-[10px] uppercase tracking-wide rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer select-none border-0"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            AI Cover Letter Generator
+          </button>
+        </div>
+      </div>
+
+      {/* Cover Letter Builder Modal */}
+      {showCoverLetterModal && (
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 animate-fade-in no-print-resume font-sans">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 space-y-4 relative overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+                <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wide">AI Cover Letter Generator</h3>
+              </div>
+              <button onClick={() => setShowCoverLetterModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer border-0 bg-transparent">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {!aiLetterResult && !aiLetterLoading && (
+              <form onSubmit={handleGenerateCoverLetter} className="space-y-3.5 overflow-y-auto pr-1 text-left">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase">Target Job Title</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Junior Frontend Developer"
+                      value={targetJobTitle}
+                      onChange={(e) => setTargetJobTitle(e.target.value)}
+                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase">Company Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. TechBatanes Inc."
+                      value={targetCompanyName}
+                      onChange={(e) => setTargetCompanyName(e.target.value)}
+                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase">Job Description / Requirements</label>
+                  <textarea
+                    required
+                    rows={5}
+                    placeholder="Paste the job description or skills required here..."
+                    value={targetJobDesc}
+                    onChange={(e) => setTargetJobDesc(e.target.value)}
+                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none resize-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={aiLetterLoading}
+                  className="w-full py-2.5 bg-[#7c191e] hover:bg-[#7c191e]/90 disabled:opacity-50 text-white font-extrabold text-xs uppercase tracking-wider rounded-lg transition flex items-center justify-center gap-2 cursor-pointer border-0"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Generate Custom Cover Letter
+                </button>
+              </form>
+            )}
+
+            {aiLetterLoading && (
+              <div className="text-center py-10 space-y-3.5 flex-1 flex flex-col justify-center">
+                <RefreshCw className="w-8 h-8 text-rose-700 animate-spin mx-auto" />
+                <p className="text-xs text-slate-500 font-semibold animate-pulse">Drafting a tailored cover letter based on your credentials...</p>
+              </div>
+            )}
+
+            {aiLetterError && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-xs font-semibold leading-relaxed text-left">
+                {aiLetterError}
+              </div>
+            )}
+
+            {aiLetterResult && (
+              <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
+                <div className="flex-1 p-4 bg-slate-50 border border-slate-150 rounded-xl overflow-y-auto whitespace-pre-wrap text-xs text-slate-650 leading-relaxed font-sans text-left font-normal select-text">
+                  {aiLetterResult}
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    onClick={() => setAiLetterResult('')}
+                    className="text-xs text-[#7c191e] font-extrabold uppercase hover:underline cursor-pointer flex items-center gap-1 border-0 bg-transparent"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Start Over
+                  </button>
+                  <button
+                    onClick={copyCoverLetter}
+                    className="py-2 px-5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow border-0"
+                  >
+                    {letterCopied ? <CheckCheck className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {letterCopied ? 'Copied!' : 'Copy Cover Letter'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
