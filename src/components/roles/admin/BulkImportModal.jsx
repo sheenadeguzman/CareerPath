@@ -7,24 +7,63 @@
 
 import React, { useState, useRef } from 'react';
 import { FileSpreadsheet, Upload, RefreshCw, Check, X, AlertTriangle } from 'lucide-react';
+import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
 /**
  * BulkImportModal Component
  * @param {Object} props
  * @param {Array} props.alumniList - Kasalukuyang roster ng alumni sa database para sa duplicate detection.
+ * @param {Object} props.activeUser - Ang active user para sa role validation.
  * @param {Function} props.onImportAlumni - Callback trigger para i-save ang bulk arrays sa database.
  * @param {Function} props.setShowImportModal - State mutator para isara ang modal.
  * @param {Function} props.triggerToast - Trigger para sa pagpapakita ng toast notification.
  */
-export default function BulkImportModal({ alumniList = [], onImportAlumni, setShowImportModal, triggerToast }) {
+export default function BulkImportModal({ alumniList = [], activeUser, onImportAlumni, setShowImportModal, triggerToast }) {
   // State para pamahalaan ang loading indicator habang isinasagawa ang import
   const [isImporting, setIsImporting] = useState(false);
   // Naglalaman ng mga parsed, formatted, at validated rows para sa table preview
   const [importPreview, setImportPreview] = useState([]);
   // Nag-a-imbak ng error messages na natagpuan habang binabasa o pino-proseso ang file
   const [importError, setImportError] = useState('');
+  const [searchFilter, setSearchFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   // Ref para sa nakatagong file input element
   const fileInputRef = useRef(null);
+
+  /**
+   * Helper to resolve standard program names for BSC programs.
+   */
+  const getBSCProgram = (progStr) => {
+    if (!progStr) return null;
+    const clean = progStr.trim().toLowerCase();
+    
+    // Exact or contains match in BSC_PROGRAMS
+    const directMatch = BSC_PROGRAMS.find(p => 
+      clean.includes(p.toLowerCase()) || p.toLowerCase().includes(clean)
+    );
+    if (directMatch) return directMatch;
+
+    // Abbreviation/shortcut match
+    if (/bsit|info.*tech|information.*technology/i.test(clean)) {
+      return 'Bachelor of Science in Information Technology';
+    }
+    if (/bshtm|htm|hospitality|tourism/i.test(clean)) {
+      return 'Bachelor of Science in Hospitality and Tourism Management';
+    }
+    if (/industrial/i.test(clean)) {
+      return 'Bachelor of Science in Industrial Technology';
+    }
+    if (/agriculture|bsa/i.test(clean)) {
+      return 'Bachelor of Science in Agriculture';
+    }
+    if (/beed|elementary/i.test(clean)) {
+      return 'Bachelor of Elementary Education';
+    }
+    if (/bsed|secondary/i.test(clean)) {
+      return 'Bachelor of Secondary Education';
+    }
+    return null;
+  };
 
   /**
    * Nagpapatunay sa isang parsed row base sa syntax rules at records sa existing database.
@@ -32,9 +71,10 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
    * @param {number} index - Index ng row sa loob ng parsed list.
    * @param {Array} listSoFar - Buong array ng parsed rows mula sa kasalukuyang file.
    * @param {Array} existingAlumni - Kasalukuyang records sa database.
+   * @param {Object} user - Ang active user para sa role validation.
    * @returns {Array} Listahan ng mga alert na may error/warning types at kaukulang mensahe.
    */
-  const validateRow = (row, index, listSoFar, existingAlumni) => {
+  const validateRow = (row, index, listSoFar, existingAlumni, user) => {
     const alerts = [];
     
     // 1. Email format check gamit ang standard email regex
@@ -61,17 +101,8 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
       alerts.push({ type: 'warning', message: 'Email address already exists in database' });
     }
 
-    // 5. Degree program validation laban sa mga pre-defined allowed lists ng BSC (kasama ang mga majors)
-    const allowedPrograms = [
-      'BS Information Technology', 'Bachelor of Science in Information Technology',
-      'BS Hospitality Management', 'Bachelor of Science in Hospitality Management',
-      'BS Elementary Education', 'Bachelor of Elementary Education',
-      'BS Secondary Education', 'Bachelor of Secondary Education',
-      'BS Agriculture', 'Bachelor of Science in Agriculture',
-      'BS Tourism Management', 'Bachelor of Science in Tourism Management',
-      'BS Industrial Technology', 'Bachelor of Science in Industrial Technology'
-    ];
-    const isProgramValid = allowedPrograms.some(allowed => 
+    // 5. Degree program validation laban sa mga pre-defined allowed lists ng BSC
+    const isProgramValid = BSC_PROGRAMS.some(allowed => 
       row.program && (
         row.program.trim().toLowerCase().startsWith(allowed.toLowerCase()) ||
         row.program.trim().toLowerCase().includes(allowed.toLowerCase()) ||
@@ -79,7 +110,29 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
       )
     );
     if (!isProgramValid) {
-      alerts.push({ type: 'warning', message: `Program is not in default BSC degree list` });
+      alerts.push({ type: 'error', message: `Program is not offered by Batanes State College (BSC)` });
+    }
+
+    // 6. Chairperson department verification
+    if (user?.role === 'Department Chairperson' && user?.program) {
+      const chairProg = user.program;
+      const normalizedAl = (row.program || '').toLowerCase();
+      const normalizedChair = chairProg.toLowerCase();
+      
+      let matchesChair = false;
+      if (normalizedAl === normalizedChair || normalizedAl.includes(normalizedChair) || normalizedChair.includes(normalizedAl)) {
+        matchesChair = true;
+      } else {
+        const allowed = DEPARTMENT_TO_PROGRAMS[chairProg] || [];
+        matchesChair = allowed.some(allowedProg => {
+          const normalizedAllowed = allowedProg.toLowerCase();
+          return normalizedAl.includes(normalizedAllowed) || normalizedAllowed.includes(normalizedAl);
+        });
+      }
+
+      if (!matchesChair) {
+        alerts.push({ type: 'error', message: `Program does not belong to your department (${chairProg})` });
+      }
     }
 
     return alerts;
@@ -128,7 +181,7 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
                 firstName: first,
                 lastName: last,
                 email: item.email || `${studentId.toLowerCase()}@gmail.com`,
-                program: item.program || item.degree || 'BS Information Technology',
+                program: getBSCProgram(item.program || item.degree || 'Bachelor of Science in Information Technology') || (item.program || item.degree || 'Bachelor of Science in Information Technology').trim(),
                 yearGraduated: parseInt(item.yearGraduated || item.graduated || item.year) || 2026,
                 employmentStatus: item.employmentStatus || item.status || 'Unemployed'
               };
@@ -195,7 +248,8 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
               }
 
               const rowEmail = emailIdx !== -1 && cols[emailIdx] ? cols[emailIdx] : `${rowStudentId.toLowerCase()}@gmail.com`;
-              const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'BS Information Technology';
+              const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'Bachelor of Science in Information Technology';
+              const officialProg = getBSCProgram(rowProg) || rowProg;
               const rowYear = yearIdx !== -1 && cols[yearIdx] ? parseInt(cols[yearIdx]) || 2026 : 2026;
               const rowStatus = statusIdx !== -1 && cols[statusIdx] ? cols[statusIdx] : 'Unemployed';
 
@@ -204,7 +258,7 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
                 firstName: rowFirst.trim(),
                 lastName: rowLast.trim(),
                 email: rowEmail.trim(),
-                program: rowProg.trim(),
+                program: officialProg.trim(),
                 yearGraduated: rowYear,
                 employmentStatus: rowStatus.trim()
               });
@@ -218,7 +272,7 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
         // Pinapatakbo ang integrity validation rules para sa lahat ng loaded records
         const validatedRows = formatted.map((row, idx) => ({
           ...row,
-          alerts: validateRow(row, idx, formatted, alumniList)
+          alerts: validateRow(row, idx, formatted, alumniList, activeUser)
         }));
 
         setImportPreview(validatedRows);
@@ -235,35 +289,58 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
    * Sine-save ang validated list ng alumni sa database.
    * Humihinto agad kung may mga hindi pa nareresolbang critical errors.
    */
-  const executeBulkImport = async () => {
-    if (importPreview.length === 0 || !onImportAlumni) return;
+  const hasErrors = importPreview.some(row => (row.alerts || []).some(a => a.type === 'error'));
+  const errorCount = importPreview.reduce((acc, row) => acc + (row.alerts || []).filter(a => a.type === 'error').length, 0);
+  const warningCount = importPreview.reduce((acc, row) => acc + (row.alerts || []).filter(a => a.type === 'warning').length, 0);
+
+  const filteredPreview = importPreview.filter(row => {
+    const nameStr = `${row.firstName} ${row.lastName}`.toLowerCase();
+    const matchesSearch = nameStr.includes(searchFilter.toLowerCase()) ||
+                          row.studentId.toLowerCase().includes(searchFilter.toLowerCase());
     
-    // Safety check: hinaharangan ang import kung may kahit isang row na naglalaman ng critical validation error
-    const hasErrors = importPreview.some(row => (row.alerts || []).some(a => a.type === 'error'));
-    if (hasErrors) {
-      alert('Roster cannot be imported. Please resolve all critical validation errors first.');
-      return;
+    const rowAlerts = row.alerts || [];
+    const hasRowErrors = rowAlerts.some(a => a.type === 'error');
+    const hasRowWarnings = rowAlerts.some(a => a.type === 'warning');
+    
+    let matchesStatus = true;
+    if (statusFilter === 'Errors') {
+      matchesStatus = hasRowErrors;
+    } else if (statusFilter === 'Warnings') {
+      matchesStatus = hasRowWarnings;
+    } else if (statusFilter === 'Clean') {
+      matchesStatus = !hasRowErrors && !hasRowWarnings;
     }
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const validRows = importPreview.filter(row => !(row.alerts || []).some(a => a.type === 'error'));
+
+  const executeBulkImport = async () => {
+    if (validRows.length === 0 || !onImportAlumni) return;
 
     setIsImporting(true);
     try {
       // Tinatanggal ang temporary UI alerts field bago ipadala ang payload sa API
-      const rowsToImport = importPreview.map(({ alerts, ...rest }) => rest);
+      const rowsToImport = validRows.map(({ alerts, ...rest }) => rest);
       await onImportAlumni(rowsToImport);
-      triggerToast(`SUCCESS! Batch imported ${importPreview.length} alumni profiles. Initial temporal accounts have been activated.`);
+      
+      const skippedCount = importPreview.length - validRows.length;
+      if (skippedCount > 0) {
+        triggerToast(`SUCCESS! Batch imported ${validRows.length} alumni profiles. Skipped ${skippedCount} invalid records.`);
+      } else {
+        triggerToast(`SUCCESS! Batch imported ${validRows.length} alumni profiles. Initial temporal accounts have been activated.`);
+      }
       setShowImportModal(false);
       setImportPreview([]);
+      setSearchFilter('');
+      setStatusFilter('All');
     } catch (err) {
       alert('Error saving imported records. Please re-check the formatting.');
     } finally {
       setIsImporting(false);
     }
   };
-
-  // Mga helper variable para bilangin ang kabuuang errors at warnings sa in-upload na dokumento
-  const hasErrors = importPreview.some(row => (row.alerts || []).some(a => a.type === 'error'));
-  const errorCount = importPreview.reduce((acc, row) => acc + (row.alerts || []).filter(a => a.type === 'error').length, 0);
-  const warningCount = importPreview.reduce((acc, row) => acc + (row.alerts || []).filter(a => a.type === 'warning').length, 0);
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
@@ -339,15 +416,15 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
                   type="button"
                   onClick={() => {
                     const dummy = [
-                      { studentId: 'BSC-2026-191', firstName: 'Juan', lastName: 'Dela Cruz', email: 'juan.delacruz@gmail.com', program: 'BS Information Technology', yearGraduated: 2026 },
-                      { studentId: 'BSC-2026-192', firstName: 'Patricia', lastName: 'Castillo', email: 'p.castillo@gmail.com', program: 'BS Hospitality Management', yearGraduated: 2026 },
-                      { studentId: 'BSC-2026-193', firstName: 'Kiko', lastName: 'Basco', email: 'kiko.basco@gmail.com', program: 'BS Agriculture', yearGraduated: 2026 },
-                      { studentId: 'BSC-2026-101', firstName: 'Duplicate', lastName: 'User', email: 'duplicate@gmail.com', program: 'BS Information Technology', yearGraduated: 2026 } // duplicate SID database demo
+                      { studentId: 'BSC-2026-191', firstName: 'Juan', lastName: 'Dela Cruz', email: 'juan.delacruz@gmail.com', program: 'Bachelor of Science in Information Technology', yearGraduated: 2026 },
+                      { studentId: 'BSC-2026-192', firstName: 'Patricia', lastName: 'Castillo', email: 'p.castillo@gmail.com', program: 'Bachelor of Science in Hospitality and Tourism Management', yearGraduated: 2026 },
+                      { studentId: 'BSC-2026-193', firstName: 'Kiko', lastName: 'Basco', email: 'kiko.basco@gmail.com', program: 'Bachelor of Science in Agriculture', yearGraduated: 2026 },
+                      { studentId: 'BSC-2026-101', firstName: 'Duplicate', lastName: 'User', email: 'duplicate@gmail.com', program: 'Bachelor of Science in Information Technology', yearGraduated: 2026 } // duplicate SID database demo
                     ];
                     // Nagdaragdag ng mga validation sa specimen data
                     const dummyValidated = dummy.map((row, idx) => ({
                       ...row,
-                      alerts: validateRow(row, idx, dummy, alumniList)
+                      alerts: validateRow(row, idx, dummy, alumniList, activeUser)
                     }));
                     setImportPreview(dummyValidated);
                   }}
@@ -385,12 +462,37 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
                   )}
 
                   <button
-                    onClick={() => setImportPreview([])}
+                    onClick={() => {
+                      setImportPreview([]);
+                      setSearchFilter('');
+                      setStatusFilter('All');
+                    }}
                     className="text-rose-650 hover:underline text-[10px] font-bold ml-2 cursor-pointer"
                   >
                     Clear roster
                   </button>
                 </div>
+              </div>
+
+              {/* Filtering Controls */}
+              <div className="flex flex-col sm:flex-row gap-2 border-b border-slate-150 pb-3">
+                <input
+                  type="text"
+                  placeholder="Filter preview by name or Student ID..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-[#7c191e]"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
+                >
+                  <option value="All">All Statuses ({importPreview.length})</option>
+                  <option value="Errors">With Critical Errors ({errorCount})</option>
+                  <option value="Warnings">With Warnings ({warningCount})</option>
+                  <option value="Clean">Clean / Valid Only ({importPreview.length - errorCount - warningCount})</option>
+                </select>
               </div>
 
               <div className="border border-slate-150 rounded-lg overflow-hidden bg-white max-h-[220px] overflow-y-auto">
@@ -405,56 +507,63 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-semibold text-slate-650">
-                    {importPreview.map((row, rIdx) => {
-                      const rowErrors = (row.alerts || []).filter(a => a.type === 'error');
-                      const rowWarnings = (row.alerts || []).filter(a => a.type === 'warning');
-                      const hasRowErrors = rowErrors.length > 0;
-                      
-                      return (
-                        <tr key={rIdx} className={`hover:bg-slate-50/50 ${hasRowErrors ? 'bg-rose-50/20' : ''}`}>
-                          <td className="p-2.5 pl-4">
-                            <span className="block text-slate-800 font-extrabold">{row.firstName} {row.lastName}</span>
-                            <span className="block text-[9px] text-[#7c191e] font-mono">{row.studentId}</span>
-                          </td>
-                          <td className="p-2.5 font-medium truncate max-w-[140px]" title={row.email}>{row.email}</td>
-                          <td className="p-2.5 font-medium break-all">{row.program}</td>
-                          <td className="p-2.5">
-                            {row.alerts && row.alerts.length > 0 ? (
-                              <div className="space-y-0.5">
-                                {row.alerts.map((alert, aIdx) => (
-                                  <span 
-                                    key={aIdx} 
-                                    className={`block text-[9px] px-1.5 py-0.5 rounded font-extrabold leading-tight ${
-                                      alert.type === 'error' 
-                                        ? 'bg-rose-50 border border-rose-100 text-rose-700' 
-                                        : 'bg-amber-50 border border-amber-100 text-amber-700'
-                                    }`}
-                                  >
-                                    {alert.message}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-emerald-700 text-[10px] font-bold">✔️ Clean</span>
-                            )}
-                          </td>
-                          <td className="p-2.5 pr-4 text-right font-extrabold text-slate-800">{row.yearGraduated}</td>
-                        </tr>
-                      );
-                    })}
+                    {filteredPreview.length > 0 ? (
+                      filteredPreview.map((row, rIdx) => {
+                        const rowErrors = (row.alerts || []).filter(a => a.type === 'error');
+                        const hasRowErrors = rowErrors.length > 0;
+                        
+                        return (
+                          <tr key={rIdx} className={`hover:bg-slate-50/50 ${hasRowErrors ? 'bg-rose-50/20' : ''}`}>
+                            <td className="p-2.5 pl-4">
+                              <span className="block text-slate-800 font-extrabold">{row.firstName} {row.lastName}</span>
+                              <span className="block text-[9px] text-[#7c191e] font-mono">{row.studentId}</span>
+                            </td>
+                            <td className="p-2.5 font-medium truncate max-w-[140px]" title={row.email}>{row.email}</td>
+                            <td className="p-2.5 font-medium break-all">{row.program}</td>
+                            <td className="p-2.5">
+                              {row.alerts && row.alerts.length > 0 ? (
+                                <div className="space-y-0.5">
+                                  {row.alerts.map((alert, aIdx) => (
+                                    <span 
+                                      key={aIdx} 
+                                      className={`block text-[9px] px-1.5 py-0.5 rounded font-extrabold leading-tight ${
+                                        alert.type === 'error' 
+                                          ? 'bg-rose-50 border border-rose-100 text-rose-700' 
+                                          : 'bg-amber-50 border border-amber-100 text-amber-700'
+                                      }`}
+                                    >
+                                      {alert.message}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-emerald-700 text-[10px] font-bold">✔️ Clean</span>
+                              )}
+                            </td>
+                            <td className="p-2.5 pr-4 text-right font-extrabold text-slate-800">{row.yearGraduated}</td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="p-8 text-center text-slate-400 font-semibold">
+                          No records match the current filters.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
         </div>
-
+ 
         {/* FIXED MODAL FOOTER - Footer ng modal na nakapako sa ibaba */}
         <div className="sticky bottom-0 bg-slate-50 border-t border-slate-100 px-6 py-4 flex items-center justify-between z-10 no-print-resume">
           <div className="text-[10px] text-slate-400 font-bold max-w-sm">
             {hasErrors && (
-              <span className="text-rose-650 flex items-center gap-1">
-                ⚠️ Import Blocked: Resolve critical database duplicates or format errors before continuing.
+              <span className="text-amber-650 flex items-center gap-1 font-extrabold">
+                ⚠️ Note: {errorCount} records with critical errors will be filtered out and skipped.
               </span>
             )}
           </div>
@@ -473,10 +582,10 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
             </button>
             <button
               type="button"
-              disabled={importPreview.length === 0 || isImporting || hasErrors}
+              disabled={importPreview.length === 0 || isImporting || validRows.length === 0}
               onClick={executeBulkImport}
               className={`px-4 py-2 text-white font-extrabold rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer ${
-                importPreview.length === 0 || hasErrors
+                importPreview.length === 0 || validRows.length === 0
                   ? 'bg-slate-300 cursor-not-allowed text-slate-400' 
                   : 'bg-[#7c191e] hover:bg-[#7c191e]/90 text-white shadow-md'
               }`}
@@ -487,7 +596,7 @@ export default function BulkImportModal({ alumniList = [], onImportAlumni, setSh
                 </>
               ) : (
                 <>
-                  <Check className="w-4 h-4" /> Import &amp; Activate Temporal Accounts
+                  <Check className="w-4 h-4" /> Import {validRows.length} Valid Rows
                 </>
               )}
             </button>

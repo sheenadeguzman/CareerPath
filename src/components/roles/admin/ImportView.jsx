@@ -7,7 +7,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Upload, FileSpreadsheet, RefreshCw, Check, AlertTriangle } from 'lucide-react';
-import { BSC_PROGRAMS } from '../../../bscData';
+import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
 // Default na CSV template helper text na ipinapakita sa copy-paste box
 const SAMPLE_CSV = `studentId,name,email,program,yearGraduated
@@ -20,8 +20,9 @@ BSC-2026-103,Manny Pac,manny.pac@example.com,Bachelor of Science in Agriculture,
  * @param {Object} props
  * @param {Function} props.onImportAlumni - Callback trigger para i-save ang bulk arrays sa database.
  * @param {Array} props.alumniList - Kasalukuyang roster ng alumni sa database para sa duplicate detection.
+ * @param {Object} props.activeUser - Kasalukuyang naka-login na user.
  */
-export default function ImportView({ onImportAlumni, alumniList = [] }) {
+export default function ImportView({ onImportAlumni, alumniList = [], activeUser }) {
   // Mga state sa UI para sa dragging highlight at file parsing processes
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,6 +35,8 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
   const [importError, setImportError] = useState('');
   const [pastedText, setPastedText] = useState(SAMPLE_CSV);
   const [toastSuccess, setToastSuccess] = useState(false);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   
   // Reference hook para ma-access ang nakatagong native file input
   const fileInputRef = useRef(null);
@@ -73,7 +76,52 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
    * @param {Array} existingAlumni - Kasalukuyang records sa database
    * @returns {Array} Listahan ng mga warning o error alerts
    */
-  const validateRow = (row, index, listSoFar, existingAlumni) => {
+  /**
+   * Helper to resolve standard program names for BSC programs.
+   */
+  const getBSCProgram = (progStr) => {
+    if (!progStr) return null;
+    const clean = progStr.trim().toLowerCase();
+    
+    // Exact or contains match in BSC_PROGRAMS
+    const directMatch = BSC_PROGRAMS.find(p => 
+      clean.includes(p.toLowerCase()) || p.toLowerCase().includes(clean)
+    );
+    if (directMatch) return directMatch;
+
+    // Abbreviation/shortcut match
+    if (/bsit|info.*tech|information.*technology/i.test(clean)) {
+      return 'Bachelor of Science in Information Technology';
+    }
+    if (/bshtm|htm|hospitality|tourism/i.test(clean)) {
+      return 'Bachelor of Science in Hospitality and Tourism Management';
+    }
+    if (/industrial/i.test(clean)) {
+      return 'Bachelor of Science in Industrial Technology';
+    }
+    if (/agriculture|bsa/i.test(clean)) {
+      return 'Bachelor of Science in Agriculture';
+    }
+    if (/beed|elementary/i.test(clean)) {
+      return 'Bachelor of Elementary Education';
+    }
+    if (/bsed|secondary/i.test(clean)) {
+      return 'Bachelor of Secondary Education';
+    }
+    return null;
+  };
+
+  /**
+   * Nagpapatunay sa isang parsed data row laban sa integrity constraints.
+   * Sinusuri ang valid email regex, mga duplicate ID sa sheet o database, at mga valid na program sa BSC.
+   * @param {Object} row - Parsed alumni record
+   * @param {number} index - Index sa kasalukuyang upload batch
+   * @param {Array} listSoFar - Buong array ng parsed rows mula sa kasalukuyang file
+   * @param {Array} existingAlumni - Kasalukuyang records sa database
+   * @param {Object} user - Ang active user para sa role validation
+   * @returns {Array} Listahan ng mga warning o error alerts
+   */
+  const validateRow = (row, index, listSoFar, existingAlumni, user) => {
     const alerts = [];
     
     // 1. Email syntax check
@@ -100,17 +148,8 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
       alerts.push({ type: 'warning', message: 'Email address already exists in database' });
     }
 
-    // 5. Degree program validation against predefined allowed list (allowing majors and abbreviations)
-    const allowedPrograms = [
-      'BS Information Technology', 'Bachelor of Science in Information Technology',
-      'BS Hospitality Management', 'Bachelor of Science in Hospitality Management',
-      'BS Elementary Education', 'Bachelor of Elementary Education',
-      'BS Secondary Education', 'Bachelor of Secondary Education',
-      'BS Agriculture', 'Bachelor of Science in Agriculture',
-      'BS Tourism Management', 'Bachelor of Science in Tourism Management',
-      'BS Industrial Technology', 'Bachelor of Science in Industrial Technology'
-    ];
-    const isProgramValid = allowedPrograms.some(allowed => 
+    // 5. Degree program validation against predefined allowed list
+    const isProgramValid = BSC_PROGRAMS.some(allowed => 
       row.program && (
         row.program.trim().toLowerCase().startsWith(allowed.toLowerCase()) ||
         row.program.trim().toLowerCase().includes(allowed.toLowerCase()) ||
@@ -118,7 +157,29 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
       )
     );
     if (!isProgramValid) {
-      alerts.push({ type: 'warning', message: `Program is not in default BSC degree list` });
+      alerts.push({ type: 'error', message: `Program is not offered by Batanes State College (BSC)` });
+    }
+
+    // 6. Chairperson department verification
+    if (user?.role === 'Department Chairperson' && user?.program) {
+      const chairProg = user.program;
+      const normalizedAl = (row.program || '').toLowerCase();
+      const normalizedChair = chairProg.toLowerCase();
+      
+      let matchesChair = false;
+      if (normalizedAl === normalizedChair || normalizedAl.includes(normalizedChair) || normalizedChair.includes(normalizedAl)) {
+        matchesChair = true;
+      } else {
+        const allowed = DEPARTMENT_TO_PROGRAMS[chairProg] || [];
+        matchesChair = allowed.some(allowedProg => {
+          const normalizedAllowed = allowedProg.toLowerCase();
+          return normalizedAl.includes(normalizedAllowed) || normalizedAllowed.includes(normalizedAl);
+        });
+      }
+
+      if (!matchesChair) {
+        alerts.push({ type: 'error', message: `Program does not belong to your department (${chairProg})` });
+      }
     }
 
     return alerts;
@@ -189,7 +250,8 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
         }
 
         const rowEmail = emailIdx !== -1 && cols[emailIdx] ? cols[emailIdx] : `${rowStudentId.toLowerCase()}@gmail.com`;
-        const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'BS Information Technology';
+        const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'Bachelor of Science in Information Technology';
+        const officialProg = getBSCProgram(rowProg) || rowProg;
         const rowYear = yearIdx !== -1 && cols[yearIdx] ? parseInt(cols[yearIdx]) || 2026 : 2026;
         const rowStatus = statusIdx !== -1 && cols[statusIdx] ? cols[statusIdx] : 'Unemployed';
 
@@ -198,7 +260,7 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
           firstName: rowFirst.trim(),
           lastName: rowLast.trim(),
           email: rowEmail.trim(),
-          program: rowProg.trim(),
+          program: officialProg.trim(),
           yearGraduated: rowYear,
           employmentStatus: rowStatus.trim()
         });
@@ -245,7 +307,7 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
                 firstName: first.trim(),
                 lastName: last.trim(),
                 email: (item.email || `${studentId.toLowerCase()}@gmail.com`).trim(),
-                program: (item.program || item.degree || 'BS Information Technology').trim(),
+                program: getBSCProgram(item.program || item.degree || 'Bachelor of Science in Information Technology') || (item.program || item.degree || 'Bachelor of Science in Information Technology').trim(),
                 yearGraduated: parseInt(item.yearGraduated || item.graduated || item.year) || 2026,
                 employmentStatus: (item.employmentStatus || item.status || 'Unemployed').trim()
               };
@@ -260,7 +322,7 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
         // Naglalapat ng rules-based validation logic
         const dummyValidated = formatted.map((row, idx) => ({
           ...row,
-          alerts: validateRow(row, idx, formatted, alumniList)
+          alerts: validateRow(row, idx, formatted, alumniList, activeUser)
         }));
 
         setImportPreview(dummyValidated);
@@ -291,7 +353,7 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
 
         const dummyValidated = formatted.map((row, idx) => ({
           ...row,
-          alerts: validateRow(row, idx, formatted, alumniList)
+          alerts: validateRow(row, idx, formatted, alumniList, activeUser)
         }));
 
         setImportPreview(dummyValidated);
@@ -308,6 +370,29 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
   const hasErrors = importPreview.some(row => (row.alerts || []).some(a => a.type === 'error'));
   const errorCount = importPreview.reduce((acc, row) => acc + (row.alerts || []).filter(a => a.type === 'error').length, 0);
   const warningCount = importPreview.reduce((acc, row) => acc + (row.alerts || []).filter(a => a.type === 'warning').length, 0);
+
+  const filteredPreview = importPreview.filter(row => {
+    const nameStr = `${row.firstName} ${row.lastName}`.toLowerCase();
+    const matchesSearch = nameStr.includes(searchFilter.toLowerCase()) ||
+                          row.studentId.toLowerCase().includes(searchFilter.toLowerCase());
+    
+    const rowAlerts = row.alerts || [];
+    const hasRowErrors = rowAlerts.some(a => a.type === 'error');
+    const hasRowWarnings = rowAlerts.some(a => a.type === 'warning');
+    
+    let matchesStatus = true;
+    if (statusFilter === 'Errors') {
+      matchesStatus = hasRowErrors;
+    } else if (statusFilter === 'Warnings') {
+      matchesStatus = hasRowWarnings;
+    } else if (statusFilter === 'Clean') {
+      matchesStatus = !hasRowErrors && !hasRowWarnings;
+    }
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const validRows = importPreview.filter(row => !(row.alerts || []).some(a => a.type === 'error'));
 
   return (
     <div className="space-y-6 font-sans">
@@ -438,12 +523,35 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
                 onClick={() => {
                   setImportPreview([]);
                   setImportReport('');
+                  setSearchFilter('');
+                  setStatusFilter('All');
                 }}
                 className="text-rose-600 hover:underline text-[10px] font-bold ml-2 cursor-pointer"
               >
                 Clear Preview
               </button>
             </div>
+          </div>
+
+          {/* Filtering Controls */}
+          <div className="flex flex-col sm:flex-row gap-2 border-b border-slate-100 pb-3">
+            <input
+              type="text"
+              placeholder="Filter preview by name or Student ID..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-[#7c191e]"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
+            >
+              <option value="All">All Statuses ({importPreview.length})</option>
+              <option value="Errors">With Critical Errors ({errorCount})</option>
+              <option value="Warnings">With Warnings ({warningCount})</option>
+              <option value="Clean">Clean / Valid Only ({importPreview.length - errorCount - warningCount})</option>
+            </select>
           </div>
 
           <div className="border border-slate-200 rounded-lg overflow-hidden bg-white max-h-[260px] overflow-y-auto">
@@ -458,40 +566,48 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-semibold text-slate-650">
-                {importPreview.map((row, rIdx) => {
-                  const hasRowErrors = (row.alerts || []).some(a => a.type === 'error');
-                  return (
-                    <tr key={rIdx} className={`hover:bg-slate-50/50 ${hasRowErrors ? 'bg-rose-50/20' : ''}`}>
-                      <td className="p-2.5 pl-4">
-                        <span className="block text-slate-800 font-extrabold">{row.firstName} {row.lastName}</span>
-                        <span className="block text-[9px] text-[#7c191e] font-mono">{row.studentId}</span>
-                      </td>
-                      <td className="p-2.5 font-medium truncate max-w-[145px]">{row.email}</td>
-                      <td className="p-2.5 font-medium break-all">{row.program}</td>
-                      <td className="p-2.5">
-                        {row.alerts && row.alerts.length > 0 ? (
-                          <div className="space-y-0.5">
-                            {row.alerts.map((alert, aIdx) => (
-                              <span 
-                                key={aIdx} 
-                                className={`block text-[9px] px-1.5 py-0.5 rounded font-extrabold leading-tight ${
-                                  alert.type === 'error' 
-                                    ? 'bg-rose-50 border border-rose-100 text-rose-700' 
-                                    : 'bg-amber-50 border border-amber-100 text-amber-700'
-                                }`}
-                              >
-                                {alert.message}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-emerald-750 text-[10px] font-bold">✔️ Clean</span>
-                        )}
-                      </td>
-                      <td className="p-2.5 pr-4 text-right font-extrabold text-slate-800">{row.yearGraduated}</td>
-                    </tr>
-                  );
-                })}
+                {filteredPreview.length > 0 ? (
+                  filteredPreview.map((row, rIdx) => {
+                    const hasRowErrors = (row.alerts || []).some(a => a.type === 'error');
+                    return (
+                      <tr key={rIdx} className={`hover:bg-slate-50/50 ${hasRowErrors ? 'bg-rose-50/20' : ''}`}>
+                        <td className="p-2.5 pl-4">
+                          <span className="block text-slate-800 font-extrabold">{row.firstName} {row.lastName}</span>
+                          <span className="block text-[9px] text-[#7c191e] font-mono">{row.studentId}</span>
+                        </td>
+                        <td className="p-2.5 font-medium truncate max-w-[145px]">{row.email}</td>
+                        <td className="p-2.5 font-medium break-all">{row.program}</td>
+                        <td className="p-2.5">
+                          {row.alerts && row.alerts.length > 0 ? (
+                            <div className="space-y-0.5">
+                              {row.alerts.map((alert, aIdx) => (
+                                <span 
+                                  key={aIdx} 
+                                  className={`block text-[9px] px-1.5 py-0.5 rounded font-extrabold leading-tight ${
+                                    alert.type === 'error' 
+                                      ? 'bg-rose-50 border border-rose-100 text-rose-700' 
+                                      : 'bg-amber-50 border border-amber-100 text-amber-700'
+                                  }`}
+                                >
+                                  {alert.message}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-emerald-750 text-[10px] font-bold">✔️ Clean</span>
+                          )}
+                        </td>
+                        <td className="p-2.5 pr-4 text-right font-extrabold text-slate-800">{row.yearGraduated}</td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="p-8 text-center text-slate-400 font-semibold">
+                      No records match the current filters.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -499,39 +615,46 @@ export default function ImportView({ onImportAlumni, alumniList = [] }) {
           <div className="flex justify-between items-center pt-2">
             <span className="text-[10px] text-slate-400 font-bold max-w-sm">
               {hasErrors && (
-                <span className="text-rose-650 flex items-center gap-1">
-                  ⚠️ Import Blocked: Resolve critical database duplicates or format errors before continuing.
+                <span className="text-amber-600 flex items-center gap-1 font-extrabold">
+                  ⚠️ Note: {errorCount} records with critical errors will be filtered out and skipped.
                 </span>
               )}
             </span>
             <button
               onClick={async () => {
-                if (hasErrors) {
-                  alert('Roster cannot be imported. Please resolve all critical validation errors first.');
+                if (validRows.length === 0) {
+                  alert('There are no valid records to import.');
                   return;
                 }
                 setIsProcessing(true);
                 try {
-                  const cleanedRows = importPreview.map(({ alerts, ...rest }) => rest);
+                  const cleanedRows = validRows.map(({ alerts, ...rest }) => rest);
                   await onImportAlumni(cleanedRows);
                   setToastSuccess(true);
-                  setImportReport(`SUCCESS! Batch imported ${cleanedRows.length} alumni profiles.`);
+                  const skippedCount = importPreview.length - validRows.length;
+                  if (skippedCount > 0) {
+                    setImportReport(`SUCCESS! Batch imported ${cleanedRows.length} alumni profiles. Skipped ${skippedCount} invalid records.`);
+                  } else {
+                    setImportReport(`SUCCESS! Batch imported ${cleanedRows.length} alumni profiles.`);
+                  }
                   setTimeout(() => setToastSuccess(false), 5000);
                   setImportPreview([]);
+                  setSearchFilter('');
+                  setStatusFilter('All');
                 } catch (err) {
                   setImportError('Error saving imported records. Please re-check formatting.');
                 } finally {
                   setIsProcessing(false);
                 }
               }}
-              disabled={hasErrors}
+              disabled={validRows.length === 0}
               className={`px-5 py-2.5 font-extrabold text-xs rounded-lg transition shadow-md uppercase cursor-pointer ${
-                hasErrors 
+                validRows.length === 0 
                   ? 'bg-slate-350 text-slate-500 cursor-not-allowed shadow-none' 
                   : 'bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900'
               }`}
             >
-              Confirm Roster Import ({importPreview.length} Rows)
+              Confirm Roster Import ({validRows.length} Valid Rows)
             </button>
           </div>
         </div>

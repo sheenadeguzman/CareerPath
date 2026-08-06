@@ -130,6 +130,7 @@ export default function AlumniManagementView({
       {showImportModal && (
         <BulkImportModal 
           alumniList={alumniList}
+          activeUser={activeUser}
           onImportAlumni={onImportAlumni}
           setShowImportModal={setShowImportModal}
           triggerToast={triggerToast}

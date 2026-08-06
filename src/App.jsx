@@ -437,6 +437,7 @@ export default function App() {
               <ImportView
                 onImportAlumni={handleBulkImport}
                 alumniList={scopedAlumniList}
+                activeUser={activeUser}
               />
             )}
 
