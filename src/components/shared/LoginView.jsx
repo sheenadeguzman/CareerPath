@@ -36,7 +36,22 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     setErrorMessage('');
 
     // Check if there is a remembered username for this role in localStorage
-    const rememberedUsername = localStorage.getItem(`careerpath_last_username_${role}`);
+    let rememberedUsername = localStorage.getItem(`careerpath_last_username_${role}`);
+    
+    // Migrate legacy remembered usernames to new department names
+    const legacyMap = {
+      'chair_it': 'ICT Department',
+      'chair_htm': 'HTM Department',
+      'chair_educ': 'Teacher Education Department',
+      'chair_agri': 'Agriculture Department',
+      'chair_tech': 'Industrial Technology Department',
+      'chair_industech': 'Industrial Technology Department'
+    };
+    if (rememberedUsername && legacyMap[rememberedUsername]) {
+      rememberedUsername = legacyMap[rememberedUsername];
+      localStorage.setItem(`careerpath_last_username_${role}`, rememberedUsername);
+    }
+
     if (rememberedUsername) {
       setUserIdInput(rememberedUsername);
       setPasswordInput('');
