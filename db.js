@@ -168,11 +168,23 @@ export async function initializeDatabase() {
 
     // MIGRATION: Siguraduhing may tamang assigned academic program/department ang bawat Department Chairperson account at Alumni profiles.
     try {
-      // 1. I-update ang mga chairperson users sa kanilang kaukulang opisyal na Department names
-      await pool.query("UPDATE users SET program = 'Information and Communication Technology Department' WHERE user_id = 'chair_it'");
-      await pool.query("UPDATE users SET program = 'Teacher Education Department' WHERE user_id = 'chair_educ'");
-      await pool.query("UPDATE users SET program = 'Agriculture Department' WHERE user_id = 'chair_agri'");
-      await pool.query("UPDATE users SET program = 'Industrial Technology Department' WHERE user_id = 'chair_tech'");
+      // 1. I-update ang mga chairperson users sa kanilang kaukulang opisyal na Department names at bagong user_ids (Department itself)
+      // Una, i-rename ang existing user_ids kung sila ay nasa lumang format pa
+      try {
+        await pool.query("UPDATE users SET user_id = 'ICT Department' WHERE user_id = 'chair_it'");
+        await pool.query("UPDATE users SET user_id = 'HTM Department' WHERE user_id = 'chair_htm'");
+        await pool.query("UPDATE users SET user_id = 'Teacher Education Department' WHERE user_id = 'chair_educ'");
+        await pool.query("UPDATE users SET user_id = 'Agriculture Department' WHERE user_id = 'chair_agri'");
+        await pool.query("UPDATE users SET user_id = 'Industrial Technology Department' WHERE user_id IN ('chair_tech', 'chair_industech')");
+        console.log("Database Migration: Migrated legacy chairperson user_ids to official department names.");
+      } catch (e) {
+        console.error("Database Migration Error during user_id rename:", e);
+      }
+
+      await pool.query("UPDATE users SET program = 'Information and Communication Technology Department' WHERE user_id = 'ICT Department'");
+      await pool.query("UPDATE users SET program = 'Teacher Education Department' WHERE user_id = 'Teacher Education Department'");
+      await pool.query("UPDATE users SET program = 'Agriculture Department' WHERE user_id = 'Agriculture Department'");
+      await pool.query("UPDATE users SET program = 'Industrial Technology Department' WHERE user_id = 'Industrial Technology Department'");
 
       // Clean up old chairpersons and migrate to combined HTM chairperson
       try {
@@ -184,7 +196,7 @@ export async function initializeDatabase() {
       } catch (err) { }
 
       try {
-        const [htmCheck] = await pool.query("SELECT id FROM users WHERE user_id = 'chair_htm'");
+        const [htmCheck] = await pool.query("SELECT id FROM users WHERE user_id = 'HTM Department'");
         if (htmCheck.length === 0) {
           const hashedPassword = await bcrypt.hash('chair123', 10);
           await pool.query(
@@ -192,7 +204,7 @@ export async function initializeDatabase() {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               'bsc-chair-htm',
-              'chair_htm',
+              'HTM Department',
               hashedPassword,
               'Prof. Angela Castro',
               'chair.htm@bsc.edu.ph',
@@ -202,12 +214,12 @@ export async function initializeDatabase() {
               'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120'
             ]
           );
-          console.log("Database Migration: Seeded combined Hospitality and Tourism Management Chairperson (chair_htm)");
+          console.log("Database Migration: Seeded combined Hospitality and Tourism Management Chairperson (HTM Department)");
         } else {
-          await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'chair_htm'");
+          await pool.query("UPDATE users SET program = 'Hospitality and Tourism Management Department' WHERE user_id = 'HTM Department'");
         }
       } catch (err) {
-        console.error("Database Migration Error: Failed to seed chair_htm account:", err);
+        console.error("Database Migration Error: Failed to seed HTM Department account:", err);
       }
 
       // 2. I-update ang mga alumni profiles mula sa lumang maikling BS labels papunta sa mga opisyal na kurso ng BSC

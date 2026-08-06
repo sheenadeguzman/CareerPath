@@ -86,7 +86,7 @@ Before accessing the system, ensure your device meets the following requirements
 ### 3.3 Department Chairperson Procedures
 
 #### A. Auditing Scoped Placements & Course Analytics
-1.  Log into your Chairperson account (e.g., `chair_it`).
+1.  Log into your Chairperson account (e.g., `ICT Department`).
 2.  Go to the **Alumni Profiles** tab. The database registry list will automatically filter and restrict data to graduates under your department's courses.
 3.  Navigate to the **Reports** tab to review localized graduate employment rates, income brackets, and curricular job alignment charts.
     *   *Note*: Comparative rankings of other program metrics are locked from Chairperson views for security and are visible only to Portal Administrators.

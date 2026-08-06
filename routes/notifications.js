@@ -13,6 +13,44 @@ import { transporter } from './mailer.js';
 const router = express.Router();
 
 /**
+ * Helper function upang makuha ang opisyal na Department name mula sa email ng Chairperson.
+ */
+function getDepartmentFromEmail(email) {
+  const emailLower = email.toLowerCase();
+  if (emailLower.includes('it') || emailLower.includes('ict')) {
+    return 'Information and Communication Technology Department';
+  } else if (emailLower.includes('htm')) {
+    return 'Hospitality and Tourism Management Department';
+  } else if (emailLower.includes('educ')) {
+    return 'Teacher Education Department';
+  } else if (emailLower.includes('agri')) {
+    return 'Agriculture Department';
+  } else if (emailLower.includes('tech') || emailLower.includes('industech')) {
+    return 'Industrial Technology Department';
+  }
+  return 'General Department';
+}
+
+/**
+ * Helper function upang makuha ang maikling Department username/user_id mula sa email ng Chairperson.
+ */
+function getDepartmentAbbreviation(email) {
+  const emailLower = email.toLowerCase();
+  if (emailLower.includes('it') || emailLower.includes('ict')) {
+    return 'ICT Department';
+  } else if (emailLower.includes('htm')) {
+    return 'HTM Department';
+  } else if (emailLower.includes('educ')) {
+    return 'Teacher Education Department';
+  } else if (emailLower.includes('agri')) {
+    return 'Agriculture Department';
+  } else if (emailLower.includes('tech') || emailLower.includes('industech')) {
+    return 'Industrial Technology Department';
+  }
+  return 'Department';
+}
+
+/**
  * POST /api/invite-user
  * Endpoint para mag-invite ng bagong user (Alumni, Employer, o Chairperson).
  * Awtomatiko nitong ginagawan ng user account na may default password na 'bsc123'.
@@ -34,10 +72,14 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     const nameSeed = parts[0];
     
     // Matutukoy ang custom login user_id base sa role: 
-    // Kung Alumni, random student ID template. Kung Employer, ang email. Kung Chairperson, ang ngalan bago mag @.
+    // Kung Alumni, random student ID template. Kung Employer, ang email. Kung Chairperson, ang department mismo.
     const customUserId = role === 'Alumni' 
       ? `BSC-2026-${Math.floor(100 + Math.random() * 900)}` 
-      : (role === 'Employer' ? cleanEmail : nameSeed);
+      : (role === 'Employer' 
+          ? cleanEmail 
+          : (role === 'Department Chairperson' 
+              ? getDepartmentAbbreviation(cleanEmail) 
+              : nameSeed));
 
     const newUser = {
       id: `bsc-invited-${Date.now()}`,
@@ -48,7 +90,8 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
       isInitialPasswordNeeded: true,
       password: 'bsc123',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120',
-      companyId: null
+      companyId: null,
+      program: role === 'Department Chairperson' ? getDepartmentFromEmail(cleanEmail) : null
     };
 
     // Kung Employer ang in-invite, gumawa din ng stub company record sa employers table
@@ -70,9 +113,9 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     // I-hash ang default password na 'bsc123' at i-save ang bagong user credentials
     const hashedPassword = await bcrypt.hash(newUser.password, 10);
     await pool.query(
-      `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar, company_id) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [newUser.id, newUser.userId, hashedPassword, newUser.name, newUser.email, newUser.role, newUser.isInitialPasswordNeeded ? 1 : 0, newUser.avatar, newUser.companyId]
+      `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar, company_id, program) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newUser.id, newUser.userId, hashedPassword, newUser.name, newUser.email, newUser.role, newUser.isInitialPasswordNeeded ? 1 : 0, newUser.avatar, newUser.companyId, newUser.program || null]
     );
 
     // Kung Alumni ang in-invite, gumawa din ng blangkong record sa alumni_profiles

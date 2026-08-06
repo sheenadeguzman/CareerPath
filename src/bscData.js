@@ -44,7 +44,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'bsc-chair-it',
-    userId: 'chair_it',
+    userId: 'ICT Department',
     name: 'Dr. Mark Villanueva',
     email: 'chair.it@bsc.edu.ph',
     role: 'Department Chairperson',
@@ -54,7 +54,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'bsc-chair-htm',
-    userId: 'chair_htm',
+    userId: 'HTM Department',
     name: 'Prof. Angela Castro',
     email: 'chair.htm@bsc.edu.ph',
     role: 'Department Chairperson',
@@ -64,7 +64,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'bsc-chair-educ',
-    userId: 'chair_educ',
+    userId: 'Teacher Education Department',
     name: 'Dr. Evelyn Ramos',
     email: 'chair.educ@bsc.edu.ph',
     role: 'Department Chairperson',
@@ -74,7 +74,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'bsc-chair-agri',
-    userId: 'chair_agri',
+    userId: 'Agriculture Department',
     name: 'Prof. Jose Diaz',
     email: 'chair.agri@bsc.edu.ph',
     role: 'Department Chairperson',
@@ -85,7 +85,7 @@ export const INITIAL_USERS = [
 
   {
     id: 'bsc-chair-industech',
-    userId: 'chair_industech',
+    userId: 'Industrial Technology Department',
     name: 'Engr. Ronald Reyes',
     email: 'chair.tech@bsc.edu.ph',
     role: 'Department Chairperson',
