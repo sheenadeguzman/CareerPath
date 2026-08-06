@@ -286,6 +286,14 @@ export async function initializeDatabase() {
       await pool.query("ALTER TABLE job_postings ADD COLUMN contact_website VARCHAR(255) DEFAULT NULL");
       console.log('Database Migration: Added contact_website column to job_postings table.');
     } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN preferred_skills TEXT DEFAULT NULL");
+      console.log('Database Migration: Added preferred_skills column to job_postings table.');
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN experience_required INT DEFAULT 0");
+      console.log('Database Migration: Added experience_required column to job_postings table.');
+    } catch (e) { }
 
     // MIGRATION: Add languages to alumni_profiles table if missing
     try {

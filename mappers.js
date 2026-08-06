@@ -180,12 +180,27 @@ export function mapJobPostingFromDB(row) {
       reqsArr = row.requirements.split(',').map(r => r.trim()).filter(Boolean);
     }
   }
+
+  let prefArr = [];
+  if (row.preferred_skills) {
+    try {
+      prefArr = JSON.parse(row.preferred_skills);
+      if (!Array.isArray(prefArr)) {
+        prefArr = row.preferred_skills.split(',').map(r => r.trim()).filter(Boolean);
+      }
+    } catch {
+      prefArr = row.preferred_skills.split(',').map(r => r.trim()).filter(Boolean);
+    }
+  }
+
   return {
     id: row.id,
     jobTitle: row.job_title,
     employerName: row.employer_name,
     description: row.description,
     requirements: reqsArr,
+    preferredSkills: prefArr,
+    experienceRequired: row.experience_required || 0,
     employmentType: row.employment_type,
     salaryRange: row.salary_range,
     location: row.location,

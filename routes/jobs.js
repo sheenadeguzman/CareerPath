@@ -33,6 +33,8 @@ router.post('/save-job', authenticateToken, async (req, res) => {
     
     // I-serialize ang requirements array para maging JSON string
     const reqsStr = JSON.stringify(job.requirements || []);
+    const prefStr = JSON.stringify(job.preferredSkills || []);
+    const expReq = parseInt(job.experienceRequired) || 0;
     const deadline = job.deadline ? job.deadline : null;
 
     if (existing.length > 0) {
@@ -42,13 +44,13 @@ router.post('/save-job', authenticateToken, async (req, res) => {
           job_title = ?, employer_name = ?, description = ?, requirements = ?, 
           employment_type = ?, salary_range = ?, location = ?, slots = ?, 
           deadline = ?, status = ?, contact_person = ?, contact_email = ?,
-          contact_phone = ?, contact_website = ?
+          contact_phone = ?, contact_website = ?, preferred_skills = ?, experience_required = ?
          WHERE id = ?`,
         [
           job.jobTitle, job.employerName, job.description, reqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
           deadline, job.status, job.contactPerson || null, job.contactEmail || null,
-          job.contactPhone || null, job.contactWebsite || null, jobId
+          job.contactPhone || null, job.contactWebsite || null, prefStr, expReq, jobId
         ]
       );
     } else {
@@ -57,13 +59,13 @@ router.post('/save-job', authenticateToken, async (req, res) => {
         `INSERT INTO job_postings (
           id, job_title, employer_name, description, requirements, 
           employment_type, salary_range, location, slots, deadline, status,
-          contact_person, contact_email, contact_phone, contact_website
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          contact_person, contact_email, contact_phone, contact_website, preferred_skills, experience_required
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           jobId, job.jobTitle, job.employerName, job.description, reqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
           deadline, job.status || 'Open', job.contactPerson || null, job.contactEmail || null,
-          job.contactPhone || null, job.contactWebsite || null
+          job.contactPhone || null, job.contactWebsite || null, prefStr, expReq
         ]
       );
     }

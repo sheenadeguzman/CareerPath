@@ -103,13 +103,13 @@ Before accessing the system, ensure your device meets the following requirements
 #### A. Managing Job Postings
 1.  Navigate to the **Job Vacancies** tab.
 2.  Click **Post Job Vacancy**.
-3.  Fill out the Job Title, Salary Range, Description, Location, and Required Skills (keywords separated by commas, e.g., `React, SQL, Java`).
+3.  Fill out the Job Title, Salary Range, Description, Location, Required Skills, Preferred Skills (separated by commas), and Years of Experience Required.
 4.  Click **Confirm Job Posting** to publish it to the Career Bulletin.
 
 #### B. Scanning Matched Alumni
 1.  Go to the **Skills Matching** tab.
 2.  Select your posted job vacancy from the dropdown.
-3.  Review the matching graduates roster. The match engine computes a **Hybrid Fit Score** (60% based on skills keywords overlap, 40% on academic program compatibility).
+3.  Review the matching graduates roster. The match engine computes a **Weighted Match Score** (60% based on Required Skills overlap, 20% on Preferred Skills overlap, and 20% on Years of Experience alignment).
 4.  Click **Contact Talented Grad** to initiate an administrative invitation.
 
 #### C. Submitting Curriculum evaluations

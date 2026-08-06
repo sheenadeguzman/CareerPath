@@ -25,6 +25,8 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     employerName: employers[0]?.companyName || '',
     description: '',
     requirements: [],
+    preferredSkills: [],
+    experienceRequired: 0,
     employmentType: 'Regular/Permanent',
     salaryRange: 'P 18,000 - P 25,000',
     location: 'Basco, Batanes',
@@ -38,6 +40,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
   });
 
   const [reqInput, setReqInput] = useState('');
+  const [prefInput, setPrefInput] = useState('');
 
   // Mga Coordinate ng Lokasyon (Ang BSC Main Campus sa Basco ang gitnang punto)
   const LOCATION_COORDINATES = {
@@ -98,12 +101,15 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     }
 
     const separatedReqs = reqInput.split(',').map(r => r.trim()).filter(r => r.length > 0);
+    const separatedPrefs = prefInput.split(',').map(r => r.trim()).filter(r => r.length > 0);
 
     const submission = {
       ...newJob,
       employerName: activeUser.role === 'Employer' ? loggedInEmpName : newJob.employerName,
       id: newJob.id || `job-${Date.now()}`,
       requirements: separatedReqs.length > 0 ? separatedReqs : ['None specified'],
+      preferredSkills: separatedPrefs,
+      experienceRequired: parseInt(newJob.experienceRequired) || 0,
       status: newJob.status || 'Open'
     };
 
@@ -120,6 +126,8 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       employerName: employers[0]?.companyName || '',
       description: '',
       requirements: [],
+      preferredSkills: [],
+      experienceRequired: 0,
       employmentType: 'Regular/Permanent',
       salaryRange: 'P 18,000 - P 25,000',
       location: 'Basco, Batanes',
@@ -132,6 +140,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       contactWebsite: ''
     });
     setReqInput('');
+    setPrefInput('');
   };
 
   const handleEditClick = (job) => {
@@ -141,6 +150,8 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       employerName: job.employerName,
       description: job.description,
       requirements: job.requirements || [],
+      preferredSkills: job.preferredSkills || [],
+      experienceRequired: job.experienceRequired || 0,
       employmentType: job.employmentType || 'Regular/Permanent',
       salaryRange: job.salaryRange || 'P 18,000 - P 25,000',
       location: job.location || 'Basco, Batanes',
@@ -153,6 +164,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       contactWebsite: job.contactWebsite || ''
     });
     setReqInput((job.requirements || []).join(', '));
+    setPrefInput((job.preferredSkills || []).join(', '));
     setIsEditing(true);
     setIsPosting(true);
   };  const filteredJobs = jobPostings.filter(job => {
@@ -357,14 +369,38 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 </div>
 
                 {/* Requirements tags and chips */}
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Basic Competency Requirements:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {job.requirements.map(req => (
-                      <span key={req} className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/50 rounded text-[9px] font-bold">
-                        {req}
-                      </span>
-                    ))}
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Basic Competency Requirements (Required Skills):</span>
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {job.requirements.map(req => (
+                        <span key={req} className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/50 rounded text-[9px] font-bold">
+                          {req}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {job.preferredSkills && job.preferredSkills.length > 0 && (
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Preferred Competencies (Skills):</span>
+                      <div className="flex flex-wrap gap-1 mt-0.5">
+                        {job.preferredSkills.map(pref => (
+                          <span key={pref} className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-250/70 rounded text-[9px] font-bold">
+                            {pref}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Experience Required:</span>
+                    <span className="text-[10.5px] font-bold text-slate-700 block mt-0.5">
+                      {job.experienceRequired && job.experienceRequired > 0 
+                        ? `${job.experienceRequired} ${job.experienceRequired <= 1 ? 'Year' : 'Years'} of Experience` 
+                        : 'Entry-Level / No Experience Required'}
+                    </span>
                   </div>
                 </div>
 
@@ -535,6 +571,29 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                     placeholder="e.g., HTML, React, Customer Service, TESDA Cert"
                     value={reqInput}
                     onChange={(e) => setReqInput(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-500 mb-1">Preferred Competencies (Split multiple values by comma)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Node.js, Next.js, MySQL, Git"
+                    value={prefInput}
+                    onChange={(e) => setPrefInput(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-500 mb-1">Experience Required (Years)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 2 (use 0 for entry-level / no experience required)"
+                    value={newJob.experienceRequired}
+                    onChange={(e) => setNewJob({ ...newJob, experienceRequired: parseInt(e.target.value) || 0 })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
                   />
                 </div>
