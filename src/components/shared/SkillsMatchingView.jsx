@@ -95,106 +95,31 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
   };
 
   // Algoritmo sa Pagtutugma (Match Algorithm): tinitingnan kung gaano karaming kasanayan ng alumni ang tumutugma sa requirements ng activeJob
-  // Helper function para kalkulahin ang kabuuang taon ng karanasan ng alumni
-  const calculateAlumniExperience = (al) => {
-    let totalYears = 0;
-
-    // 1. Kalkulahin mula sa careerHistory timeline
-    if (al.careerHistory && Array.isArray(al.careerHistory)) {
-      al.careerHistory.forEach(item => {
-        const yearsStr = (item.years || '').toString().trim();
-        if (!yearsStr) return;
-
-        // Halimbawa: "2020 - 2022"
-        const rangeMatch = yearsStr.match(/(\d{4})\s*-\s*(\d{4})/);
-        if (rangeMatch) {
-          const start = parseInt(rangeMatch[1]);
-          const end = parseInt(rangeMatch[2]);
-          totalYears += Math.max(1, end - start);
-          return;
-        }
-
-        // Halimbawa: "2020 - Present" o "2020 - Kasalukuyan"
-        const presentMatch = yearsStr.match(/(\d{4})\s*-\s*(Present|Kasalukuyan|Current)/i);
-        if (presentMatch) {
-          const start = parseInt(presentMatch[1]);
-          const currentYear = new Date().getFullYear();
-          totalYears += Math.max(1, currentYear - start);
-          return;
-        }
-
-        // Halimbawa: "2 years", "3 taon", "1.5 yrs"
-        const numYearsMatch = yearsStr.match(/(\d+(?:\.\d+)?)\s*(?:year|yr|taon|ann)/i);
-        if (numYearsMatch) {
-          totalYears += parseFloat(numYearsMatch[1]);
-          return;
-        }
-
-        // Kung numero lang ang nilagay (hal. "3")
-        const justNum = parseFloat(yearsStr);
-        if (!isNaN(justNum) && justNum < 50) {
-          totalYears += justNum;
-          return;
-        }
-      });
-    }
-
-    // 2. Kalkulahin mula sa kasalukuyang trabaho
-    if (al.employmentStatus === 'Employed' || al.employmentStatus === 'Self-Employed') {
-      if (al.jobStartYear) {
-        const start = parseInt(al.jobStartYear);
-        if (!isNaN(start) && start > 1900) {
-          const currentYear = new Date().getFullYear();
-          totalYears += Math.max(1, currentYear - start);
-        } else {
-          totalYears += 1;
-        }
-      } else {
-        totalYears += 1;
-      }
-    }
-
-    return Math.round(totalYears * 10) / 10;
-  };
-
   // Algoritmo sa Pagtutugma (Match Algorithm): tinitingnan kung gaano karaming kasanayan ng alumni ang tumutugma sa requirements ng activeJob
   const matchedAlumni = registeredAlumniList.map(al => {
-    // 1. Required Skills Overlap & Score (60% weight)
+    // Fina-filter ang mga overlapping skills gamit ang case-insensitive comparison
     const overlappingSkills = al.skills.filter(skill => 
       reqSkills.some(req => req.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(req.toLowerCase()))
     );
+
+    // 1. Skills Overlap Score (60% weight)
     const skillsScore = reqSkills.length > 0 
       ? Math.round((overlappingSkills.length / reqSkills.length) * 100) 
+      : 0;
+
+    // 2. Academic Program Alignment Score (40% weight)
+    const programAlignment = activeJob 
+      ? calculateProgramAlignment(al.program, activeJob.jobTitle, activeJob.description) 
       : 100;
 
-    // 2. Preferred Skills Overlap & Score (20% weight)
-    const prefSkills = activeJob?.preferredSkills || [];
-    const overlappingPreferredSkills = al.skills.filter(skill =>
-      prefSkills.some(pref => pref.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(pref.toLowerCase()))
-    );
-    const preferredSkillsScore = prefSkills.length > 0
-      ? Math.round((overlappingPreferredSkills.length / prefSkills.length) * 100)
-      : 100;
-
-    // 3. Years of Experience Match & Score (20% weight)
-    const alumnusExperience = calculateAlumniExperience(al);
-    const experienceRequired = activeJob?.experienceRequired || 0;
-    const experienceScore = experienceRequired > 0
-      ? Math.min(100, Math.round((alumnusExperience / experienceRequired) * 100))
-      : 100;
-
-    // 4. Combined Weighted Fit Score
-    const hybridScore = Math.round((skillsScore * 0.6) + (preferredSkillsScore * 0.2) + (experienceScore * 0.2));
+    // 3. Hybrid Fit Score
+    const hybridScore = Math.round((skillsScore * 0.6) + (programAlignment * 0.4));
 
     return {
       alumni: al,
       overlappingSkills,
-      overlappingPreferredSkills,
       skillsScore,
-      preferredSkillsScore,
-      experienceScore,
-      alumnusExperience,
-      experienceRequired,
+      programAlignment,
       hybridScore
     };
   }).filter(item => item.skillsScore > 0 || item.hybridScore >= 30) // Pinapakita lamang ang mga alumni na may kahit kaunting overlap o katuturan
@@ -333,38 +258,14 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                 <p className="text-xs text-slate-550 font-medium leading-relaxed">{activeJob.description}</p>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Prerequisite Competencies Required:</span>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {reqSkills.map(req => (
-                      <span key={req} className="px-2.5 py-1 bg-[#1e4620]/10 text-[#1e4620] rounded-md font-bold text-[10px] border border-[#1e4620]/20">
-                        {req}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {activeJob.preferredSkills && activeJob.preferredSkills.length > 0 && (
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Preferred Competencies Required:</span>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {activeJob.preferredSkills.map(pref => (
-                        <span key={pref} className="px-2.5 py-1 bg-amber-50 text-amber-800 rounded-md font-bold text-[10px] border border-amber-200">
-                          {pref}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Experience Required:</span>
-                  <span className="text-xs font-bold text-slate-700 block mt-1">
-                    {activeJob.experienceRequired && activeJob.experienceRequired > 0 
-                      ? `${activeJob.experienceRequired} ${activeJob.experienceRequired <= 1 ? 'Year' : 'Years'} of Experience` 
-                      : 'Entry-Level / No Experience Required'}
-                  </span>
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Prerequisite Competencies Required:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {reqSkills.map(req => (
+                    <span key={req} className="px-2.5 py-1 bg-[#1e4620]/10 text-[#1e4620] rounded-md font-bold text-[10px] border border-[#1e4620]/20">
+                      {req}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -420,7 +321,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           <div className="lg:col-span-2 bg-white rounded-xl shadow-xs border border-slate-100 p-6 space-y-5">
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Matching Graduates Profile Pool ({matchedAlumni.length})</span>
-              <span className="text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold">Weighted Match Score Engine</span>
+              <span className="text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold">Hybrid Match Score Engine</span>
             </div>
 
             {matchedAlumni.length === 0 ? (
@@ -463,18 +364,13 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                               <Check className="w-2.5 h-2.5" /> {os}
                             </span>
                           ))}
-                          {item.overlappingPreferredSkills && item.overlappingPreferredSkills.map(ops => (
-                            <span key={ops} className="px-2 py-0.5 bg-amber-500/10 text-amber-800 border border-amber-300 rounded text-[9px] font-bold flex items-center gap-1" title="Preferred Skill Match">
-                              <Check className="w-2.5 h-2.5" /> {ops} (Pref)
-                            </span>
-                          ))}
                         </div>
                       </div>
                     </div>
 
                     {/* Score metric sa kanang panig (Hybrid Placement Fit score at mabilisang aksyon) */}
                     <div className="text-left sm:text-right space-y-1 sm:self-center shrink-0 min-w-[120px]">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Weighted Match Score</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Hybrid Fit Score</div>
                       <div className="flex items-center gap-2 justify-start sm:justify-end">
                         <span className={`text-sm font-extrabold ${
                           item.hybridScore >= 70 ? 'text-emerald-600' : item.hybridScore >= 40 ? 'text-amber-500' : 'text-slate-500'
@@ -491,9 +387,8 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                         </div>
                       </div>
                       <div className="text-[9px] text-slate-450 leading-tight">
-                        Required Match: <strong className="text-slate-700">{item.skillsScore}%</strong><br/>
-                        Preferred Match: <strong className="text-slate-700">{item.preferredSkillsScore}%</strong><br/>
-                        Experience Match: <strong className="text-slate-700">{item.experienceScore}%</strong> <span className="text-[8px] text-slate-400">({item.alumnusExperience} yr{item.alumnusExperience === 1 ? '' : 's'} vs {item.experienceRequired} yr{item.experienceRequired === 1 ? '' : 's'} req)</span>
+                        Skills Overlap: <strong className="text-slate-700">{item.skillsScore}%</strong><br/>
+                        Program Fit: <strong className="text-slate-700">{item.programAlignment}%</strong>
                       </div>
                       <button 
                         onClick={() => {
