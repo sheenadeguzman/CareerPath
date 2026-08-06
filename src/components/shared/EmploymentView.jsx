@@ -85,7 +85,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
     if (selectedStatus === 'Employed') {
       matchesStatus = a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus);
     } else if (selectedStatus === 'Unemployed') {
-      matchesStatus = !a.isRegistered || a.employmentStatus === 'Unemployed';
+      matchesStatus = !a.isRegistered || a.employmentStatus === 'Unemployed' || a.employmentStatus === 'No Response';
     } else if (selectedStatus !== 'All') {
       matchesStatus = a.isRegistered && a.employmentStatus === selectedStatus;
     }
@@ -314,7 +314,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
       const fullName = `${last}, ${first} ${middle} ${suffix}`.replace(/\s+/g, ' ').trim();
       const name = `"${fullName}"`;
       const isEmployed = a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus);
-      return `${idx + 1},"${a.studentId}",${name},"${a.program}",${a.yearGraduated},"${isEmployed ? a.employmentStatus : 'Unemployed'}","${a.jobTitle || 'N/A'}","${a.employerName || 'N/A'}","${a.monthlyIncome || 'N/A'}","${a.jobRelatedToCourse || 'N/A'}","${a.timeToFirstJob || 'N/A'}"`;
+      return `${idx + 1},"${a.studentId}",${name},"${a.program}",${a.yearGraduated},"${isEmployed ? a.employmentStatus : (a.employmentStatus || 'No Response')}","${a.jobTitle || 'N/A'}","${a.employerName || 'N/A'}","${a.monthlyIncome || 'N/A'}","${a.jobRelatedToCourse || 'N/A'}","${a.timeToFirstJob || 'N/A'}"`;
     }).join('\n');
 
     const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });

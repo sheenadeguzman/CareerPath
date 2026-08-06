@@ -253,7 +253,7 @@ export default function ImportView({ onImportAlumni, alumniList = [], activeUser
         const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'Bachelor of Science in Information Technology';
         const officialProg = getBSCProgram(rowProg) || rowProg;
         const rowYear = yearIdx !== -1 && cols[yearIdx] ? parseInt(cols[yearIdx]) || 2026 : 2026;
-        const rowStatus = statusIdx !== -1 && cols[statusIdx] ? cols[statusIdx] : 'Unemployed';
+        const rowStatus = statusIdx !== -1 && cols[statusIdx] ? cols[statusIdx] : 'No Response';
 
         formatted.push({
           studentId: rowStudentId.trim(),
@@ -309,7 +309,7 @@ export default function ImportView({ onImportAlumni, alumniList = [], activeUser
                 email: (item.email || `${studentId.toLowerCase()}@gmail.com`).trim(),
                 program: getBSCProgram(item.program || item.degree || 'Bachelor of Science in Information Technology') || (item.program || item.degree || 'Bachelor of Science in Information Technology').trim(),
                 yearGraduated: parseInt(item.yearGraduated || item.graduated || item.year) || 2026,
-                employmentStatus: (item.employmentStatus || item.status || 'Unemployed').trim()
+                employmentStatus: (item.employmentStatus || item.status || 'No Response').trim()
               };
             });
           } else {

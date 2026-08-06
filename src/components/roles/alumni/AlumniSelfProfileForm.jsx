@@ -344,6 +344,11 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     e.preventDefault();
     if (!selfEditForm) return;
 
+    if (!selfEditForm.employmentStatus || selfEditForm.employmentStatus === 'No Response') {
+      alert('Please select your primary employment status.');
+      return;
+    }
+
     let filledFields = 0;
 
     // Listahan ng mga pangkalahatang field na titingnan kung may laman
@@ -366,7 +371,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     }
 
     // Kung may trabaho naman, tingnan ang mga field na may kinalaman sa trabaho
-    if (selfEditForm.employmentStatus !== 'Unemployed') {
+    if (selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response') {
       const empFields = [
         'jobTitle', 'jobDescription', 'employerName', 'employmentType', 'sector',
         'monthlyIncome', 'findFirstJob', 'reasonsAcceptingJob', 'jobIndustry', 'firstJobRelatedToCourse'

@@ -29,7 +29,7 @@ export default function AddAlumnusModal({ activeUser, onSaveAlumni, setIsAddingA
     professionalExamPassed: 'None',
     isInitialPasswordNeeded: true,
     skills: [],
-    employmentStatus: 'Unemployed',
+    employmentStatus: 'No Response',
     companyName: '',
     jobTitle: '',
     monthlySalary: 'None',

@@ -553,7 +553,7 @@ export default function TracerForm({
             <div>
               <label className="block text-slate-400 mb-1">Primary Employment Status</label>
               <select
-                value={selfEditForm.employmentStatus}
+                value={selfEditForm.employmentStatus === 'No Response' ? '' : selfEditForm.employmentStatus}
                 onChange={(e) => setSelfEditForm({ ...selfEditForm, employmentStatus: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
               >
@@ -572,7 +572,7 @@ export default function TracerForm({
             </div>
 
             {/* Conditional Rendering: Ipakita lamang ang mga field ng trabaho kung HINDI unemployed ang user */}
-            {selfEditForm.employmentStatus !== 'Unemployed' && (
+            {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && (
               <>
                 <div>
                   <label className="block text-slate-400 mb-1">Geographic Location Region</label>
@@ -793,7 +793,7 @@ export default function TracerForm({
           )}
 
           {/* Description ng Trabaho */}
-          {selfEditForm.employmentStatus !== 'Unemployed' && (
+          {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && (
             <div>
               <label className="block text-slate-400 mb-1">Detailed Job Description &amp; Core Tasks</label>
               <textarea
@@ -882,7 +882,7 @@ export default function TracerForm({
             {/* Listahan ng kasalukuyang naitalang Timeline Events */}
             <div className="space-y-2 font-sans">
               {/* Render current job as the first timeline item if employed */}
-              {selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employerName && selfEditForm.jobTitle && (
+              {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && selfEditForm.employerName && selfEditForm.jobTitle && (
                 <div className="flex justify-between items-center bg-amber-50/50 p-3 rounded-lg border border-amber-200/60 shadow-3xs">
                   <div>
                     <span className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">

@@ -339,7 +339,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const furtherStudies = registeredAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
   const unregistered = total - totalRegistered;
   // Tinuturing na bahagi ng unemployed o naghahanap ng trabaho ang mga hindi nagparehistro o walang tugon
-  const unemployed = registeredAlumni.filter(a => a.employmentStatus === 'Unemployed').length + unregistered;
+  const unemployed = registeredAlumni.filter(a => a.employmentStatus === 'Unemployed' || a.employmentStatus === 'No Response').length + unregistered;
 
   const employedCount = employed + freelance + selfEmployed;
   const employedRate = Math.round((employedCount / total) * 100);
@@ -399,7 +399,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       )
     );
     const subTotal = subset.length;
-    const subEmployed = subset.filter(a => a.isRegistered && a.employmentStatus !== 'Unemployed').length;
+    const subEmployed = subset.filter(a => a.isRegistered && a.employmentStatus !== 'Unemployed' && a.employmentStatus !== 'No Response').length;
     return {
       name: progName,
       total: subTotal,
@@ -495,7 +495,7 @@ export default function ReportsView({ alumniList, activeUser }) {
                 const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
                 const skillsStr = (a.skills || []).join('; ');
 
-                return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'Unemployed'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
+                return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
               }).join('\n');
 
               const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });

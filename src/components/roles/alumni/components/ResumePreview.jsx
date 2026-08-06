@@ -1,11 +1,16 @@
 import React from 'react';
 
 export default function ResumePreview({
-  selfEditForm,
+  selfEditForm: rawForm,
   selectedTemplate,
   cvOptions,
   paperSize = 'letter'
 }) {
+  const selfEditForm = rawForm ? {
+    ...rawForm,
+    employmentStatus: rawForm.employmentStatus === 'No Response' ? 'Unemployed' : (rawForm.employmentStatus || 'Unemployed')
+  } : {};
+
   const paperStyles = {
     letter: {
       maxWidth: '8.5in',

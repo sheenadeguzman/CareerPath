@@ -60,7 +60,7 @@ export default function AlumniManagementView({
         yearGraduated: 2026,
         honors: 'None',
         professionalExamPassed: 'None',
-        employmentStatus: 'Unemployed',
+        employmentStatus: 'No Response',
         jobTitle: '',
         jobDescription: '',
         employerName: '',

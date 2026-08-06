@@ -132,7 +132,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           newUser.id, defaultFirstName, defaultLastName, cleanEmail, '', 'Male', 'Single',
-          null, '', 'BS Information Technology', 2026, 'None', 'None', 'Unemployed', '', '', '', '', '', '', 'No', '', '[]', 30
+          null, '', 'BS Information Technology', 2026, 'None', 'None', 'No Response', '', '', '', '', '', '', 'No', '', '[]', 30
         ]
       );
     }

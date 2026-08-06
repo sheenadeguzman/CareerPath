@@ -409,7 +409,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
             studentId, row.firstName || name.split(' ')[0], row.lastName || name.split(' ').slice(1).join(' '),
             email, row.phone || '', row.gender || 'Male', row.civilStatus || 'Single',
             row.dateOfBirth ? row.dateOfBirth : null, row.address || 'Basco, Batanes', program, yearGraduated,
-            row.honors || 'None', row.professionalExamPassed || 'None', row.employmentStatus || 'Unemployed',
+            row.honors || 'None', row.professionalExamPassed || 'None', row.employmentStatus || 'No Response',
             row.jobTitle || '', row.jobDescription || '', row.employerName || '', row.employmentType || '',
             row.sector || 'N/A', row.monthlyIncome || '', row.jobRelatedToCourse || 'No', row.timeToFirstJob || '',
             skillsStr, 40,
