@@ -407,13 +407,13 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             studentId, row.firstName || name.split(' ')[0], row.lastName || name.split(' ').slice(1).join(' '),
-            email, row.phone || '', row.gender || 'Male', row.civilStatus || 'Single',
-            row.dateOfBirth ? row.dateOfBirth : null, row.address || 'Basco, Batanes', program, yearGraduated,
-            row.honors || 'None', row.professionalExamPassed || 'None', row.employmentStatus || 'No Response',
+            email, row.phone || '', row.gender || '', row.civilStatus || '',
+            row.dateOfBirth ? row.dateOfBirth : null, row.address || '', program, yearGraduated,
+            row.honors || '', row.professionalExamPassed || '', row.employmentStatus || 'No Response',
             row.jobTitle || '', row.jobDescription || '', row.employerName || '', row.employmentType || '',
-            row.sector || 'N/A', row.monthlyIncome || '', row.jobRelatedToCourse || 'No', row.timeToFirstJob || '',
+            row.sector || '', row.monthlyIncome || '', row.jobRelatedToCourse || '', row.timeToFirstJob || '',
             skillsStr, 40,
-            row.locationRegion || 'Local (Batanes)', JSON.stringify(row.careerHistory || [])
+            row.locationRegion || '', JSON.stringify(row.careerHistory || [])
           ]
         );
 

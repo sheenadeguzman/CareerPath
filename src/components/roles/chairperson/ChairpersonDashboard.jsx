@@ -71,6 +71,9 @@ export default function ChairpersonDashboard({
   const selfEmployedAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
   const furtherStudiesAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
   const unemployedAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Unemployed').length;
+  const noResponseAlumni = registeredDeptAlumni.filter(a => 
+    !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
+  ).length;
   
   const employedCount = employedAlumni + freelanceAlumni + selfEmployedAlumni;
   const employmentRate = totalDeptAlumni > 0 ? ((employedCount / totalDeptAlumni) * 100).toFixed(1) : '0';
@@ -120,6 +123,7 @@ export default function ChairpersonDashboard({
     const selfPct = Math.round((selfEmployedAlumni / total) * 100);
     const furtherPct = Math.round((furtherStudiesAlumni / total) * 100);
     const unemployedPct = Math.round((unemployedAlumni / total) * 100);
+    const noResponsePct = Math.round((noResponseAlumni / total) * 100);
     const unregisteredPct = Math.round((unregisteredDeptAlumni / total) * 100);
 
     return {
@@ -128,6 +132,7 @@ export default function ChairpersonDashboard({
       self: selfPct,
       furtherStudies: furtherPct,
       unemployed: unemployedPct,
+      noResponse: noResponsePct,
       unregistered: unregisteredPct
     };
   })();
@@ -156,6 +161,8 @@ export default function ChairpersonDashboard({
         return { label: 'Further Studies', value: `${pieSegments.furtherStudies}%`, sub: `${furtherStudiesAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
       case 'unemployed':
         return { label: 'Unemployed', value: `${pieSegments.unemployed}%`, sub: `${unemployedAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
+      case 'noResponse':
+        return { label: 'No Response', value: `${pieSegments.noResponse}%`, sub: `${noResponseAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
       case 'unregistered':
         return { label: 'Unregistered', value: `${pieSegments.unregistered}%`, sub: `${unregisteredDeptAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
       default:
@@ -492,11 +499,35 @@ export default function ChairpersonDashboard({
                   }}
                 />
 
+                {/* Segment para sa No Response */}
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#64748b" 
+                  strokeWidth={hoveredDeptSegment === 'noResponse' ? 18 : 12}
+                  strokeDasharray={`${(pieSegments.noResponse / 100) * 251.2} 251.2`} 
+                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed) / 100) * 251.2}`}
+                  className="donut-chart-segment cursor-pointer"
+                  onMouseEnter={(e) => {
+                    setHoveredDeptSegment('noResponse');
+                    setTooltip({
+                      x: e.clientX,
+                      y: e.clientY,
+                      title: 'No Response',
+                      value: `${noResponseAlumni} Graduates (${pieSegments.noResponse}%)`
+                    });
+                  }}
+                  onMouseMove={(e) => {
+                    setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredDeptSegment(null);
+                    setTooltip(null);
+                  }}
+                />
+
                 {/* Segment para sa Unregistered */}
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" 
                   strokeWidth={hoveredDeptSegment === 'unregistered' ? 18 : 12}
                   strokeDasharray={`${(pieSegments.unregistered / 100) * 251.2} 251.2`} 
-                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed) / 100) * 251.2}`}
+                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed + pieSegments.noResponse) / 100) * 251.2}`}
                   className="donut-chart-segment cursor-pointer"
                   onMouseEnter={(e) => {
                     setHoveredDeptSegment('unregistered');
@@ -546,6 +577,10 @@ export default function ChairpersonDashboard({
                 <div className="flex items-center gap-1.5 text-xs font-semibold">
                   <span className="w-2 h-2 bg-rose-500 rounded-xs block" />
                   <span className="text-slate-650">Unemployed: {unemployedAlumni} ({pieSegments.unemployed}%)</span>
+                </div>
+                 <div className="flex items-center gap-1.5 text-xs font-semibold">
+                  <span className="w-2 h-2 bg-slate-500 rounded-xs block" />
+                  <span className="text-slate-655">No Response: {noResponseAlumni} ({pieSegments.noResponse}%)</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold">
                   <span className="w-2 h-2 bg-slate-400 rounded-xs block" />
