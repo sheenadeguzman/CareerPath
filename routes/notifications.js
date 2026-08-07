@@ -131,8 +131,8 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
           job_related_to_course, time_to_first_job, skills, profile_completeness
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          newUser.id, defaultFirstName, defaultLastName, cleanEmail, '', '', '',
-          null, '', newUser.program || 'Bachelor of Science in Information Technology', 2026, '', '', 'No Response', '', '', '', '', '', '', '', '', '[]', 30
+          newUser.id, defaultFirstName, defaultLastName, cleanEmail, '', 'Other', 'Single',
+          null, '', newUser.program || 'Bachelor of Science in Information Technology', 2026, '', '', 'Unemployed', '', '', '', '', 'N/A', '', 'No', '', '[]', 30
         ]
       );
     }

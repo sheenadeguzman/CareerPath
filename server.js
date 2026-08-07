@@ -14,7 +14,7 @@ import os from 'os';
 dotenv.config();
 
 // I-import ang database pools at routing modules
-import { initializeDatabase, pool } from './db.js';
+import { initializeDatabase } from './db.js';
 import authRouter from './routes/auth.js';
 import alumniRouter from './routes/alumni.js';
 import employersRouter from './routes/employers.js';
@@ -49,15 +49,6 @@ async function startServer() {
 
   // I-initialize at patakbuhin ang database connections & migrations
   await initializeDatabase();
-
-  app.get('/api/debug-db-columns', async (req, res) => {
-    try {
-      const [cols] = await pool.query('DESCRIBE alumni_profiles');
-      res.json({ success: true, columns: cols });
-    } catch (e) {
-      res.status(500).json({ error: e.message });
-    }
-  });
 
   // =========================================================================
   // MOUNT API ROUTERS

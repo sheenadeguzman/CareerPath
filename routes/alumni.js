@@ -391,6 +391,26 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
           [studentId, studentId, hashedPassword, name, email, 'Alumni', 1, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120']
         );
 
+        // Map and validate enum columns to prevent strict mode DB errors
+        const validGenders = ['Male', 'Female', 'Other'];
+        let genderVal = 'Other';
+        if (row.gender && validGenders.includes(row.gender)) {
+          genderVal = row.gender;
+        } else if (row.gender === 'Others') {
+          genderVal = 'Other';
+        }
+
+        const validCivilStatus = ['Single', 'Married', 'Single Parent', 'Widowed'];
+        const civilStatusVal = (row.civilStatus && validCivilStatus.includes(row.civilStatus)) 
+          ? row.civilStatus 
+          : 'Single';
+
+        const validEmploymentStatus = ['Employed', 'Self-Employed', 'Unemployed'];
+        let employmentStatusVal = 'Unemployed';
+        if (row.employmentStatus && validEmploymentStatus.includes(row.employmentStatus)) {
+          employmentStatusVal = row.employmentStatus;
+        }
+
         // I-parse at i-serialize ang lists (tulad ng skills array)
         const skillsArr = row.skills ? (typeof row.skills === 'string' ? row.skills.split(', ').filter(Boolean) : row.skills) : [];
         const skillsStr = JSON.stringify(skillsArr);
@@ -407,11 +427,11 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             studentId, row.firstName || name.split(' ')[0], row.lastName || name.split(' ').slice(1).join(' '),
-            email, row.phone || '', row.gender || '', row.civilStatus || '',
+            email, row.phone || '', genderVal, civilStatusVal,
             row.dateOfBirth ? row.dateOfBirth : null, row.address || '', program, yearGraduated,
-            row.honors || '', row.professionalExamPassed || '', row.employmentStatus || 'No Response',
+            row.honors || '', row.professionalExamPassed || '', employmentStatusVal,
             row.jobTitle || '', row.jobDescription || '', row.employerName || '', row.employmentType || '',
-            row.sector || '', row.monthlyIncome || '', row.jobRelatedToCourse || '', row.timeToFirstJob || '',
+            row.sector || 'N/A', row.monthlyIncome || '', row.jobRelatedToCourse || 'No', row.timeToFirstJob || '',
             skillsStr, 40,
             row.locationRegion || '', JSON.stringify(row.careerHistory || [])
           ]
