@@ -393,7 +393,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
 
         // Map and validate enum columns to prevent strict mode DB errors
         const validGenders = ['Male', 'Female', 'Other'];
-        let genderVal = 'Other';
+        let genderVal = null;
         if (row.gender && validGenders.includes(row.gender)) {
           genderVal = row.gender;
         } else if (row.gender === 'Others') {
@@ -403,7 +403,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
         const validCivilStatus = ['Single', 'Married', 'Single Parent', 'Widowed'];
         const civilStatusVal = (row.civilStatus && validCivilStatus.includes(row.civilStatus)) 
           ? row.civilStatus 
-          : 'Single';
+          : null;
 
         const validEmploymentStatus = ['Employed', 'Self-Employed', 'Unemployed'];
         let employmentStatusVal = 'Unemployed';

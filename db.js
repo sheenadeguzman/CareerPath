@@ -267,6 +267,16 @@ export async function initializeDatabase() {
     } catch (err) {
       console.error('Database Migration Error: Failed to purge activity logs from feedbacks table:', err);
     }
+    // MIGRATION: Make gender and civil_status columns nullable in alumni_profiles to allow blank values
+    try {
+      await pool.query("ALTER TABLE alumni_profiles MODIFY COLUMN gender ENUM('Male', 'Female', 'Other') NULL DEFAULT NULL");
+      console.log('Database Migration: Modified alumni_profiles.gender to be nullable.');
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE alumni_profiles MODIFY COLUMN civil_status ENUM('Single', 'Married', 'Single Parent', 'Widowed') NULL DEFAULT NULL");
+      console.log('Database Migration: Modified alumni_profiles.civil_status to be nullable.');
+    } catch (e) { }
+
     // MIGRATION: Add job_start_year to alumni_profiles table if missing
     try {
       await pool.query("ALTER TABLE alumni_profiles ADD COLUMN job_start_year VARCHAR(50) DEFAULT NULL");
