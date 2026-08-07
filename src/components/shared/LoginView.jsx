@@ -52,7 +52,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       localStorage.setItem(`careerpath_last_username_${role}`, rememberedUsername);
     }
 
-    if (role === 'Alumni') {
+    if (role === 'Alumni' || role === 'Department Chairperson' || role === 'Employer') {
       setUserIdInput('');
       setPasswordInput('');
       return;
@@ -70,12 +70,6 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       setPasswordInput('');
     } else if (role === 'Administrator') {
       setUserIdInput('admin');
-      setPasswordInput('');
-    } else if (role === 'Department Chairperson') {
-      setUserIdInput('ICT Department');
-      setPasswordInput('');
-    } else if (role === 'Employer') {
-      setUserIdInput('techbatanes');
       setPasswordInput('');
     }
   };
