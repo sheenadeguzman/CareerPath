@@ -160,6 +160,26 @@ export default function BulkImportModal({ alumniList = [], activeUser, onImportA
         if (file.name.endsWith('.json')) {
           const parsed = JSON.parse(text);
           if (Array.isArray(parsed)) {
+            if (parsed.length > 0) {
+              const firstItem = parsed[0];
+              const hasId = firstItem.studentId !== undefined || firstItem.student_id !== undefined || firstItem.id !== undefined || firstItem.studentNumber !== undefined;
+              const hasEmail = firstItem.email !== undefined || firstItem.emailAddress !== undefined || firstItem.email_address !== undefined;
+              const hasProgram = firstItem.program !== undefined || firstItem.degree !== undefined || firstItem.course !== undefined;
+              const hasYear = firstItem.yearGraduated !== undefined || firstItem.year_graduated !== undefined || firstItem.graduated !== undefined || firstItem.year !== undefined;
+              const hasName = firstItem.name !== undefined || firstItem.fullName !== undefined || firstItem.full_name !== undefined ||
+                ((firstItem.firstName !== undefined || firstItem.first_name !== undefined) && (firstItem.lastName !== undefined || firstItem.last_name !== undefined));
+
+              const missingJson = [];
+              if (!hasId) missingJson.push('studentId / student_id / id');
+              if (!hasEmail) missingJson.push('email / emailAddress');
+              if (!hasProgram) missingJson.push('program / degree / course');
+              if (!hasYear) missingJson.push('yearGraduated / graduated / year');
+              if (!hasName) missingJson.push('name / fullName / (firstName + lastName)');
+
+              if (missingJson.length > 0) {
+                throw new Error(`Invalid JSON schema. The first record is missing required keys: ${missingJson.join(', ')}`);
+              }
+            }
             // Ina-map ang mga JSON property sa mga standard field ng database
             formatted = parsed.map((item, idx) => {
               const studentId = item.studentId || item.student_id || `BSC-2026-${120 + idx}`;
@@ -200,7 +220,7 @@ export default function BulkImportModal({ alumniList = [], activeUser, onImportA
           const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
           
           // Inaalam ang mga index ng column gamit ang case-insensitive regex tests
-          const studentIdIdx = headers.findIndex(h => /student_?id|student/i.test(h));
+          const studentIdIdx = headers.findIndex(h => /student_?id|student|^id$/i.test(h));
           const firstNameIdx = headers.findIndex(h => /first_?name|first/i.test(h));
           const lastNameIdx = headers.findIndex(h => /last_?name|last/i.test(h));
           const nameIdx = headers.findIndex(h => /^name$|full_?name/i.test(h));
@@ -208,6 +228,18 @@ export default function BulkImportModal({ alumniList = [], activeUser, onImportA
           const programIdx = headers.findIndex(h => /program|course|degree/i.test(h));
           const yearIdx = headers.findIndex(h => /year_?graduated|year|graduated/i.test(h));
           const statusIdx = headers.findIndex(h => /employment_?status|status/i.test(h));
+
+          const missing = [];
+          if (studentIdIdx === -1) missing.push('Student ID / Student / ID');
+          if (emailIdx === -1) missing.push('Email / Mail');
+          if (programIdx === -1) missing.push('Program / Course / Degree');
+          if (yearIdx === -1) missing.push('Graduation Year / Year');
+          if (nameIdx === -1 && (firstNameIdx === -1 || lastNameIdx === -1)) {
+            missing.push('Name (or both First Name and Last Name)');
+          }
+          if (missing.length > 0) {
+            throw new Error(`Invalid CSV mapping. The following required columns are missing: ${missing.join(', ')}`);
+          }
 
           // Umiikot (iterate) sa mga linya ng CSV (nilalampasan ang header)
           for (let i = 1; i < lines.length; i++) {

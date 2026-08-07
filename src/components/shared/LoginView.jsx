@@ -52,6 +52,12 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       localStorage.setItem(`careerpath_last_username_${role}`, rememberedUsername);
     }
 
+    if (role === 'Alumni') {
+      setUserIdInput('');
+      setPasswordInput('');
+      return;
+    }
+
     if (rememberedUsername) {
       setUserIdInput(rememberedUsername);
       setPasswordInput('');
@@ -67,9 +73,6 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       setPasswordInput('');
     } else if (role === 'Department Chairperson') {
       setUserIdInput('ICT Department');
-      setPasswordInput('');
-    } else if (role === 'Alumni') {
-      setUserIdInput('BSC-2020-001');
       setPasswordInput('');
     } else if (role === 'Employer') {
       setUserIdInput('techbatanes');
