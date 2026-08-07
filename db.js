@@ -5,6 +5,10 @@
 
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 // I-initialize ang MySQL Connection Pool
 export const pool = mysql.createPool({
@@ -375,6 +379,6 @@ export async function initializeDatabase() {
       console.log("Database Migration: Synchronized employers.vacancies_count with job_postings open slots.");
     } catch (e) { }
   } catch (err) {
-    console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err.message);
+    console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err);
   }
 }
