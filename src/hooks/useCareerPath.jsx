@@ -534,11 +534,132 @@ export function useCareerPath() {
 
   const handleBulkImport = async (rows) => {
     try {
-      await bulkImportAlumni(rows, activeUser?.id, getAuthHeaders());
-      await fetchData();
+      const response = await bulkImportAlumni(rows, activeUser?.id, getAuthHeaders());
+      if (response && response.users && response.alumni) {
+        setUsers(response.users);
+        setAlumniList(response.alumni);
+        const cached = localStorage.getItem('careerpath_dashboard_cache');
+        if (cached) {
+          try {
+            const db = JSON.parse(cached);
+            db.users = response.users;
+            db.alumni = response.alumni;
+            localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
+          } catch (e) {
+            console.error('Failed to update dashboard cache:', e);
+          }
+        }
+      } else {
+        await fetchData();
+      }
       showSuccessToast('Record saved successfully!');
     } catch (err) {
-      console.error('Failed to bulk import:', err);
+      console.warn('Failed to bulk import on server. Falling back to local/offline state:', err);
+      
+      const newAlumni = rows.map((row, idx) => {
+        const studentId = row.studentId || `BSC-2026-${Math.floor(100 + Math.random() * 900)}`;
+        const name = row.name || `${row.firstName || 'First'} ${row.lastName || 'Last'}`;
+        const email = row.email || `${studentId.toLowerCase()}@example.com`;
+        
+        return {
+          studentId,
+          name,
+          firstName: row.firstName || name.split(' ')[0],
+          lastName: row.lastName || name.split(' ').slice(1).join(' '),
+          email,
+          phone: row.phone || '',
+          gender: row.gender || '',
+          civilStatus: row.civilStatus || '',
+          dateOfBirth: row.dateOfBirth || '',
+          address: row.address || '',
+          program: row.program || 'Bachelor of Science in Information Technology',
+          yearGraduated: parseInt(row.yearGraduated) || 2026,
+          honors: row.honors || '',
+          professionalExamPassed: row.professionalExamPassed || '',
+          employmentStatus: row.employmentStatus || 'No Response',
+          jobTitle: row.jobTitle || '',
+          jobDescription: row.jobDescription || '',
+          employerName: row.employerName || '',
+          employmentType: row.employmentType || '',
+          sector: row.sector || '',
+          monthlyIncome: row.monthlyIncome || '',
+          jobRelatedToCourse: row.jobRelatedToCourse || '',
+          timeToFirstJob: row.timeToFirstJob || '',
+          skills: row.skills || [],
+          profileCompleteness: 40,
+          isRegistered: false,
+          lastUpdated: new Date().toISOString()
+        };
+      });
+
+      setAlumniList(prev => {
+        const copy = [...prev];
+        newAlumni.forEach(na => {
+          const existingIdx = copy.findIndex(a => a.studentId.trim().toLowerCase() === na.studentId.trim().toLowerCase());
+          if (existingIdx !== -1) {
+            copy[existingIdx] = { ...copy[existingIdx], ...na };
+          } else {
+            copy.unshift(na);
+          }
+        });
+        return copy;
+      });
+
+      setUsers(prev => {
+        const copy = [...prev];
+        newAlumni.forEach(na => {
+          const existingIdx = copy.findIndex(u => u.id.trim().toLowerCase() === na.studentId.trim().toLowerCase());
+          const newUserItem = {
+            id: na.studentId,
+            userId: na.studentId,
+            name: na.name,
+            email: na.email,
+            role: 'Alumni',
+            isInitialPasswordNeeded: true,
+            avatar: null
+          };
+          if (existingIdx !== -1) {
+            copy[existingIdx] = { ...copy[existingIdx], ...newUserItem };
+          } else {
+            copy.unshift(newUserItem);
+          }
+        });
+        return copy;
+      });
+
+      const cached = localStorage.getItem('careerpath_dashboard_cache');
+      if (cached) {
+        try {
+          const db = JSON.parse(cached);
+          db.alumni = db.alumni || [];
+          db.users = db.users || [];
+          
+          newAlumni.forEach(na => {
+            const idxA = db.alumni.findIndex(a => a.studentId.trim().toLowerCase() === na.studentId.trim().toLowerCase());
+            if (idxA !== -1) db.alumni[idxA] = { ...db.alumni[idxA], ...na };
+            else db.alumni.unshift(na);
+
+            const idxU = db.users.findIndex(u => u.id.trim().toLowerCase() === na.studentId.trim().toLowerCase());
+            const newUserItem = {
+              id: na.studentId,
+              userId: na.studentId,
+              name: na.name,
+              email: na.email,
+              role: 'Alumni',
+              isInitialPasswordNeeded: true,
+              avatar: null
+            };
+            if (idxU !== -1) db.users[idxU] = { ...db.users[idxU], ...newUserItem };
+            else db.users.unshift(newUserItem);
+          });
+
+          localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
+        } catch (e) {
+          console.error('Failed to update local cache during bulk import:', e);
+        }
+      }
+
+      showSuccessToast('Records saved locally (Offline mode)!');
     }
   };
 
