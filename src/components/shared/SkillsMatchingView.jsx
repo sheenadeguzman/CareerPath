@@ -227,22 +227,25 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Interactive Hybrid Skills Overlap &amp; Talent Analytics</h2>
           <p className="text-[11px] text-slate-405 mt-0.5">Comparing graduate competencies and program specialization with vacancy credentials required by partner firms.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          {/* Print button */}
-          <button
-            onClick={() => window.print()}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs no-print"
-          >
-            <Printer className="w-4 h-4 text-[#7c191e]" /> Print
-          </button>
+        <div className="flex flex-col items-start md:items-end gap-3 shrink-0 w-full md:w-auto">
+          {/* Print & Export PDF buttons */}
+          <div className="flex items-center gap-2 no-print w-full md:w-auto justify-start md:justify-end">
+            {/* Print button */}
+            <button
+              onClick={() => window.print()}
+              className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
+            >
+              <Printer className="w-4 h-4 text-[#7c191e]" /> Print
+            </button>
 
-          {/* Export PDF button */}
-          <button
-            onClick={() => exportToPDF('main-content-stage', 'BSC_Skills_Matching_Report.pdf')}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs no-print"
-          >
-            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
-          </button>
+            {/* Export PDF button */}
+            <button
+              onClick={() => exportToPDF('main-content-stage', 'BSC_Skills_Matching_Report.pdf')}
+              className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
+            >
+              <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
+            </button>
+          </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
             <label className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Select Target Vacancy:</label>
@@ -251,12 +254,12 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
               onChange={(e) => setSelectedJobID(e.target.value)}
               className="bg-slate-50 border border-slate-200 text-xs font-bold p-2.5 rounded-lg text-slate-800 focus:bg-white cursor-pointer w-full sm:w-72 md:w-80 lg:w-96 truncate"
             >
-            {filteredJobPostings.map(job => (
-              <option key={job.id} value={job.id}>{job.jobTitle} ({job.employerName})</option>
-            ))}
-          </select>
+              {filteredJobPostings.map(job => (
+                <option key={job.id} value={job.id}>{job.jobTitle} ({job.employerName})</option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
     </div>
 
       {activeJob ? (
