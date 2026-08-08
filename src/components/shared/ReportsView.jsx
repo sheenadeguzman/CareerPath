@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText } from 'lucide-react';
+import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText, ChevronDown } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
 
@@ -53,6 +53,37 @@ export default function ReportsView({ alumniList, activeUser }) {
   // Mga filter para ma-query ang database dynamic dataset on the fly
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
+
+  // State para sa custom export selection dropdown menu
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // Helper function para sa pag-export ng dataset patungong CSV file format
+  const handleExportCSV = () => {
+    // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
+    let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Alumni_Association_Status,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
+
+    let csvContent = filteredAlumni.map((a, idx) => {
+      const first = a.firstName || a.name?.split(' ')[0] || '';
+      const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
+      const middle = a.middleName || '';
+      const suffix = a.suffix || '';
+      const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
+      const skillsStr = (a.skills || []).join('; ');
+
+      return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
+    }).join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_CHED_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert(`COMPLETED! Prepared official tracer metrics spreadsheet for ${isChairperson ? (activeUser?.program || 'Department') : 'Batanes State College'} comprising ${filteredAlumni.length} graduates.`);
+  };
 
   // State para sa coordinates ng floating tooltip sa mga nodes ng trend line graph
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -482,39 +513,45 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
 
         <div className="flex gap-2 shrink-0 no-print" data-html2canvas-ignore="true">
-          {/* Alisin ang window.print() button alinsunod sa bagong hiling ng user */}
-          <button
-            onClick={() => {
-              // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
-              let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Alumni_Association_Status,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+            >
+              <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-              let csvContent = filteredAlumni.map((a, idx) => {
-                const first = a.firstName || a.name?.split(' ')[0] || '';
-                const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
-                const middle = a.middleName || '';
-                const suffix = a.suffix || '';
-                const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
-                const skillsStr = (a.skills || []).join('; ');
+            {exportDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setExportDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      handleExportCSV();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                  </button>
 
-                return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
-              }).join('\n');
-
-              const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.setAttribute('download', `BSC_CHED_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`);
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-
-              alert(`COMPLETED! Prepared official tracer metrics spreadsheet for ${isChairperson ? (activeUser?.program || 'Department') : 'Batanes State College'} comprising ${filteredAlumni.length} graduates.`);
-            }}
-            title={`Target Filename: BSC_CHED_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`}
-            className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-          >
-            <Download className="w-4 h-4" /> Export
-          </button>
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      exportToPDF('main-content-stage', 'BSC_Tracer_Reports_Analytics.pdf');
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           
           {/* Print button */}
           <button
@@ -522,14 +559,6 @@ export default function ReportsView({ alumniList, activeUser }) {
             className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
           >
             <Printer className="w-4 h-4 text-[#7c191e]" /> Print
-          </button>
-
-          {/* Export PDF button */}
-          <button
-            onClick={() => exportToPDF('main-content-stage', 'BSC_Tracer_Reports_Analytics.pdf')}
-            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-          >
-            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
           </button>
         </div>
       </div>

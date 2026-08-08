@@ -11,7 +11,9 @@ import {
   Search,
   Compass,
   Printer,
-  FileText
+  FileText,
+  ChevronDown,
+  FileSpreadsheet
 } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
@@ -25,6 +27,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedRelatedness, setSelectedRelatedness] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   // Ref hooks para sa pagpapakita ng Leaflet Map
   const mapContainerRef = useRef(null);
@@ -356,23 +359,52 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
         
         {isAdminOrChair && (
           <div className="flex flex-wrap items-center gap-2 shrink-0 no-print w-full sm:w-auto">
+            {/* Export Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+              >
+                <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {exportDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setExportDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        handleExportCSV();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        exportToPDF('main-content-stage', 'BSC_Employment_Analytics_Report.pdf');
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Print button */}
             <button
               onClick={() => window.print()}
               className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
             >
               <Printer className="w-4 h-4 text-[#7c191e]" /> Print
-            </button>
-            <button
-              onClick={() => exportToPDF('main-content-stage', 'BSC_Employment_Analytics_Report.pdf')}
-              className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-            >
-              <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
-            </button>
-            <button
-              onClick={handleExportCSV}
-              className="px-4 py-2 bg-[#7c191e] hover:bg-[#6b1418] text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-            >
-              <Download className="w-4 h-4" /> Export CSV
             </button>
           </div>
         )}
