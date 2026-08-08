@@ -78,6 +78,21 @@ export default function ChairpersonDashboard({
   const employedCount = employedAlumni + freelanceAlumni + selfEmployedAlumni;
   const employmentRate = totalDeptAlumni > 0 ? ((employedCount / totalDeptAlumni) * 100).toFixed(1) : '0';
 
+  // Breakdown ng relevance alignment para sa department
+  const relevanceYes = registeredDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
+  const relevancePartially = registeredDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
+  const relevanceNo = registeredDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
+  const relevanceNoResponse = registeredDeptAlumni.filter(a => !a.employmentStatus).length;
+  const relevanceDenominator = totalDeptAlumni || 1;
+  const relevanceYesPct = Math.round((relevanceYes / relevanceDenominator) * 100);
+  const relevancePartiallyPct = Math.round((relevancePartially / relevanceDenominator) * 100);
+  const relevanceNoPct = Math.round((relevanceNo / relevanceDenominator) * 100);
+  const relevanceNoResponsePct = Math.round((relevanceNoResponse / relevanceDenominator) * 100);
+  const relevanceUnregisteredPct = Math.round((unregisteredDeptAlumni / relevanceDenominator) * 100);
+
+  const deptTotalEmployed = relevanceYes + relevancePartially + relevanceNo;
+  const deptAlignmentRate = deptTotalEmployed > 0 ? (((relevanceYes + relevancePartially) / deptTotalEmployed) * 100).toFixed(1) : '0';
+
   // Fina-filter ang feedback ng employer na tumutugma sa mga graduate ng program na ito
   const deptFeedbacks = feedbacks.filter(fb => {
     const matchAlum = filteredDeptAlumni.find(a => 
@@ -243,6 +258,7 @@ export default function ChairpersonDashboard({
                 <ArrowUpRight className="w-3" />
               </span>
             </div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{deptAlignmentRate}% Job Alignment Rate</span>
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
             <BarChart className="w-5.5 h-5.5" />
@@ -587,6 +603,71 @@ export default function ChairpersonDashboard({
                   <span className="text-slate-655">Unregistered: {unregisteredDeptAlumni} ({pieSegments.unregistered}%)</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Seksyon para sa Curricular Relevance & Alignment */}
+          <div className="bg-white p-5 rounded-xl border border-slate-100 space-y-4 shadow-sm">
+            <div>
+              <span className="block text-xs font-bold text-slate-800 uppercase tracking-wider">Syllabus-to-Career Alignment</span>
+              <span className="block text-[9px] text-slate-400 font-semibold mt-0.5">Graduate job relevance metrics and degree alignment to current employment.</span>
+            </div>
+            
+            <div className="space-y-3 font-sans">
+              {/* Yes */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-slate-650">Directly Aligned (Yes)</span>
+                  <span className="text-emerald-700 font-bold">{relevanceYes} ({relevanceYesPct}%)</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${relevanceYesPct}%` }} />
+                </div>
+              </div>
+              {/* Partially */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-slate-655">Partially Aligned</span>
+                  <span className="text-amber-700 font-bold">{relevancePartially} ({relevancePartiallyPct}%)</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${relevancePartiallyPct}%` }} />
+                </div>
+              </div>
+              {/* No */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-slate-655">Unrelated Career (No)</span>
+                  <span className="text-rose-700 font-bold">{relevanceNo} ({relevanceNoPct}%)</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-rose-500 rounded-full" style={{ width: `${relevanceNoPct}%` }} />
+                </div>
+              </div>
+              {/* No Response */}
+              {relevanceNoResponse > 0 && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-400">No Response</span>
+                    <span className="text-slate-500 font-bold">{relevanceNoResponse} ({relevanceNoResponsePct}%)</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${relevanceNoResponsePct}%` }} />
+                  </div>
+                </div>
+              )}
+              {/* Unregistered */}
+              {unregisteredDeptAlumni > 0 && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-400">Unregistered</span>
+                    <span className="text-slate-500 font-bold">{unregisteredDeptAlumni} ({relevanceUnregisteredPct}%)</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${relevanceUnregisteredPct}%` }} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -70,6 +70,9 @@ export default function AdminDashboard({
   const relevanceNoResponsePct = Math.round((relevanceNoResponse / relevanceDenominator) * 100);
   const relevanceUnregisteredPct = Math.round((unregisteredAlumni / relevanceDenominator) * 100);
 
+  const totalEmployed = relevanceYes + relevancePartially + relevanceNo;
+  const alignmentRate = totalEmployed > 0 ? (((relevanceYes + relevancePartially) / totalEmployed) * 100).toFixed(1) : '0';
+
   // Time to Land First Job
   const timeImmediate = registeredAlumni.filter(a => a.timeToFirstJob === 'Immediate').length;
   const time1to6 = registeredAlumni.filter(a => a.timeToFirstJob === '1 to 6 months').length;
@@ -295,6 +298,7 @@ export default function AdminDashboard({
                 <ArrowUpRight className="w-3 h-3" />
               </span>
             </div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{alignmentRate}% Job Alignment Rate</span>
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
             <BarChart className="w-5.5 h-5.5" />
