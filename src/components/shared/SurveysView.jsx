@@ -102,6 +102,18 @@ export default function SurveysView({
   // State para sa pagpapakita ng mga responses/submitted survey answers ng graduates
   const [viewingResponsesSurvey, setViewingResponsesSurvey] = useState(null);
 
+  // Effect para magdagdag ng print styling helper class sa document body kapag bukas ang modal
+  React.useEffect(() => {
+    if (viewingResponsesSurvey) {
+      document.body.classList.add('modal-open-print');
+    } else {
+      document.body.classList.remove('modal-open-print');
+    }
+    return () => {
+      document.body.classList.remove('modal-open-print');
+    };
+  }, [viewingResponsesSurvey]);
+
   // Tinitingnan kung Administrator, Super Admin, o Chairperson ang kasalukuyang user para sa permission checks
   const isAdminOrChair = activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson';
 
