@@ -196,6 +196,14 @@
   th, td {
     padding: 6px !important;
   }
+  /* Iwasan ang pagputol ng card blocks sa pagitan ng mga pahina */
+  .bg-white.rounded-xl,
+  .bg-white.rounded-2xl,
+  .border.rounded-xl,
+  .grid > div {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
 }
 
 /* ==========================================
