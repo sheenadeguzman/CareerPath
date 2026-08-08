@@ -894,8 +894,6 @@ export function useCareerPath() {
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
         { id: 'Curriculum Feedback', name: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'Reports', name: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
-        { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
-        { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
         { id: 'Activity Log', name: 'Activity Logs', icon: <Activity className="w-4 h-4" /> },
         { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
@@ -911,8 +909,6 @@ export function useCareerPath() {
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
         { id: 'Curriculum Feedback', name: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'Reports', name: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
-        { id: 'Import', name: 'Import', icon: <Upload className="w-4 h-4" /> },
-        { id: 'Export', name: 'Export', icon: <Download className="w-4 h-4" /> },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : activeUser?.role === 'Alumni'

@@ -104,7 +104,6 @@ import EmploymentView from './components/shared/EmploymentView';
 import ReportsView from './components/shared/ReportsView';
 import ActivityLogView from './components/roles/admin/ActivityLogView';
 import BulkImportModal from './components/roles/admin/BulkImportModal';
-import ExportView from './components/roles/admin/ExportView';
 import NotificationsView from './components/shared/NotificationsView';
 import SettingsView from './components/roles/admin/SettingsView';
 import MessageEmailView from './components/roles/admin/MessageEmailView';
@@ -432,23 +431,6 @@ export default function App() {
               />
             )}
 
-            {/* Bulk Import View: Mag-upload ng CSV data para sa maramihang pag-insert ng graduates */}
-            {currentTab === 'Import' && (
-              <BulkImportModal
-                alumniList={scopedAlumniList}
-                activeUser={activeUser}
-                onImportAlumni={handleBulkImport}
-                setShowImportModal={() => setCurrentTab('Alumni')}
-                triggerToast={(msg) => window.alert(msg)}
-              />
-            )}
-
-            {/* Database Export View: I-download ang registry data sa CSV o JSON format */}
-            {currentTab === 'Export' && (
-              <ExportView
-                alumniList={scopedAlumniList}
-              />
-            )}
 
             {/* Notifications View: Nagpapakita ng detalyadong listahan ng mga notification ng user */}
             {currentTab === 'Notifications' && (
