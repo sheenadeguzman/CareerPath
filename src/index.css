@@ -206,8 +206,9 @@
   }
 
   /* Modal print overrides so it prints full-width and hides underlying page context */
-  body.modal-open-print main,
-  body.modal-open-print header {
+  body.modal-open-print header,
+  body.modal-open-print aside,
+  body.modal-open-print .no-print-modal {
     display: none !important;
   }
   body.modal-open-print .fixed.inset-0.bg-slate-900\/60 {

@@ -249,6 +249,7 @@ export default function SurveysView({
 
   return (
     <div className="space-y-6 font-sans">
+      <div className="no-print-modal space-y-6">
 
       {/* Toast notification notice para sa feedback messages */}
       {showComment && (
@@ -757,6 +758,8 @@ export default function SurveysView({
           </div>
         </div>
       )}
+
+      </div>
 
       {/* ========================================================== */}
       {/* MODAL PARA SA PAG-INSPECT NG MGA SUBMISSIONS NG ALUMNI (ADMIN/CHAIR) */}
