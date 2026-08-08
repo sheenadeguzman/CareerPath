@@ -751,7 +751,7 @@ export default function SurveysView({
       {/* ========================================================== */}
       {viewingResponsesSurvey && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
-          <div className="bg-white w-full max-w-4xl h-[520px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative border-collapse">
+          <div id="survey-submissions-modal-content" className="bg-white w-full max-w-4xl h-[520px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative border-collapse">
 
             <div className="sticky top-0 bg-white border-b border-secondary/15 px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
@@ -763,13 +763,31 @@ export default function SurveysView({
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setViewingResponsesSurvey(null)}
-                className="p-1.5 hover:bg-slate-100 text-slate-505 rounded-lg transition cursor-pointer"
-                title="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Print button */}
+                <button
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[10px] rounded-lg transition inline-flex items-center gap-1 uppercase cursor-pointer shadow-3xs no-print"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#7c191e]" /> Print
+                </button>
+
+                {/* Export PDF button */}
+                <button
+                  onClick={() => exportToPDF('survey-submissions-modal-content', 'BSC_Tracer_Submissions_Report.pdf')}
+                  className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[10px] rounded-lg transition inline-flex items-center gap-1 uppercase cursor-pointer shadow-3xs no-print"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#7c191e]" /> Export PDF
+                </button>
+
+                <button
+                  onClick={() => setViewingResponsesSurvey(null)}
+                  className="p-1.5 hover:bg-slate-100 text-slate-505 rounded-lg transition cursor-pointer no-print ml-1"
+                  title="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-auto p-6 font-sans">

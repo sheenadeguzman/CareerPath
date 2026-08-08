@@ -204,6 +204,37 @@
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
+
+  /* Modal print overrides so it prints full-width and hides underlying page context */
+  body:has(#survey-submissions-modal-content) main,
+  body:has(#survey-submissions-modal-content) header {
+    display: none !important;
+  }
+  body:has(#survey-submissions-modal-content) .fixed.inset-0.bg-slate-900\/60 {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    position: absolute !important;
+    overflow: visible !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+  body:has(#survey-submissions-modal-content) #survey-submissions-modal-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    z-index: 9999 !important;
+    background: white !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  body:has(#survey-submissions-modal-content) #survey-submissions-modal-content .overflow-auto {
+    overflow: visible !important;
+    height: auto !important;
+  }
 }
 
 /* ==========================================

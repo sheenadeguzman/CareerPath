@@ -38,7 +38,7 @@ export async function exportToPDF(elementId, filename = 'BSC_Report.pdf') {
   document.head.appendChild(styleOverride);
 
   // Temporarily expand overflow scroll containers to visible so columns/tables don't cut off
-  const scrollContainers = element.querySelectorAll('.overflow-x-auto, .overflow-y-auto');
+  const scrollContainers = element.querySelectorAll('.overflow-x-auto, .overflow-y-auto, .overflow-auto');
   const originalScrolls = [];
   scrollContainers.forEach((el, idx) => {
     originalScrolls[idx] = {
