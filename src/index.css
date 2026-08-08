@@ -199,8 +199,7 @@
   /* Iwasan ang pagputol ng card blocks sa pagitan ng mga pahina */
   .bg-white.rounded-xl,
   .bg-white.rounded-2xl,
-  .border.rounded-xl,
-  .grid > div {
+  .border.rounded-xl {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
