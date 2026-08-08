@@ -657,6 +657,13 @@ export default function ImportView({ onImportAlumni, alumniList = [], activeUser
                   alert('There are no valid records to import.');
                   return;
                 }
+
+                const skippedCount = importPreview.length - validRows.length;
+                if (skippedCount > 0) {
+                  const proceed = window.confirm(`Warning: ${skippedCount} records have critical errors (like duplicate Student IDs) and will be skipped. Do you want to proceed with importing the remaining ${validRows.length} valid records?`);
+                  if (!proceed) return;
+                }
+
                 setIsProcessing(true);
                 try {
                   const cleanedRows = validRows.map(({ alerts, ...rest }) => rest);
