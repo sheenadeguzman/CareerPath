@@ -18,6 +18,12 @@ import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
  * @param {Function} props.setShowImportModal - State mutator para isara ang modal.
  * @param {Function} props.triggerToast - Trigger para sa pagpapakita ng toast notification.
  */
+// Default na CSV template helper text na ipinapakita sa copy-paste box
+const SAMPLE_CSV = `studentId,name,email,program,yearGraduated
+BSC-2026-101,Ronaldo Vilas,ronaldo.vilas@example.com,Bachelor of Science in Information Technology,2026
+BSC-2026-102,Sonia Lara,sonia.lara@example.com,Bachelor of Science in Hospitality Management,2026
+BSC-2026-103,Manny Pac,manny.pac@example.com,Bachelor of Science in Agriculture,2026`;
+
 export default function BulkImportModal({ alumniList = [], activeUser, onImportAlumni, setShowImportModal, triggerToast }) {
   // State para pamahalaan ang loading indicator habang isinasagawa ang import
   const [isImporting, setIsImporting] = useState(false);
@@ -29,6 +35,141 @@ export default function BulkImportModal({ alumniList = [], activeUser, onImportA
   const [statusFilter, setStatusFilter] = useState('All');
   // Ref para sa nakatagong file input element
   const fileInputRef = useRef(null);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [pastedText, setPastedText] = useState(SAMPLE_CSV);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      simulateParsing(files[0]);
+    }
+  };
+
+  const simulateParsing = (file) => {
+    handleFileChange({ target: { files: [file] } });
+  };
+
+  const parseCSVText = (text) => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+    if (lines.length < 2) {
+      throw new Error('CSV text has no records.');
+    }
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+    
+    const studentIdIdx = headers.findIndex(h => /student_?id|student|^id$/i.test(h));
+    const firstNameIdx = headers.findIndex(h => /first_?name|first/i.test(h));
+    const lastNameIdx = headers.findIndex(h => /last_?name|last/i.test(h));
+    const nameIdx = headers.findIndex(h => /^name$|full_?name/i.test(h));
+    const emailIdx = headers.findIndex(h => /email|mail/i.test(h));
+    const programIdx = headers.findIndex(h => /program|course|degree/i.test(h));
+    const yearIdx = headers.findIndex(h => /year_?graduated|year|graduated/i.test(h));
+    const statusIdx = headers.findIndex(h => /employment_?status|status/i.test(h));
+
+    const missing = [];
+    if (studentIdIdx === -1) missing.push('Student ID / Student / ID');
+    if (emailIdx === -1) missing.push('Email / Mail');
+    if (programIdx === -1) missing.push('Program / Course / Degree');
+    if (yearIdx === -1) missing.push('Graduation Year / Year');
+    if (nameIdx === -1 && (firstNameIdx === -1 || lastNameIdx === -1)) {
+      missing.push('Name (or both First Name and Last Name)');
+    }
+    if (missing.length > 0) {
+      throw new Error(`Invalid CSV mapping. The following required columns are missing: ${missing.join(', ')}`);
+    }
+
+    const formatted = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = [];
+      let current = '';
+      let inQuotes = false;
+      const line = lines[i];
+      
+      for (let cidx = 0; cidx < line.length; cidx++) {
+        const char = line[cidx];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          cols.push(current.trim().replace(/^["']|["']$/g, ''));
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      cols.push(current.trim().replace(/^["']|["']$/g, ''));
+
+      if (cols.length > 0 && cols[0] !== '') {
+        const rowStudentId = studentIdIdx !== -1 && cols[studentIdIdx] ? cols[studentIdIdx] : `BSC-2026-${120 + i}`;
+        
+        const rowName = nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : '';
+        let rowFirst = firstNameIdx !== -1 && cols[firstNameIdx] ? cols[firstNameIdx] : '';
+        let rowLast = lastNameIdx !== -1 && cols[lastNameIdx] ? cols[lastNameIdx] : '';
+
+        if (rowName && !rowFirst && !rowLast) {
+          const parts = rowName.trim().split(/\s+/);
+          rowFirst = parts[0] || 'First';
+          rowLast = parts.slice(1).join(' ') || 'Last';
+        } else {
+          if (!rowFirst) rowFirst = 'First';
+          if (!rowLast) rowLast = 'Last';
+        }
+
+        const rowEmail = emailIdx !== -1 && cols[emailIdx] ? cols[emailIdx] : `${rowStudentId.toLowerCase()}@gmail.com`;
+        const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'Bachelor of Science in Information Technology';
+        const officialProg = getBSCProgram(rowProg) || rowProg;
+        const rowYear = yearIdx !== -1 && cols[yearIdx] ? parseInt(cols[yearIdx]) || 2026 : 2026;
+        const rowStatus = statusIdx !== -1 && cols[statusIdx] ? cols[statusIdx] : 'No Response';
+
+        formatted.push({
+          studentId: rowStudentId.trim(),
+          firstName: rowFirst.trim(),
+          lastName: rowLast.trim(),
+          email: rowEmail.trim(),
+          program: officialProg.trim(),
+          yearGraduated: rowYear,
+          employmentStatus: rowStatus.trim()
+        });
+      }
+    }
+    return formatted;
+  };
+
+  const handlePasteSubmit = async (e) => {
+    e.preventDefault();
+    setIsImporting(true);
+    setImportError('');
+    setImportPreview([]);
+
+    setTimeout(async () => {
+      try {
+        const textToParse = pastedText.trim() || SAMPLE_CSV;
+        const formatted = parseCSVText(textToParse);
+
+        const dummyValidated = formatted.map((row, idx) => ({
+          ...row,
+          alerts: validateRow(row, idx, formatted, alumniList, activeUser)
+        }));
+
+        setImportPreview(dummyValidated);
+      } catch (err) {
+        setImportError(err.message || 'CSV Text parse failed.');
+      } finally {
+        setIsImporting(false);
+      }
+    }, 500);
+  };
 
   /**
    * Helper to resolve standard program names for BSC programs.
@@ -210,95 +351,7 @@ export default function BulkImportModal({ alumniList = [], activeUser, onImportA
             throw new Error('Selected JSON is not lists/array format []');
           }
         } else {
-          // Pino-proseso ang mga linya ng CSV text
-          const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-          if (lines.length < 2) {
-            throw new Error('CSV file possesses no records or is improperly formatted');
-          }
-
-          // Nililinis ang mga header sa pamamagitan ng pagtanggal ng nakapaligid na quotes
-          const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
-          
-          // Inaalam ang mga index ng column gamit ang case-insensitive regex tests
-          const studentIdIdx = headers.findIndex(h => /student_?id|student|^id$/i.test(h));
-          const firstNameIdx = headers.findIndex(h => /first_?name|first/i.test(h));
-          const lastNameIdx = headers.findIndex(h => /last_?name|last/i.test(h));
-          const nameIdx = headers.findIndex(h => /^name$|full_?name/i.test(h));
-          const emailIdx = headers.findIndex(h => /email|mail/i.test(h));
-          const programIdx = headers.findIndex(h => /program|course|degree/i.test(h));
-          const yearIdx = headers.findIndex(h => /year_?graduated|year|graduated/i.test(h));
-          const statusIdx = headers.findIndex(h => /employment_?status|status/i.test(h));
-
-          const missing = [];
-          if (studentIdIdx === -1) missing.push('Student ID / Student / ID');
-          if (emailIdx === -1) missing.push('Email / Mail');
-          if (programIdx === -1) missing.push('Program / Course / Degree');
-          if (yearIdx === -1) missing.push('Graduation Year / Year');
-          if (nameIdx === -1 && (firstNameIdx === -1 || lastNameIdx === -1)) {
-            missing.push('Name (or both First Name and Last Name)');
-          }
-          if (missing.length > 0) {
-            throw new Error(`Invalid CSV mapping. The following required columns are missing: ${missing.join(', ')}`);
-          }
-
-          // Umiikot (iterate) sa mga linya ng CSV (nilalampasan ang header)
-          for (let i = 1; i < lines.length; i++) {
-            const cols = [];
-            let current = '';
-            let inQuotes = false;
-            const line = lines[i];
-            
-            // Pag-parse character-by-character para suportahan ang mga may quoted commas
-            for (let cidx = 0; cidx < line.length; cidx++) {
-              const char = line[cidx];
-              if (char === '"') {
-                inQuotes = !inQuotes;
-              } else if (char === ',' && !inQuotes) {
-                cols.push(current.trim().replace(/^["']|["']$/g, ''));
-                current = '';
-              } else {
-                current += char;
-              }
-            }
-            cols.push(current.trim().replace(/^["']|["']$/g, ''));
-
-            if (cols.length > 0 && cols[0] !== '') {
-              // Nag-a-apply ng fallback defaults kapag may kulang na columns
-              const rowStudentId = studentIdIdx !== -1 && cols[studentIdIdx] ? cols[studentIdIdx] : `BSC-2026-${120 + i}`;
-              
-              const rowName = nameIdx !== -1 && cols[nameIdx] ? cols[nameIdx] : '';
-              let rowFirst = firstNameIdx !== -1 && cols[firstNameIdx] ? cols[firstNameIdx] : '';
-              let rowLast = lastNameIdx !== -1 && cols[lastNameIdx] ? cols[lastNameIdx] : '';
-
-              if (rowName && !rowFirst && !rowLast) {
-                const parts = rowName.trim().split(/\s+/);
-                rowFirst = parts[0] || 'First';
-                rowLast = parts.slice(1).join(' ') || 'Last';
-              } else {
-                if (!rowFirst) rowFirst = 'First';
-                if (!rowLast) rowLast = 'Last';
-              }
-
-              const rowEmail = emailIdx !== -1 && cols[emailIdx] ? cols[emailIdx] : `${rowStudentId.toLowerCase()}@gmail.com`;
-              const rowProg = programIdx !== -1 && cols[programIdx] ? cols[programIdx] : 'Bachelor of Science in Information Technology';
-              const officialProg = getBSCProgram(rowProg) || rowProg;
-              const rowYear = yearIdx !== -1 && cols[yearIdx] ? parseInt(cols[yearIdx]) || 2026 : 2026;
-              const rowStatus = statusIdx !== -1 && cols[statusIdx] ? cols[statusIdx] : 'No Response';
-
-              formatted.push({
-                studentId: rowStudentId.trim(),
-                firstName: rowFirst.trim(),
-                lastName: rowLast.trim(),
-                email: rowEmail.trim(),
-                program: officialProg.trim(),
-                yearGraduated: rowYear,
-                employmentStatus: rowStatus.trim()
-              });
-            }
-          }
-          if (formatted.length === 0) {
-            throw new Error('Unable to extract any data rows from the CSV file.');
-          }
+          formatted = parseCSVText(text);
         }
 
         // Pinapatakbo ang integrity validation rules para sa lahat ng loaded records
@@ -410,22 +463,64 @@ export default function BulkImportModal({ alumniList = [], activeUser, onImportA
             </p>
           </div>
 
-          {/* Upload Box at File Selector */}
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-300 hover:border-[#7c191e] bg-slate-50 hover:bg-[#7c191e]/5 rounded-xl p-6 text-center cursor-pointer transition space-y-2 group"
-          >
-            <input 
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept=".csv,.json"
-              className="hidden"
-            />
-            <Upload className="w-8 h-8 text-slate-400 group-hover:text-[#7c191e] mx-auto animate-bounce" />
-            <span className="block text-slate-700 font-bold">Click to browse or drop alumni roster file here</span>
-            <span className="block text-[10px] text-slate-400 font-semibold">Supports .CSV and .JSON file logs containing graduate lists</span>
-          </div>
+          {/* Upload and Paste inputs rendered when preview roster is empty */}
+          {importPreview.length === 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Drag and Drop File Upload */}
+              <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-150 space-y-3 flex flex-col justify-between">
+                <span className="text-[11px] font-bold text-[#7c191e] uppercase tracking-wider block">Excel / CSV File Upload</span>
+                
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`h-40 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-4 text-center cursor-pointer transition ${
+                    isDragging ? 'bg-[#7c191e]/10 border-[#7c191e]' : 'bg-white border-slate-200 hover:bg-slate-100/50'
+                  }`}
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".csv,.json"
+                    className="hidden" 
+                  />
+                  <Upload className="w-6 h-6 text-slate-400 mx-auto animate-bounce" />
+                  <span className="block text-slate-700 font-extrabold text-[10px] mt-1">Click to browse or drop file here</span>
+                  <span className="block text-[9px] text-slate-400 mt-0.5">Supports .CSV and .JSON rosters</span>
+                </div>
+              </div>
+
+              {/* Raw CSV Text Paste Section */}
+              <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-150 space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-[#7c191e] uppercase tracking-wider block">Raw Text CSV Simulation Input</span>
+                  <span className="block text-[9px] text-slate-400 mt-0.5">Paste CSV text rows directly below:</span>
+                </div>
+
+                <div className="space-y-2">
+                  <textarea
+                    rows={4}
+                    value={pastedText}
+                    onChange={(e) => setPastedText(e.target.value)}
+                    placeholder="studentId,name,email,program,yearGraduated..."
+                    className="w-full p-2 bg-white border border-slate-250 rounded-lg text-[9px] font-mono text-slate-700 focus:outline-none focus:border-[#7c191e] resize-none"
+                  />
+
+                  <button
+                    onClick={handlePasteSubmit}
+                    disabled={isImporting}
+                    className="w-full py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-[9px] rounded-lg transition uppercase flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    Parse CSV Text Rows
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {/* Mensahe ng Error (Error Notification) */}
           {importError && (

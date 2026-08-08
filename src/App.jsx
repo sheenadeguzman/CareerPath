@@ -103,7 +103,7 @@ import FeedbackView from './components/shared/FeedbackView';
 import EmploymentView from './components/shared/EmploymentView';
 import ReportsView from './components/shared/ReportsView';
 import ActivityLogView from './components/roles/admin/ActivityLogView';
-import ImportView from './components/roles/admin/ImportView';
+import BulkImportModal from './components/roles/admin/BulkImportModal';
 import ExportView from './components/roles/admin/ExportView';
 import NotificationsView from './components/shared/NotificationsView';
 import SettingsView from './components/roles/admin/SettingsView';
@@ -434,10 +434,12 @@ export default function App() {
 
             {/* Bulk Import View: Mag-upload ng CSV data para sa maramihang pag-insert ng graduates */}
             {currentTab === 'Import' && (
-              <ImportView
-                onImportAlumni={handleBulkImport}
+              <BulkImportModal
                 alumniList={scopedAlumniList}
                 activeUser={activeUser}
+                onImportAlumni={handleBulkImport}
+                setShowImportModal={() => setCurrentTab('Alumni')}
+                triggerToast={(msg) => window.alert(msg)}
               />
             )}
 
