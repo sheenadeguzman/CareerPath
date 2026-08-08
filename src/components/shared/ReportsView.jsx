@@ -1015,7 +1015,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         {/* Tenure & Industry Sector distribution */}
         <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 pb-2">
-            <ShieldCheck className="w-4.5 h-4.5 text-[#cca43b]" /> Employment Nature &amp; Sector (AACCUP Compliance)
+            <ShieldCheck className="w-4.5 h-4.5 text-[#cca43b]" /> Employment Nature &amp; Sector
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
@@ -1078,7 +1078,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         {/* Transition Timeline & Licensure performance */}
         <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 pb-2">
-            <Compass className="w-4.5 h-4.5 text-[#cca43b]" /> Job Placement Transition &amp; Board Licensure (AACCUP Compliance)
+            <Compass className="w-4.5 h-4.5 text-[#cca43b]" /> Job Placement Transition &amp; Board Licensure 
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
@@ -1140,12 +1140,12 @@ export default function ReportsView({ alumniList, activeUser }) {
       {/* ANNEX A: CHED / ALCU-COA GRADUATE PLACEMENT ACCREDITATION SUMMARY */}
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">ANNEX A: CHED / AACCUP Accreditation Summary</h3>
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">ANNEX A: Accreditation Summary</h3>
           <span className="text-[9.5px] bg-[#cca43b] text-slate-900 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Accreditation Annex</span>
         </div>
         <div className="p-5">
           <p className="text-[11px] text-slate-500 mb-4 font-semibold leading-relaxed font-sans">
-            The following table summarizes institutional performance quality indicators required for official accreditation reviews (including CHED graduate placement audits and AACCUP compliance checks).
+            The following table summarizes institutional performance quality indicators required for official accreditation reviews.
           </p>
           <div className="overflow-x-auto w-full border border-slate-200 rounded-lg">
             <table className="w-full text-left text-xs font-medium text-slate-705 divide-y divide-slate-200">
