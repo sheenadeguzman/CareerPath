@@ -13,7 +13,8 @@ import {
   Briefcase, 
   Clock, 
   ArrowUpRight,
-  Printer
+  Printer,
+  FileText
 } from 'lucide-react';
 
 export default function AdminDashboard({ 
@@ -249,13 +250,22 @@ export default function AdminDashboard({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 no-print">
-          {/* Print / Export PDF button */}
+          {/* Print button */}
           <button
             onClick={() => window.print()}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
           >
             <Printer className="w-4 h-4 text-[#7c191e]" />
-            <span>Print / Export PDF</span>
+            <span>Print</span>
+          </button>
+
+          {/* Export PDF button */}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
+          >
+            <FileText className="w-4 h-4 text-[#7c191e]" />
+            <span>Export PDF</span>
           </button>
           
           {/* Selector para sa taon ng Pagtatapos */}

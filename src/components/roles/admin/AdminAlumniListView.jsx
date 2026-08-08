@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Eye, Upload, PlusCircle, GraduationCap, Trash2, X, Printer } from 'lucide-react';
+import { Search, Eye, Upload, PlusCircle, GraduationCap, Trash2, X, Printer, FileText } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
 export default function AdminAlumniListView({ 
@@ -125,7 +125,15 @@ export default function AdminAlumniListView({
             onClick={() => window.print()}
             className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs no-print"
           >
-            <Printer className="w-4 h-4 text-[#7c191e]" /> Print Directory
+            <Printer className="w-4 h-4 text-[#7c191e]" /> Print
+          </button>
+
+          {/* Export PDF button accessible to all */}
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs no-print"
+          >
+            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
           </button>
           
           {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (

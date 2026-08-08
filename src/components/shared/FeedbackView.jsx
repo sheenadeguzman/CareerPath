@@ -301,11 +301,20 @@ export default function FeedbackView({
           </p>
         </div>
         <div className="flex items-center gap-2 no-print shrink-0">
+          {/* Print button */}
           <button
             onClick={() => window.print()}
             className="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-full transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
           >
-            <Printer className="w-3.5 h-3.5 text-[#7c191e]" /> Print Feedback
+            <Printer className="w-3.5 h-3.5 text-[#7c191e]" /> Print
+          </button>
+
+          {/* Export PDF button */}
+          <button
+            onClick={() => window.print()}
+            className="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-full transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
+          >
+            <FileText className="w-3.5 h-3.5 text-[#7c191e]" /> Export PDF
           </button>
           {(isAlumni || isEmployer) && (
             <div className="text-[11px] font-bold text-slate-500 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200">

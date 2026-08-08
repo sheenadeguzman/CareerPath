@@ -10,7 +10,8 @@ import {
   Download, 
   Search,
   Compass,
-  Printer
+  Printer,
+  FileText
 } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import EmploymentAnalytics from './components/EmploymentAnalytics';
@@ -358,7 +359,13 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
               onClick={() => window.print()}
               className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
             >
-              <Printer className="w-4 h-4 text-[#7c191e]" /> Print Report
+              <Printer className="w-4 h-4 text-[#7c191e]" /> Print
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+            >
+              <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
             </button>
             <button
               onClick={handleExportCSV}

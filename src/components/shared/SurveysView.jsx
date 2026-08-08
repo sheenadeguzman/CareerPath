@@ -257,11 +257,20 @@ export default function SurveysView({
         </div>
 
         <div className="flex items-center gap-2 no-print shrink-0 font-sans">
+          {/* Print button */}
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
           >
             <Printer className="w-4 h-4 text-[#7c191e]" /> Print
+          </button>
+
+          {/* Export PDF button */}
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
+          >
+            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
           </button>
           
           {isAdminOrChair && (

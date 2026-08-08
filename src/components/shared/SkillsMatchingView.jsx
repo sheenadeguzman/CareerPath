@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, AlertTriangle, BookOpen, Sparkles, Brain, Cpu, RefreshCw, Copy, CheckCheck, Printer } from 'lucide-react';
+import { Check, AlertTriangle, BookOpen, Sparkles, Brain, Cpu, RefreshCw, Copy, CheckCheck, Printer, FileText } from 'lucide-react';
 import { getGeminiMatch } from '../../services/api';
 
 /**
@@ -232,7 +232,15 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
             onClick={() => window.print()}
             className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs no-print"
           >
-            <Printer className="w-4 h-4 text-[#7c191e]" /> Print Matrix
+            <Printer className="w-4 h-4 text-[#7c191e]" /> Print
+          </button>
+
+          {/* Export PDF button */}
+          <button
+            onClick={() => window.print()}
+            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs no-print"
+          >
+            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
           </button>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
