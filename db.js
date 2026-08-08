@@ -71,6 +71,17 @@ export async function initializeDatabase() {
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM users');
     console.log(`Successfully connected to MySQL database. User count: ${rows[0].count}`);
 
+    // MIGRATION: Siguraduhing VARCHAR(255) ang mga name columns para sa secure encryption
+    try {
+      await pool.query('ALTER TABLE users MODIFY COLUMN name VARCHAR(255) NOT NULL');
+      await pool.query('ALTER TABLE alumni_profiles MODIFY COLUMN first_name VARCHAR(255) NULL');
+      await pool.query('ALTER TABLE alumni_profiles MODIFY COLUMN middle_name VARCHAR(255) NULL');
+      await pool.query('ALTER TABLE alumni_profiles MODIFY COLUMN last_name VARCHAR(255) NULL');
+      console.log('Database Migration: Modified name columns to VARCHAR(255) to support name encryption.');
+    } catch (e) {
+      console.error('Database Migration Warning: Failed to modify column lengths:', e.message);
+    }
+
     // MIGRATION 0: Siguraduhing MEDIUMTEXT ang avatar column para sa Base64 image files
     try {
       await pool.query('ALTER TABLE users MODIFY COLUMN avatar MEDIUMTEXT');
