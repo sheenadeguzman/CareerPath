@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, Printer } from 'lucide-react';
 import { aiAnalyzeSurveys } from '../../services/api';
+import { exportToPDF } from '../../utils/pdfExport';
 
 /**
  * SurveysView Component
@@ -267,7 +268,7 @@ export default function SurveysView({
 
           {/* Export PDF button */}
           <button
-            onClick={() => window.print()}
+            onClick={() => exportToPDF('main-content-stage', 'BSC_Graduate_Tracer_Surveys_Report.pdf')}
             className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
           >
             <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF

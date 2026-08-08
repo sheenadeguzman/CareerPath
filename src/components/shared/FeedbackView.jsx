@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HelpCircle, Star, MessageSquare, Check, Plus, ShieldCheck, Award, Eye, Building, GraduationCap, CornerDownRight, AlertCircle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, X, Printer } from 'lucide-react';
 import { aiSummarizeFeedback } from '../../services/api';
+import { exportToPDF } from '../../utils/pdfExport';
 
 export default function FeedbackView({
   feedbacks,
@@ -311,7 +312,7 @@ export default function FeedbackView({
 
           {/* Export PDF button */}
           <button
-            onClick={() => window.print()}
+            onClick={() => exportToPDF('main-content-stage', 'BSC_Curriculum_QA_Feedback_Report.pdf')}
             className="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-full transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
           >
             <FileText className="w-3.5 h-3.5 text-[#7c191e]" /> Export PDF

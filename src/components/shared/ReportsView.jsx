@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../bscData';
+import { exportToPDF } from '../../utils/pdfExport';
 
 /**
  * Calculates age dynamically based on a birth date string.
@@ -525,7 +526,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
           {/* Export PDF button */}
           <button
-            onClick={() => window.print()}
+            onClick={() => exportToPDF('main-content-stage', 'BSC_Tracer_Reports_Analytics.pdf')}
             className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
           >
             <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF

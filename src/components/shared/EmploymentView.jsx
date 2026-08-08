@@ -14,6 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
+import { exportToPDF } from '../../utils/pdfExport';
 import EmploymentAnalytics from './components/EmploymentAnalytics';
 import EmploymentDirectory from './components/EmploymentDirectory';
 
@@ -362,7 +363,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
               <Printer className="w-4 h-4 text-[#7c191e]" /> Print
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => exportToPDF('main-content-stage', 'BSC_Employment_Analytics_Report.pdf')}
               className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
             >
               <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF

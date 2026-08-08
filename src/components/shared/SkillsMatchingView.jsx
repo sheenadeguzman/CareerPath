@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, AlertTriangle, BookOpen, Sparkles, Brain, Cpu, RefreshCw, Copy, CheckCheck, Printer, FileText } from 'lucide-react';
 import { getGeminiMatch } from '../../services/api';
+import { exportToPDF } from '../../utils/pdfExport';
 
 /**
  * SkillsMatchingView Component
@@ -237,7 +238,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
 
           {/* Export PDF button */}
           <button
-            onClick={() => window.print()}
+            onClick={() => exportToPDF('main-content-stage', 'BSC_Skills_Matching_Report.pdf')}
             className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs no-print"
           >
             <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF

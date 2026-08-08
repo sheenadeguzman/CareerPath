@@ -315,7 +315,7 @@ export default function App() {
         {/* =========================================================================
             CORE STAGE WINDOW: Ipinapakita ang active view base sa currentTab state
             ========================================================================= */}
-        <main className="flex-1 overflow-y-auto min-h-0 h-full w-full bg-slate-50 font-sans transition-all duration-300">
+        <main id="main-content-stage" className="flex-1 overflow-y-auto min-h-0 h-full w-full bg-slate-50 font-sans transition-all duration-300">
           <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
 
             {/* Dashboard View: Nagpapakita ng stats summaries para sa admin, chairperson, employer, o alumni */}

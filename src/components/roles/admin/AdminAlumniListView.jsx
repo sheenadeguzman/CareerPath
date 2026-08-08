@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { Search, Eye, Upload, PlusCircle, GraduationCap, Trash2, X, Printer, FileText } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
+import { exportToPDF } from '../../../utils/pdfExport';
 
 export default function AdminAlumniListView({ 
   alumniList, 
@@ -130,7 +131,7 @@ export default function AdminAlumniListView({
 
           {/* Export PDF button accessible to all */}
           <button
-            onClick={() => window.print()}
+            onClick={() => exportToPDF('main-content-stage', 'BSC_Graduates_Directory_Report.pdf')}
             className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs no-print"
           >
             <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF

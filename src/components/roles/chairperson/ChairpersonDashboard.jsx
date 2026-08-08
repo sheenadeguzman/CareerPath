@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
+import { exportToPDF } from '../../../utils/pdfExport';
+
 export default function ChairpersonDashboard({ 
   alumni = [], 
   activeUser, 
@@ -219,7 +221,7 @@ export default function ChairpersonDashboard({
 
             {/* Export PDF button */}
             <button
-              onClick={() => window.print()}
+              onClick={() => exportToPDF('main-content-stage', 'BSC_Chairperson_Dashboard_Report.pdf')}
               className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
             >
               <FileText className="w-4 h-4 text-[#7c191e]" />

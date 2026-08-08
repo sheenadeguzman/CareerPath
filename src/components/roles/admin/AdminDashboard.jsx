@@ -17,6 +17,8 @@ import {
   FileText
 } from 'lucide-react';
 
+import { exportToPDF } from '../../../utils/pdfExport';
+
 export default function AdminDashboard({ 
   alumni = [], 
   employers = [], 
@@ -261,7 +263,7 @@ export default function AdminDashboard({
 
           {/* Export PDF button */}
           <button
-            onClick={() => window.print()}
+            onClick={() => exportToPDF('main-content-stage', 'BSC_Admin_Dashboard_Report.pdf')}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
           >
             <FileText className="w-4 h-4 text-[#7c191e]" />
