@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, AlertTriangle, BookOpen, Sparkles, Brain, Cpu, RefreshCw, Copy, CheckCheck, Printer, FileText } from 'lucide-react';
+import { Check, AlertTriangle, BookOpen, Sparkles, Brain, Cpu, RefreshCw, Copy, CheckCheck, Printer, FileText, Download, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { getGeminiMatch } from '../../services/api';
 import { exportToPDF } from '../../utils/pdfExport';
 
@@ -31,6 +31,25 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
 
   // State hook para sa ID ng kasalukuyang piniling trabaho (job vacancy)
   const [selectedJobID, setSelectedJobID] = useState(filteredJobPostings[0]?.id || '');
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // Helper function para sa pag-export ng skills matching table patungong CSV
+  const handleExportCSV = () => {
+    if (!activeJob) return;
+    let csvHeader = 'No.,Graduate_Name,Program,Year_Graduated,Skills_Overlap_Score,Program_Alignment_Score,Hybrid_Fit_Score\n';
+    let csvContent = matchedAlumni.map((item, idx) => {
+      return `${idx + 1},"${item.alumni.name}","${item.alumni.program}","${item.alumni.yearGraduated}",${item.skillsScore},${item.programAlignment},${item.hybridScore}`;
+    }).join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_Skills_Matching_Report_${activeJob.jobTitle.replace(/\s+/g, '_')}_2026.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   // Kung ang selectedJobID ay wala sa filtered na listahan (hal. kapag nagpalit ng role), gamitin ang una sa filtered list
   const hasSelectedJob = filteredJobPostings.some(j => j.id === selectedJobID);
@@ -238,13 +257,45 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
               <Printer className="w-4 h-4 text-[#7c191e]" /> Print
             </button>
 
-            {/* Export PDF button */}
-            <button
-              onClick={() => exportToPDF('main-content-stage', 'BSC_Skills_Matching_Report.pdf')}
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
-            >
-              <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
-            </button>
+            {/* Export Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="px-3.5 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-[11px] rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-3xs cursor-pointer select-none"
+              >
+                <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {exportDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setExportDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        handleExportCSV();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        exportToPDF('main-content-stage', 'BSC_Skills_Matching_Report.pdf');
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">

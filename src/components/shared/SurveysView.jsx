@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, Printer } from 'lucide-react';
+import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, Printer, Download, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { aiAnalyzeSurveys } from '../../services/api';
 import { exportToPDF } from '../../utils/pdfExport';
 
@@ -113,6 +113,51 @@ export default function SurveysView({
       document.body.classList.remove('modal-open-print');
     };
   }, [viewingResponsesSurvey]);
+
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [modalExportDropdownOpen, setModalExportDropdownOpen] = useState(false);
+
+  // Helper function para sa pag-export ng surveys list patungong CSV
+  const handleExportCSV = () => {
+    let csvHeader = 'No.,Survey_ID,Title,Description,Status,Start_Date,End_Date,Questions_Count\n';
+    let csvContent = surveys.map((s, idx) => {
+      return `${idx + 1},"${s.id}","${s.title}","${s.description}","${s.status}","${s.startDate}","${s.endDate}",${s.questions.length}`;
+    }).join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_Surveys_List_Report_2026.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Helper function para sa pag-export ng survey submissions/answers patungong CSV
+  const handleExportSubmissionsCSV = (survey) => {
+    if (!survey) return;
+    const surveyResps = surveyResponses.filter(r => r.surveyId === survey.id);
+    
+    // Header row: Profile details + each question
+    const qHeaders = survey.questions.map(q => `"${q.text.replace(/"/g, '""')}"`).join(',');
+    let csvHeader = `No.,Graduate_Name,Student_ID,${qHeaders},Timestamp\n`;
+    
+    let csvContent = surveyResps.map((resp, idx) => {
+      const qAnswers = survey.questions.map(q => `"${(resp.answers?.[q.id] || '').replace(/"/g, '""')}"`).join(',');
+      const dateStr = new Date(resp.submittedAt).toLocaleDateString() + ' ' + new Date(resp.submittedAt).toLocaleTimeString();
+      return `${idx + 1},"${resp.alumniName}","${resp.alumniId}",${qAnswers},"${dateStr}"`;
+    }).join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_Tracer_Submissions_${survey.title.replace(/\s+/g, '_')}_Report_2026.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Tinitingnan kung Administrator, Super Admin, o Chairperson ang kasalukuyang user para sa permission checks
   const isAdminOrChair = activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson';
@@ -279,13 +324,45 @@ export default function SurveysView({
             <Printer className="w-4 h-4 text-[#7c191e]" /> Print
           </button>
 
-          {/* Export PDF button */}
-          <button
-            onClick={() => exportToPDF('main-content-stage', 'BSC_Graduate_Tracer_Surveys_Report.pdf')}
-            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
-          >
-            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
-          </button>
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-3xs cursor-pointer select-none"
+            >
+              <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {exportDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setExportDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      handleExportCSV();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      exportToPDF('main-content-stage', 'BSC_Graduate_Tracer_Surveys_Report.pdf');
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           
           {isAdminOrChair && (
             <button
@@ -787,13 +864,45 @@ export default function SurveysView({
                   <Printer className="w-3.5 h-3.5 text-[#7c191e]" /> Print
                 </button>
 
-                {/* Export PDF button */}
-                <button
-                  onClick={() => exportToPDF('survey-submissions-modal-content', 'BSC_Tracer_Submissions_Report.pdf')}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[10px] rounded-lg transition inline-flex items-center gap-1 uppercase cursor-pointer shadow-3xs no-print"
-                >
-                  <FileText className="w-3.5 h-3.5 text-[#7c191e]" /> Export PDF
-                </button>
+                {/* Export Dropdown */}
+                <div className="relative no-print">
+                  <button
+                    onClick={() => setModalExportDropdownOpen(!modalExportDropdownOpen)}
+                    className="px-3 py-1.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-[10px] rounded-lg transition inline-flex items-center gap-1 uppercase cursor-pointer shadow-3xs select-none"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Export <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${modalExportDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {modalExportDropdownOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-10" 
+                        onClick={() => setModalExportDropdownOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                        <button
+                          onClick={() => {
+                            setModalExportDropdownOpen(false);
+                            handleExportSubmissionsCSV(viewingResponsesSurvey);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                        >
+                          <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setModalExportDropdownOpen(false);
+                            exportToPDF('survey-submissions-modal-content', 'BSC_Tracer_Submissions_Report.pdf');
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                        >
+                          <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
 
                 <button
                   onClick={() => setViewingResponsesSurvey(null)}

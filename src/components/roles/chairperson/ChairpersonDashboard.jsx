@@ -15,7 +15,10 @@ import {
   ArrowUpRight, 
   PlusCircle, 
   FileText,
-  Printer
+  Printer,
+  Download,
+  ChevronDown,
+  FileSpreadsheet
 } from 'lucide-react';
 import { DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
@@ -51,6 +54,7 @@ export default function ChairpersonDashboard({
   const [hoveredDeptSegment, setHoveredDeptSegment] = useState(null); // Aktibong segment sa SVG pie/donut chart kapag tinapatan ng cursor
   const [tooltip, setTooltip] = useState(null); // Mga coordinate para sa tooltip overlay
   const [selectedYear, setSelectedYear] = useState('All'); // Filter para sa taon ng pagtatapos (graduation cohort class year)
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
 
   // Dynamic na kinukuha ang mga natatanging graduation years mula sa listahan ng mga graduate ng departamento
@@ -104,6 +108,30 @@ export default function ChairpersonDashboard({
     );
     return !!matchAlum;
   });
+
+  // Helper function para sa pag-export ng department metrics patungong CSV
+  const handleExportCSV = () => {
+    let csvHeader = 'Metric,Value\n';
+    let csvContent = [
+      `Department Name,"${chairProgram}"`,
+      `Total Cohort Graduates,${totalDeptAlumni}`,
+      `Registered Graduates,${totalRegisteredDept}`,
+      `Registration Rate,${deptRegistrationRate}%`,
+      `Employed Graduates,${employedCount}`,
+      `Employment Rate,${employmentRate}%`,
+      `Curriculum Alignment Rate,${deptAlignmentRate}%`,
+      `Unregistered Graduates,${unregisteredDeptAlumni}`
+    ].join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_Chairperson_Dashboard_Summary_${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const averageRatingVal = deptFeedbacks.length > 0
     ? (deptFeedbacks.reduce((acc, curr) => acc + (curr.rating || 5), 0) / deptFeedbacks.length).toFixed(1)
@@ -219,14 +247,47 @@ export default function ChairpersonDashboard({
               <span>Print</span>
             </button>
 
-            {/* Export PDF button */}
-            <button
-              onClick={() => exportToPDF('main-content-stage', 'BSC_Chairperson_Dashboard_Report.pdf')}
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
-            >
-              <FileText className="w-4 h-4 text-[#7c191e]" />
-              <span>Export PDF</span>
-            </button>
+            {/* Export Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="flex items-center gap-1.5 text-xs font-bold text-white bg-[#7c191e] border border-[#7c191e]/10 px-3 py-1.5 rounded-lg hover:bg-[#7c191e]/90 transition-all cursor-pointer shadow-3xs select-none"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {exportDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setExportDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        handleExportCSV();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        exportToPDF('main-content-stage', 'BSC_Chairperson_Dashboard_Report.pdf');
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Dropdown selector para sa Graduation Class Year */}
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-655 bg-white border border-slate-200 px-2 py-1.5 rounded-lg shadow-3xs">

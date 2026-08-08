@@ -14,7 +14,10 @@ import {
   Clock, 
   ArrowUpRight,
   Printer,
-  FileText
+  FileText,
+  Download,
+  ChevronDown,
+  FileSpreadsheet
 } from 'lucide-react';
 
 import { exportToPDF } from '../../../utils/pdfExport';
@@ -31,6 +34,7 @@ export default function AdminDashboard({
   const [hoveredInstSegment, setHoveredInstSegment] = useState(null); // Aktibong segment sa donut chart kapag tinapatan ng cursor
   const [tooltip, setTooltip] = useState(null); // State para sa coordinates at data ng SVG hover tooltip
   const [selectedYear, setSelectedYear] = useState('All'); // State para sa filter ng graduation class year ng cohort
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   // Dynamic na pagkuha ng mga unique graduation years mula sa listahan ng alumni
   const graduationYears = Array.from(new Set(alumni.map(a => a.yearGraduated.toString()))).sort();
@@ -116,6 +120,31 @@ export default function AdminDashboard({
   
   const totalEmployers = employers.length;
   const openPositions = jobPostings.filter(j => j.status === 'Open').reduce((acc, curr) => acc + curr.slots, 0);
+
+  // Helper function para sa pag-export ng dashboard summary metrics patungong CSV
+  const handleExportCSV = () => {
+    let csvHeader = 'Metric,Value\n';
+    let csvContent = [
+      `Total Cohort Graduates,${totalAlumni}`,
+      `Registered Graduates,${totalRegistered}`,
+      `Registration Rate,${registrationRate}%`,
+      `Employed Graduates,${employedCount}`,
+      `Employment Rate,${employmentRate}%`,
+      `Program Alignment Rate,${alignmentRate}%`,
+      `Unregistered Graduates,${unregisteredAlumni}`,
+      `Total Partner Employers,${totalEmployers}`,
+      `Active Job Openings Slots,${openPositions}`
+    ].join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_Admin_Dashboard_Summary_${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const getBaseProgram = (progName) => {
     if (!progName) return 'Bachelor of Science in Information Technology';
@@ -261,14 +290,47 @@ export default function AdminDashboard({
             <span>Print</span>
           </button>
 
-          {/* Export PDF button */}
-          <button
-            onClick={() => exportToPDF('main-content-stage', 'BSC_Admin_Dashboard_Report.pdf')}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
-          >
-            <FileText className="w-4 h-4 text-[#7c191e]" />
-            <span>Export PDF</span>
-          </button>
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              className="flex items-center gap-1.5 text-xs font-bold text-white bg-[#7c191e] border border-[#7c191e]/10 px-3 py-1.5 rounded-lg hover:bg-[#7c191e]/90 transition-all cursor-pointer shadow-3xs select-none"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {exportDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setExportDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      handleExportCSV();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      exportToPDF('main-content-stage', 'BSC_Admin_Dashboard_Report.pdf');
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           
           {/* Selector para sa taon ng Pagtatapos */}
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2 py-1.5 rounded-lg">

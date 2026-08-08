@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Eye, Upload, PlusCircle, GraduationCap, Trash2, X, Printer, FileText } from 'lucide-react';
+import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 import { exportToPDF } from '../../../utils/pdfExport';
 
@@ -26,6 +26,26 @@ export default function AdminAlumniListView({
 
   // State pointer para sa alumnus na kukumpirmahin ang pagbura sa modal
   const [deletingAlumni, setDeletingAlumni] = useState(null);
+
+  // State para sa custom export selection dropdown menu
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // Helper function para sa pag-export ng directory patungong CSV
+  const handleExportCSV = () => {
+    let csvHeader = 'No.,Student_ID,Name,Program,Year_Graduated,Email,Phone,Employment_Status,Job_Title,Employer\n';
+    let csvContent = filteredAlumni.map((a, idx) => {
+      return `${idx + 1},"${a.studentId}","${a.name}","${a.program}","${a.yearGraduated}","${a.email || ''}","${a.phone || ''}","${a.employmentStatus || 'No Response'}","${a.jobTitle || ''}","${a.employerName || ''}"`;
+    }).join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BSC_Graduates_Directory_Report_2026.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Logic para sa pagsala (filtering) ng alumni registries base sa search criteria
   const filteredAlumni = alumniList.filter(al => {
@@ -129,13 +149,45 @@ export default function AdminAlumniListView({
             <Printer className="w-4 h-4 text-[#7c191e]" /> Print
           </button>
 
-          {/* Export PDF button accessible to all */}
-          <button
-            onClick={() => exportToPDF('main-content-stage', 'BSC_Graduates_Directory_Report.pdf')}
-            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs no-print"
-          >
-            <FileText className="w-4 h-4 text-[#7c191e]" /> Export PDF
-          </button>
+          {/* Export Dropdown */}
+          <div className="relative no-print shrink-0">
+            <button
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+            >
+              <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {exportDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setExportDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      handleExportCSV();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setExportDropdownOpen(false);
+                      exportToPDF('main-content-stage', 'BSC_Graduates_Directory_Report.pdf');
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                  >
+                    <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           
           {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
             <>
