@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Eye, Upload, PlusCircle, GraduationCap, Trash2, X } from 'lucide-react';
+import { Search, Eye, Upload, PlusCircle, GraduationCap, Trash2, X, Printer } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 
 export default function AdminAlumniListView({ 
@@ -118,30 +118,39 @@ export default function AdminAlumniListView({
           </select>
         </div>
 
-        {/* Mga quick action button na naa-access lamang ng mga Administrator */}
-        {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            
-            {/* Pag-import ng listahan (roster) */}
-            <button
-              id="btn-import-alumni-opener"
-              onClick={() => setShowImportModal(true)}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
-              title="Bulk register from CSV/Excel rosters"
-            >
-              <Upload className="w-4 h-4" /> Import CSV
-            </button>
-            
-            {/* Manu-manong pagrehistro ng record */}
-            <button
-              id="btn-add-alumnus"
-              onClick={() => setIsAddingAlumnus(true)}
-              className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
-            >
-              <PlusCircle className="w-4 h-4" /> Register Graduate
-            </button>
-          </div>
-        )}
+        {/* Quick action buttons block */}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {/* Print button accessible to all (Admin, Super Admin, Chairperson) */}
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs no-print"
+          >
+            <Printer className="w-4 h-4 text-[#7c191e]" /> Print Directory
+          </button>
+          
+          {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
+            <>
+              {/* Pag-import ng listahan (roster) */}
+              <button
+                id="btn-import-alumni-opener"
+                onClick={() => setShowImportModal(true)}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
+                title="Bulk register from CSV/Excel rosters"
+              >
+                <Upload className="w-4 h-4" /> Import CSV
+              </button>
+              
+              {/* Manu-manong pagrehistro ng record */}
+              <button
+                id="btn-add-alumnus"
+                onClick={() => setIsAddingAlumnus(true)}
+                className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" /> Register Graduate
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Table para sa listahan ng mga Alumni (Roster Registry Table) */}

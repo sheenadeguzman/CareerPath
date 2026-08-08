@@ -168,13 +168,17 @@
    Task 7: Print-Ready Stylesheets
    ========================================== */
 @media print {
+  /* Siguraduhing kasama ang lahat ng kulay at gradients sa pag-print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   body, #root {
-    background: #ffffff !important;
-    color: #000000 !important;
+    background: #f8fafc !important;
     height: auto !important;
     overflow: visible !important;
   }
-  header, nav, sidebar, footer, button, select, input, textarea, .no-print, [role="navigation"] {
+  header, nav, sidebar, footer, button, select, input, textarea, .no-print, [role="navigation"], .no-print-resume {
     display: none !important;
   }
   main {
@@ -184,21 +188,12 @@
     overflow: visible !important;
     height: auto !important;
   }
-  .bg-white, .bg-slate-50, .bg-slate-100, .bg-\[\#1e4620\]\/5 {
-    background: #ffffff !important;
-    border-color: #cccccc !important;
-  }
   table {
     border-collapse: collapse !important;
     width: 100% !important;
   }
   th, td {
-    border: 1px solid #999999 !important;
     padding: 6px !important;
-    color: #000000 !important;
-  }
-  .shadow-xs, .shadow-sm, .shadow-md, .shadow-2xs, .shadow-3xs {
-    box-shadow: none !important;
   }
 }
 

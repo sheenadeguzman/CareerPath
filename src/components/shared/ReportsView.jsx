@@ -514,6 +514,13 @@ export default function ReportsView({ alumniList, activeUser }) {
           >
             <Download className="w-4 h-4" /> Export
           </button>
+          
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+          >
+            <Printer className="w-4 h-4 text-[#7c191e]" /> Print Report
+          </button>
         </div>
       </div>
 

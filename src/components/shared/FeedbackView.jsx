@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HelpCircle, Star, MessageSquare, Check, Plus, ShieldCheck, Award, Eye, Building, GraduationCap, CornerDownRight, AlertCircle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, X } from 'lucide-react';
+import { HelpCircle, Star, MessageSquare, Check, Plus, ShieldCheck, Award, Eye, Building, GraduationCap, CornerDownRight, AlertCircle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, X, Printer } from 'lucide-react';
 import { aiSummarizeFeedback } from '../../services/api';
 
 export default function FeedbackView({
@@ -292,7 +292,7 @@ export default function FeedbackView({
       <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Curriculum Evaluation &amp; QA Feedback</h2>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-[11px] text-slate-405 mt-0.5">
             {isAlumni
               ? 'Evaluate Batanes State College (BSC) curriculum and suggest improvements based on your active career experiences.'
               : isEmployer
@@ -300,11 +300,19 @@ export default function FeedbackView({
                 : 'Audit and inspect curriculum feedback submitted by graduates to adjust course syllabi.'}
           </p>
         </div>
-        {(isAlumni || isEmployer) && (
-          <div className="text-[11px] font-bold text-slate-500 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200">
-            Role: <span className={isAlumni ? "text-[#1e4620]" : "text-[#7c191e]"}>{activeUser.role}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 no-print shrink-0">
+          <button
+            onClick={() => window.print()}
+            className="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-[11px] rounded-full transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
+          >
+            <Printer className="w-3.5 h-3.5 text-[#7c191e]" /> Print Feedback
+          </button>
+          {(isAlumni || isEmployer) && (
+            <div className="text-[11px] font-bold text-slate-500 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200">
+              Role: <span className={isAlumni ? "text-[#1e4620]" : "text-[#7c191e]"}>{activeUser.role}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw } from 'lucide-react';
+import { FileText, PlusCircle, Check, HelpCircle, Calendar, Users, Eye, ArrowUpRight, X, AlertTriangle, Sparkles, Brain, Cpu, Copy, CheckCheck, RefreshCw, Printer } from 'lucide-react';
 import { aiAnalyzeSurveys } from '../../services/api';
 
 /**
@@ -256,15 +256,24 @@ export default function SurveysView({
           </p>
         </div>
 
-        {isAdminOrChair && (
+        <div className="flex items-center gap-2 no-print shrink-0 font-sans">
           <button
-            id="btn-create-tracer-form"
-            onClick={() => setIsAddingSurvey(true)}
-            className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 font-sans cursor-pointer"
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase cursor-pointer shadow-3xs"
           >
-            <PlusCircle className="w-4 h-4" /> Create Tracer Survey
+            <Printer className="w-4 h-4 text-[#7c191e]" /> Print
           </button>
-        )}
+          
+          {isAdminOrChair && (
+            <button
+              id="btn-create-tracer-form"
+              onClick={() => setIsAddingSurvey(true)}
+              className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-bold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
+            >
+              <PlusCircle className="w-4 h-4" /> Create Tracer Survey
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grid para sa mga aktibong survey */}

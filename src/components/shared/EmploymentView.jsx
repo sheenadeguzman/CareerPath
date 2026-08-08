@@ -9,7 +9,8 @@ import L from 'leaflet';
 import { 
   Download, 
   Search,
-  Compass
+  Compass,
+  Printer
 } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import EmploymentAnalytics from './components/EmploymentAnalytics';
@@ -351,16 +352,22 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
           </p>
         </div>
         
-         {isAdminOrChair && (
-        <div className="flex gap-2 shrink-0">
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 bg-[#7c191e] hover:bg-[#6b1418] text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
-          >
-            <Download className="w-4 h-4" /> Export CSV
-          </button>
-        </div>
-            )}
+        {isAdminOrChair && (
+          <div className="flex gap-2 shrink-0 no-print">
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+            >
+              <Printer className="w-4 h-4 text-[#7c191e]" /> Print Report
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 bg-[#7c191e] hover:bg-[#6b1418] text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+            >
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. Filter Bar with Dynamic Inputs */}
