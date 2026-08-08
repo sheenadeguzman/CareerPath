@@ -488,6 +488,35 @@ export default function ReportsView({ alumniList, activeUser }) {
     return { cx, cy: getCy(rate), year: yearStr, rate, employedCount, totalCount };
   });
 
+  // --- AACCUP ACCREDITATION DETAILED METRICS ---
+  
+  // 1. Employment Nature (Tenure)
+  const permanentCount = employedAlumni.filter(a => a.employmentType === 'Permanent' || a.employmentType === 'Regular').length;
+  const temporaryCount = employedAlumni.filter(a => a.employmentType === 'Temporary').length;
+  const contractualCount = employedAlumni.filter(a => a.employmentType === 'Contractual' || a.employmentType === 'Casual').length;
+  const freelanceSelfCount = employedAlumni.filter(a => ['Freelance', 'Self-Employed'].includes(a.employmentStatus) || a.employmentType === 'Self-Employed' || a.employmentType === 'Freelance').length;
+  const otherTenureCount = employedAlumni.length - (permanentCount + temporaryCount + contractualCount + freelanceSelfCount);
+
+  // 2. Employment Sector Distribution
+  const govCount = employedAlumni.filter(a => a.sector === 'Government' || a.sector === 'Public').length;
+  const privateCount = employedAlumni.filter(a => a.sector === 'Private').length;
+  const ngoCount = employedAlumni.filter(a => a.sector === 'NGO' || a.sector === 'Non-Profit').length;
+  const selfEmpSectorCount = employedAlumni.filter(a => a.sector === 'Self-Employed' || a.sector === 'Entrepreneurship').length;
+  const otherSectorCount = employedAlumni.length - (govCount + privateCount + ngoCount + selfEmpSectorCount);
+
+  // 3. Transition Timeline (Time to First Job)
+  const timeImmediate = employedAlumni.filter(a => a.timeToFirstJob === 'Immediate' || a.timeToFirstJob === 'Less than 1 month').length;
+  const time1to6m = employedAlumni.filter(a => a.timeToFirstJob === '1 to 6 months').length;
+  const time7to12m = employedAlumni.filter(a => a.timeToFirstJob === '7 to 12 months' || a.timeToFirstJob === '6 to 11 months' || a.timeToFirstJob === '6-11 months' || a.timeToFirstJob === '7-12 months').length;
+  const time1to2y = employedAlumni.filter(a => a.timeToFirstJob === '1 to 2 years' || a.timeToFirstJob === '1-2 years').length;
+  const timeMore2y = employedAlumni.filter(a => a.timeToFirstJob === 'More than 2 years' || a.timeToFirstJob === '2+ years' || a.timeToFirstJob === '2 years+').length;
+  const timeUnresponsive = employedAlumni.length - (timeImmediate + time1to6m + time7to12m + time1to2y + timeMore2y);
+
+  // 4. Licensure Board Passing Rate
+  const cohortWithBoardExam = filteredAlumni.filter(a => a.isBoardPasser === 'Yes' || a.isBoardPasser === 'No');
+  const boardPassers = filteredAlumni.filter(a => a.isBoardPasser === 'Yes').length;
+  const boardPassingRate = cohortWithBoardExam.length > 0 ? Math.round((boardPassers / cohortWithBoardExam.length) * 100) : 'N/A';
+
   // Flag para malaman kung ang kasalukuyang session ay naka-lock sa partikular na Department Chairperson
   const isChairperson = activeUser?.role === 'Department Chairperson';
 
@@ -980,6 +1009,134 @@ export default function ReportsView({ alumniList, activeUser }) {
 
       </div>
 
+      {/* AACCUP ACCREDITATION COMPLIANCE DETAILS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans">
+        
+        {/* Tenure & Industry Sector distribution */}
+        <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4">
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 pb-2">
+            <ShieldCheck className="w-4.5 h-4.5 text-[#cca43b]" /> Employment Nature &amp; Sector (AACCUP Compliance)
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            {/* Employment Type/Nature (Tenure) */}
+            <div className="space-y-3.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Job Tenure Class</span>
+              <div className="space-y-2">
+                {[
+                  { label: 'Permanent / Regular', count: permanentCount, color: 'bg-emerald-600' },
+                  { label: 'Contractual / Casual', count: contractualCount, color: 'bg-amber-500' },
+                  { label: 'Freelance / Self-Emp.', count: freelanceSelfCount, color: 'bg-indigo-500' },
+                  { label: 'Temporary', count: temporaryCount, color: 'bg-sky-500' },
+                  { label: 'Other', count: otherTenureCount, color: 'bg-slate-400' }
+                ].map(item => {
+                  const pct = Math.round((item.count / totalEmployed) * 100);
+                  return (
+                    <div key={item.label} className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>{item.label}</span>
+                        <span className="text-slate-800 font-extrabold">{item.count} ({pct}%)</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.color}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Employment Sector */}
+            <div className="space-y-3.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Occupational Sector</span>
+              <div className="space-y-2">
+                {[
+                  { label: 'Private Corporate', count: privateCount, color: 'bg-emerald-600' },
+                  { label: 'Government / Public', count: govCount, color: 'bg-indigo-500' },
+                  { label: 'Self-Employed / Entrep.', count: selfEmpSectorCount, color: 'bg-amber-500' },
+                  { label: 'NGO / Non-Profit', count: ngoCount, color: 'bg-rose-500' },
+                  { label: 'Other / Unspecified', count: otherSectorCount, color: 'bg-slate-400' }
+                ].map(item => {
+                  const pct = Math.round((item.count / totalEmployed) * 100);
+                  return (
+                    <div key={item.label} className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>{item.label}</span>
+                        <span className="text-slate-800 font-extrabold">{item.count} ({pct}%)</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.color}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Transition Timeline & Licensure performance */}
+        <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4">
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 pb-2">
+            <Compass className="w-4.5 h-4.5 text-[#cca43b]" /> Job Placement Transition &amp; Board Licensure (AACCUP Compliance)
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            {/* Time to First Job */}
+            <div className="space-y-3.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Time to Land First Job</span>
+              <div className="space-y-2">
+                {[
+                  { label: 'Immediate (< 1 mo)', count: timeImmediate, color: 'bg-emerald-600' },
+                  { label: '1 to 6 Months', count: time1to6m, color: 'bg-emerald-500' },
+                  { label: '6 to 12 Months', count: time7to12m, color: 'bg-amber-500' },
+                  { label: '1 to 2 Years', count: time1to2y, color: 'bg-indigo-500' },
+                  { label: 'More than 2 Years', count: timeMore2y, color: 'bg-rose-500' }
+                ].map(item => {
+                  const pct = Math.round((item.count / totalEmployed) * 100);
+                  return (
+                    <div key={item.label} className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>{item.label}</span>
+                        <span className="text-slate-800 font-extrabold">{item.count} ({pct}%)</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.color}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Board Examination passing */}
+            <div className="space-y-3.5 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Licensure Examination Stats</span>
+                
+                <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-150 text-center space-y-2">
+                  <span className="text-[9px] font-extrabold text-slate-450 uppercase block">Board Passing Performance</span>
+                  <div className="text-2xl font-black text-[#7c191e]">
+                    {boardPassingRate === 'N/A' ? 'N/A' : `${boardPassingRate}%`}
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-semibold block leading-tight">
+                    {boardPassingRate === 'N/A' 
+                      ? 'No licensure exam records tracked in selected filter.' 
+                      : `Comprising ${boardPassers} passers out of ${cohortWithBoardExam.length} board-eligible graduates.`
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-[9px] text-slate-400 leading-normal font-semibold text-center mt-3">
+                Accreditation standards require schools to track career alignment and post-graduation licensure results.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       {/* ANNEX A: CHED / ALCU-COA GRADUATE PLACEMENT ACCREDITATION SUMMARY */}
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
@@ -1032,6 +1189,31 @@ export default function ReportsView({ alumniList, activeUser }) {
                   <td className="p-3 pl-5 border-r border-slate-200 font-bold">Employment within 6 Months</td>
                   <td className="p-3 border-r border-slate-200 text-center font-black text-indigo-700">{placementUnder6MonthsRate}%</td>
                   <td className="p-3 text-slate-500 font-semibold">Immediate transition metrics upon graduation</td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Licensure Exam Passing Performance</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-slate-800">
+                    {boardPassingRate === 'N/A' ? 'N/A' : `${boardPassingRate}%`}
+                  </td>
+                  <td className="p-3">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${boardPassingRate === 'N/A' ? 'bg-slate-100 text-slate-600' : boardPassingRate >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                      {boardPassingRate === 'N/A' ? 'No records' : boardPassingRate >= 70 ? 'Satisfactory Passing Rate' : 'Requires improvement'}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Tenure Stability (Permanent/Regular Status)</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-emerald-700">
+                    {employedCount > 0 ? Math.round((permanentCount / employedCount) * 100) : 0}%
+                  </td>
+                  <td className="p-3 text-slate-500 font-semibold">Percent of employed graduates holding permanent jobs</td>
+                </tr>
+                <tr>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Public Sector Placements (Government Service)</td>
+                  <td className="p-3 border-r border-slate-200 text-center font-black text-indigo-700">
+                    {employedCount > 0 ? Math.round((govCount / employedCount) * 100) : 0}%
+                  </td>
+                  <td className="p-3 text-slate-500 font-semibold">Percent of employed graduates working in public sectors</td>
                 </tr>
               </tbody>
             </table>
