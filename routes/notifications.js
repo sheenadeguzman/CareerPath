@@ -5,7 +5,7 @@
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { pool } from '../db.js';
+import { pool, encrypt } from '../db.js';
 import { authenticateToken } from './middleware.js';
 import { mapUserFromDB, mapAlumniFromDB, mapNotificationFromDB } from '../mappers.js';
 import { transporter } from './mailer.js';
@@ -115,7 +115,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     await pool.query(
       `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar, company_id, program) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [newUser.id, newUser.userId, hashedPassword, newUser.name, newUser.email, newUser.role, newUser.isInitialPasswordNeeded ? 1 : 0, newUser.avatar, newUser.companyId, newUser.program || null]
+      [newUser.id, newUser.userId, hashedPassword, encrypt(newUser.name), newUser.email, newUser.role, newUser.isInitialPasswordNeeded ? 1 : 0, newUser.avatar, newUser.companyId, newUser.program || null]
     );
 
     // Kung Alumni ang in-invite, gumawa din ng blangkong record sa alumni_profiles
@@ -131,7 +131,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
           job_related_to_course, time_to_first_job, skills, profile_completeness
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          newUser.id, defaultFirstName, defaultLastName, cleanEmail, '', null, null,
+          newUser.id, encrypt(defaultFirstName), encrypt(defaultLastName), cleanEmail, '', null, null,
           null, '', newUser.program || 'Bachelor of Science in Information Technology', 2026, '', '', 'Unemployed', '', '', '', '', 'N/A', '', 'No', '', '[]', 30
         ]
       );

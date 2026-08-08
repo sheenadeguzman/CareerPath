@@ -6,9 +6,50 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 // Load environment variables from .env file
 dotenv.config();
+
+const ALGORITHM = 'aes-256-cbc';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'bsc_careerpath_secure_crypt_key!'; // Fallback 32-character key
+const IV_LENGTH = 16;
+
+/**
+ * Encrypts cleartext into iv:ciphertext using AES-256-CBC
+ */
+export function encrypt(text) {
+  if (text === null || text === undefined || text === '') return text;
+  const stringText = String(text);
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+  let encrypted = cipher.update(stringText);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
+
+/**
+ * Decrypts iv:ciphertext back to cleartext. Returns original text if it doesn't match expected format or fails to decrypt.
+ */
+export function decrypt(text) {
+  if (text === null || text === undefined || text === '') return text;
+  const stringText = String(text);
+  try {
+    const parts = stringText.split(':');
+    if (parts.length !== 2) {
+      return stringText; // Not encrypted
+    }
+    const iv = Buffer.from(parts.shift(), 'hex');
+    const encryptedText = Buffer.from(parts.join(':'), 'hex');
+    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  } catch (err) {
+    return stringText; // Decryption failed, fallback to original
+  }
+}
+
 
 // I-initialize ang MySQL Connection Pool
 export const pool = mysql.createPool({
@@ -68,7 +109,7 @@ export async function initializeDatabase() {
             'bsc-super-admin',
             'superadministrator',
             hashedPassword,
-            'Super Administrator',
+            encrypt('Super Administrator'),
             'superadmin@bsc.edu.ph',
             'Super Admin',
             1,
@@ -210,7 +251,7 @@ export async function initializeDatabase() {
               'bsc-chair-htm',
               'HTM Department',
               hashedPassword,
-              'Prof. Angela Castro',
+              encrypt('Prof. Angela Castro'),
               'chair.htm@bsc.edu.ph',
               'Department Chairperson',
               1,
@@ -388,6 +429,57 @@ export async function initializeDatabase() {
       `);
       console.log("Database Migration: Synchronized employers.vacancies_count with job_postings open slots.");
     } catch (e) { }
+
+    // MIGRATION: Securing existing user and alumni names in the database using AES-256-CBC
+    try {
+      const [usersToSecure] = await pool.query('SELECT id, name FROM users');
+      let securedUsers = 0;
+      for (const u of usersToSecure) {
+        if (u.name && !u.name.includes(':')) {
+          const encryptedName = encrypt(u.name);
+          await pool.query('UPDATE users SET name = ? WHERE id = ?', [encryptedName, u.id]);
+          securedUsers++;
+        }
+      }
+      if (securedUsers > 0) {
+        console.log(`Database Migration: Secured and encrypted ${securedUsers} user name records.`);
+      }
+
+      const [alumniToSecure] = await pool.query('SELECT student_id, first_name, middle_name, last_name FROM alumni_profiles');
+      let securedAlumni = 0;
+      for (const a of alumniToSecure) {
+        let needsUpdate = false;
+        let encFirst = a.first_name;
+        let encMiddle = a.middle_name;
+        let encLast = a.last_name;
+
+        if (a.first_name && !a.first_name.includes(':')) {
+          encFirst = encrypt(a.first_name);
+          needsUpdate = true;
+        }
+        if (a.middle_name && !a.middle_name.includes(':')) {
+          encMiddle = encrypt(a.middle_name);
+          needsUpdate = true;
+        }
+        if (a.last_name && !a.last_name.includes(':')) {
+          encLast = encrypt(a.last_name);
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          await pool.query(
+            'UPDATE alumni_profiles SET first_name = ?, middle_name = ?, last_name = ? WHERE student_id = ?',
+            [encFirst, encMiddle, encLast, a.student_id]
+          );
+          securedAlumni++;
+        }
+      }
+      if (securedAlumni > 0) {
+        console.log(`Database Migration: Secured and encrypted ${securedAlumni} alumni name records.`);
+      }
+    } catch (err) {
+      console.error('Database Migration Error: Failed to secure/encrypt user and alumni name records:', err);
+    }
   } catch (err) {
     console.error('WARNING: Could not connect to MySQL database. Please verify your XAMPP installation and import bsc_careerpath_mysql.sql.', err);
   }

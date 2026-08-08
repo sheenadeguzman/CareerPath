@@ -3,6 +3,8 @@
  * @description Mappers para i-convert ang snake_case database rows papuntang camelCase frontend objects.
  */
 
+import { decrypt } from './db.js';
+
 /**
  * Mina-map ang database User rows papunta sa Frontend User objects.
  * @param {Object} row - Ang hilaw na user record mula sa MySQL database.
@@ -14,7 +16,7 @@ export function mapUserFromDB(row) {
     id: row.id,
     userId: row.user_id,
     password: row.password,
-    name: row.name,
+    name: decrypt(row.name),
     email: row.email,
     role: row.role,
     isInitialPasswordNeeded: !!row.is_initial_password_needed,
@@ -77,12 +79,16 @@ export function mapAlumniFromDB(row) {
       }
     } catch (e) {}
   }
+  const decFirst = decrypt(row.first_name);
+  const decMiddle = decrypt(row.middle_name) || '';
+  const decLast = decrypt(row.last_name);
+
   return {
     studentId: row.student_id,
-    name: [row.first_name, row.middle_name, row.last_name, row.suffix].filter(Boolean).join(' '),
-    firstName: row.first_name,
-    middleName: row.middle_name || '',
-    lastName: row.last_name,
+    name: [decFirst, decMiddle, decLast, row.suffix].filter(Boolean).join(' '),
+    firstName: decFirst,
+    middleName: decMiddle,
+    lastName: decLast,
     suffix: row.suffix || '',
     email: row.email,
     phone: row.phone || '',

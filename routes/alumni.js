@@ -6,7 +6,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { pool } from '../db.js';
+import { pool, encrypt } from '../db.js';
 import { authenticateToken } from './middleware.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bsc_careerpath_super_secret_key';
@@ -171,7 +171,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           last_updated = CURRENT_TIMESTAMP
          WHERE student_id = ?`,
         [
-          profile.firstName, profile.middleName || null, profile.lastName, profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
+          encrypt(profile.firstName), encrypt(profile.middleName || null), encrypt(profile.lastName), profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
           dob, profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
           profile.professionalExamPassed || 'None', profile.isBoardPasser || 'N/A', profile.licensureExamDate || null, profile.licenseNo || null,
           profile.alumniAssociationStatus || 'Non-Member', profile.employmentStatus, profile.jobTitle || '', profile.jobDescription || null,
@@ -189,7 +189,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       await pool.query(
         'UPDATE users SET name = ?, email = ?, avatar = ? WHERE id = ?',
         [
-          [profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' '),
+          encrypt([profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ')),
           profile.email,
           profile.avatar || null,
           profile.studentId
@@ -209,7 +209,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
             profile.studentId, 
             profile.studentId, 
             hashedPassword, 
-            [profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' '), 
+            encrypt([profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ')), 
             profile.email, 
             'Alumni', 
             1, 
@@ -221,7 +221,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
         await pool.query(
           'UPDATE users SET name = ?, email = ?, avatar = ? WHERE id = ?',
           [
-            [profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' '),
+            encrypt([profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ')),
             profile.email,
             profile.avatar || null,
             profile.studentId
@@ -244,7 +244,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           about_me, languages
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          profile.studentId, profile.firstName, profile.middleName || null, profile.lastName, profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
+          profile.studentId, encrypt(profile.firstName), encrypt(profile.middleName || null), encrypt(profile.lastName), profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
           dob, profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
           profile.professionalExamPassed || 'None', profile.isBoardPasser || 'N/A', profile.licensureExamDate || null, profile.licenseNo || null,
           profile.alumniAssociationStatus || 'Non-Member', profile.employmentStatus, profile.jobTitle || '', profile.jobDescription || null,
@@ -388,7 +388,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
         await pool.query(
           `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [studentId, studentId, hashedPassword, name, email, 'Alumni', 1, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120']
+          [studentId, studentId, hashedPassword, encrypt(name), email, 'Alumni', 1, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120']
         );
 
         // Map and validate enum columns to prevent strict mode DB errors
@@ -426,7 +426,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
             location_region, career_history
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            studentId, row.firstName || name.split(' ')[0], row.lastName || name.split(' ').slice(1).join(' '),
+            studentId, encrypt(row.firstName || name.split(' ')[0]), encrypt(row.lastName || name.split(' ').slice(1).join(' ')),
             email, row.phone || '', genderVal, civilStatusVal,
             row.dateOfBirth ? row.dateOfBirth : null, row.address || '', program, yearGraduated,
             row.honors || '', row.professionalExamPassed || '', employmentStatusVal,
