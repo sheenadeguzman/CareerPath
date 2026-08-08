@@ -535,7 +535,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       </div>
 
       {/* Dynamic Filter bar para mag-query sa database kahit kailan base sa piniling criteria */}
-      <div className="bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-3xs font-sans">
+      <div className="bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-3xs font-sans no-print">
         <div className="flex items-center gap-2 text-xs font-bold text-[#1e4620]">
           <Filter className="w-4 h-4" />
           <span>Interactive Dataset Filters:</span>

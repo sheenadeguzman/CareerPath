@@ -379,7 +379,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
       </div>
 
       {/* 2. Filter Bar with Dynamic Inputs */}
-      <div className="bg-slate-100/60 border border-slate-200/60 p-4 rounded-xl space-y-3 shadow-3xs">
+      <div className="bg-slate-100/60 border border-slate-200/60 p-4 rounded-xl space-y-3 shadow-3xs no-print">
         <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
           
           {/* Interactive Class Year Filter */}

@@ -65,7 +65,7 @@ export default function AdminAlumniListView({
     <div className="space-y-6 font-sans">
       
       {/* Bar para sa mga Filter Controls sa Itaas */}
-      <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 font-sans">
+      <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 font-sans no-print">
         <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-2">
           
           {/* Input box para sa paghahanap (search) */}
