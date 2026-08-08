@@ -270,7 +270,7 @@ export default function SurveysView({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 no-print shrink-0 font-sans">
+        <div className="flex flex-wrap items-center gap-2 no-print shrink-0 font-sans w-full sm:w-auto">
           {/* Print button */}
           <button
             onClick={() => window.print()}
@@ -766,11 +766,11 @@ export default function SurveysView({
       {/* ========================================================== */}
       {viewingResponsesSurvey && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
-          <div id="survey-submissions-modal-content" className="bg-white w-full max-w-4xl h-[520px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative border-collapse">
+          <div id="survey-submissions-modal-content" className="bg-white w-full max-w-4xl h-[520px] max-h-[85vh] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative border-collapse">
 
-            <div className="sticky top-0 bg-white border-b border-secondary/15 px-6 py-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white border-b border-secondary/15 px-4 md:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 z-10">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-amber-500" />
+                <Users className="w-5 h-5 text-amber-500 shrink-0" />
                 <div>
                   <h3 className="text-sm font-extrabold text-[#1e4620] uppercase tracking-wide">Tracer Study Submissions Feed</h3>
                   <span className="block text-[10px] text-slate-400 font-bold mt-0.5">
@@ -778,7 +778,7 @@ export default function SurveysView({
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
                 {/* Print button */}
                 <button
                   onClick={() => window.print()}

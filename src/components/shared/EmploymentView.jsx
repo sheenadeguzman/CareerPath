@@ -355,7 +355,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
         </div>
         
         {isAdminOrChair && (
-          <div className="flex gap-2 shrink-0 no-print">
+          <div className="flex flex-wrap items-center gap-2 shrink-0 no-print w-full sm:w-auto">
             <button
               onClick={() => window.print()}
               className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"

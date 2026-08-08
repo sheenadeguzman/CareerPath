@@ -204,12 +204,12 @@ export default function ChairpersonDashboard({
             BSC Tracer Analytics Platform specialized for <span className="text-[#7c191e] font-bold">{chairProgram}</span>.
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2 no-print shrink-0">
-          <div className="text-[10px] font-bold text-[#7c191e] bg-[#7c191e]/10 px-3.5 py-1.5 rounded-full border border-[#7c191e]/20 tracking-wider uppercase">
+        <div className="flex flex-col items-start md:items-end gap-2 no-print shrink-0 w-full md:w-auto">
+          <div className="text-[10px] font-bold text-[#7c191e] bg-[#7c191e]/10 px-3.5 py-1.5 rounded-full border border-[#7c191e]/20 tracking-wider uppercase md:self-auto self-start">
             {chairProgram.replace('BS ', '')}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
             {/* Print button */}
             <button
               onClick={() => window.print()}

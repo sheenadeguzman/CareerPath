@@ -301,7 +301,7 @@ export default function FeedbackView({
                 : 'Audit and inspect curriculum feedback submitted by graduates to adjust course syllabi.'}
           </p>
         </div>
-        <div className="flex items-center gap-2 no-print shrink-0">
+        <div className="flex flex-wrap items-center gap-2 no-print shrink-0 w-full sm:w-auto">
           {/* Print button */}
           <button
             onClick={() => window.print()}
