@@ -248,6 +248,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           </select>
         </div>
       </div>
+    </div>
 
       {activeJob ? (
         <div className="space-y-6">
