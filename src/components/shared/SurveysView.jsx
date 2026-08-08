@@ -821,7 +821,7 @@ export default function SurveysView({
                       <tr className="bg-slate-50 border-b border-slate-100 font-bold text-slate-400 uppercase tracking-widest text-[9px]">
                         <th className="p-3 pl-4">Graduate Profile</th>
                         {viewingResponsesSurvey.questions.map(q => (
-                          <th key={q.id} className="p-3 font-bold max-w-[200px] truncate" title={q.text}>
+                          <th key={q.id} className="p-3 font-bold min-w-[150px] whitespace-normal leading-normal" title={q.text}>
                             {q.text}
                           </th>
                         ))}
