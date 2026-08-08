@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { Download, FileSpreadsheet, Layers, PieChart, Users, Check } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../../bscData';
+import { exportToPDF } from '../../../utils/pdfExport';
 
 /**
  * ExportView Component
@@ -99,6 +100,14 @@ export default function ExportView({ alumniList = [] }) {
 
       // Nagpapakita ng success toast notification para sa CHED GTS
       setToastMessage('SUCCESS! Downloaded official GTS Tracer Packet.');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+    } else if (exportFormat === 'pdf') {
+      // Direct PDF report capture of the analytics registry stats
+      exportToPDF('main-content-stage', 'BSC_Graduate_Tracer_Registry_2026.pdf');
+      
+      // Nagpapakita ng success toast notification para sa PDF
+      setToastMessage('SUCCESS! Generated database registry PDF.');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 4000);
     } else {
@@ -203,7 +212,7 @@ export default function ExportView({ alumniList = [] }) {
         </div>
 
         {/* Kard para sa pagpili ng format at action button para mag-download ng registry */}
-        <div className="bg-white p-6 rounded-xl shadow-xs border border-slate-100 space-y-5 flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-xl shadow-xs border border-slate-100 space-y-5 flex flex-col justify-between no-print" data-html2canvas-ignore="true">
           <div className="space-y-4">
             <span className="text-xs font-bold text-[#7c191e] uppercase tracking-wider block">Export Parameters</span>
             
@@ -218,6 +227,7 @@ export default function ExportView({ alumniList = [] }) {
                 <option value="csv">Standard CSV Table Spreadsheet (.csv)</option>
                 <option value="json">Structured JSON Document (.json)</option>
                 <option value="ched-gts">Direct CHED GTS Template (Spreadsheet) (.csv)</option>
+                <option value="pdf">Official PDF Report Document (.pdf)</option>
               </select>
             </div>
 
@@ -228,10 +238,20 @@ export default function ExportView({ alumniList = [] }) {
                   ? 'BSC_Graduate_Tracer_Registry.json' 
                   : exportFormat === 'ched-gts'
                     ? 'BSC_CHED_GTS_Tracer_Report.csv'
-                    : 'BSC_Graduate_Tracer_Registry.csv'
+                    : exportFormat === 'pdf'
+                      ? 'BSC_Graduate_Tracer_Registry_2026.pdf'
+                      : 'BSC_Graduate_Tracer_Registry.csv'
               }</span></p>
-              <p>• Comma separated variables encoding</p>
-              <p>• Clean UTF-8 text formatting for compatibility with MS Excel & Google Sheets</p>
+              <p>• {
+                exportFormat === 'pdf'
+                  ? 'High-fidelity PDF document rendering'
+                  : 'Comma separated variables encoding'
+              }</p>
+              <p>• {
+                exportFormat === 'pdf'
+                  ? 'Captures full dynamic tracer metrics and visual volumes'
+                  : 'Clean UTF-8 text formatting for compatibility with MS Excel & Google Sheets'
+              }</p>
               <p>• Includes full demographic metrics and tracer statuses</p>
             </div>
           </div>
