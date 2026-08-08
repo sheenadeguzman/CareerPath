@@ -23,6 +23,36 @@ export async function exportToPDF(elementId, filename = 'BSC_Report.pdf') {
   element.style.overflow = 'visible';
   element.style.maxHeight = 'none';
 
+  // Temporarily disable scrollbars using dynamic CSS style tag
+  const styleOverride = document.createElement('style');
+  styleOverride.id = 'pdf-export-scrollbar-override';
+  styleOverride.innerHTML = `
+    * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    *::-webkit-scrollbar {
+      display: none !important;
+    }
+  `;
+  document.head.appendChild(styleOverride);
+
+  // Temporarily expand overflow scroll containers to visible so columns/tables don't cut off
+  const scrollContainers = element.querySelectorAll('.overflow-x-auto, .overflow-y-auto');
+  const originalScrolls = [];
+  scrollContainers.forEach((el, idx) => {
+    originalScrolls[idx] = {
+      overflowX: el.style.overflowX,
+      overflowY: el.style.overflowY,
+      width: el.style.width,
+      maxWidth: el.style.maxWidth
+    };
+    el.style.overflowX = 'visible';
+    el.style.overflowY = 'visible';
+    el.style.width = 'auto';
+    el.style.maxWidth = 'none';
+  });
+
   // Find all elements with no-print class and hide them
   const noPrintElements = document.querySelectorAll('.no-print');
   const originalDisplays = [];
@@ -63,6 +93,23 @@ export async function exportToPDF(elementId, filename = 'BSC_Report.pdf') {
   } catch (error) {
     console.error('PDF export error:', error);
   } finally {
+    // Remove temporary scrollbar styling overrides
+    const styleOverrideTag = document.getElementById('pdf-export-scrollbar-override');
+    if (styleOverrideTag) {
+      styleOverrideTag.remove();
+    }
+
+    // Restore original styles of scroll containers
+    scrollContainers.forEach((el, idx) => {
+      const orig = originalScrolls[idx];
+      if (orig) {
+        el.style.overflowX = orig.overflowX;
+        el.style.overflowY = orig.overflowY;
+        el.style.width = orig.width;
+        el.style.maxWidth = orig.maxWidth;
+      }
+    });
+
     // Restore original styles
     element.style.height = originalHeight;
     element.style.overflow = originalOverflow;
