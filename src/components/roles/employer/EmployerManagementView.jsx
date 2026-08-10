@@ -15,7 +15,7 @@ import { Shield, Check, PlusCircle, Building, Mail, Phone, Link2, AlertCircle, T
  * @param {Object} props.activeUser - Session user object para suriin ang administrative scopes.
  * @param {Function} props.onSaveEmployer - Callback trigger para i-save ang mga bago o binagong employer profile.
  */
-export default function EmployerManagementView({ employers, activeUser, onSaveEmployer, onInviteEmployer }) {
+export default function EmployerManagementView({ employers, activeUser, onSaveEmployer, onInviteEmployer, alumniList = [] }) {
   // Trigger para sa pagpapakita ng modal para sa pagdaragdag ng partner employers
   const [isAdding, setIsAdding] = useState(false);
   // States para sa pag-invite ng employer via email
@@ -23,6 +23,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
   const [inviteEmail, setInviteEmail] = useState('');
   // Logs para sa katayuan ng verification status checks
   const [successMsg, setSuccessMsg] = useState('');
+  const [viewingGradsOfEmployer, setViewingGradsOfEmployer] = useState(null);
   
   // Lokal na state model na tumutugma sa backend database schema para sa bagong stakeholders
   const [newEmp, setNewEmp] = useState({
@@ -133,81 +134,109 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
 
       {/* Grid ng mga Employer */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
-        {employers.map((emp) => (
-          <div key={emp.id} className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden flex flex-col hover:shadow-md transition">
-            
-            {/* Pang-itaas na bahagi ng banner ng card */}
-            <div className="p-5 border-b border-slate-50 flex items-start justify-between gap-3 bg-slate-50/20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-105 rounded-lg flex items-center justify-center text-slate-500">
-                  <Building className="w-5 h-5 text-[#1e4620]" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-slate-800 line-clamp-1">{emp.companyName}</h3>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{emp.industry}</span>
-                </div>
-              </div>
+        {employers.map((emp) => {
+          const workingGrads = alumniList.filter(al => 
+            al.isRegistered &&
+            ['Employed', 'Freelance', 'Self-Employed'].includes(al.employmentStatus) &&
+            al.employerName &&
+            al.employerName.trim().toLowerCase() === emp.companyName.trim().toLowerCase()
+          );
+          const workingGradsCount = workingGrads.length;
+
+          return (
+            <div key={emp.id} className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden flex flex-col hover:shadow-md transition">
               
-              {/* Button para i-toggle ang verification status (disabled para sa mga hindi admin) */}
-              <button
-                disabled={activeUser.role !== 'Administrator' && activeUser.role !== 'Super Admin'}
-                onClick={() => handleVerifyToggle(emp)}
-                className={`p-1 px-2.5 rounded-full text-[9px] font-bold uppercase transition flex items-center gap-1 ${
-                  emp.isVerified 
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-250 border cursor-pointer' 
-                    : 'bg-slate-200 text-slate-600 border border-slate-300 cursor-pointer'
-                }`}
-                title={activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' ? 'Toggle official state approval' : 'Verified Partner'}
-              >
-                <Shield className="w-3 h-3" />
-                {emp.isVerified ? 'VERIFIED' : 'PENDING'}
-              </button>
-            </div>
-
-            {/* Mga pangunahing detalye (coordinates) ng kumpanya */}
-            <div className="flex-1 p-5 space-y-3.5 text-xs text-slate-650 font-medium">
-              <div className="space-y-1">
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Authorized Contact Person</div>
-                <div className="text-slate-800 font-bold flex items-center gap-1">
-                  {emp.contactPerson} <span className="text-[10px] font-normal text-slate-400">({emp.position})</span>
-                </div>
-              </div>
-
-              <div className="space-y-1 text-slate-505 font-semibold text-xs">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="truncate">{emp.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{emp.phone}</span>
-                </div>
-                {emp.website && (
-                  <div className="flex items-center gap-2">
-                    <Link2 className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-[#1e4620] font-bold truncate">{emp.website}</span>
+              {/* Pang-itaas na bahagi ng banner ng card */}
+              <div className="p-5 border-b border-slate-50 flex items-start justify-between gap-3 bg-slate-50/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-105 rounded-lg flex items-center justify-center text-slate-500">
+                    <Building className="w-5 h-5 text-[#1e4620]" />
                   </div>
-                )}
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-800 line-clamp-1">{emp.companyName}</h3>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{emp.industry}</span>
+                  </div>
+                </div>
+                
+                {/* Button para i-toggle ang verification status (disabled para sa mga hindi admin) */}
+                <button
+                  disabled={activeUser.role !== 'Administrator' && activeUser.role !== 'Super Admin'}
+                  onClick={() => handleVerifyToggle(emp)}
+                  className={`p-1 px-2.5 rounded-full text-[9px] font-bold uppercase transition flex items-center gap-1 ${
+                    emp.isVerified 
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-250 border cursor-pointer' 
+                      : 'bg-slate-200 text-slate-600 border border-slate-300 cursor-pointer'
+                  }`}
+                  title={activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' ? 'Toggle official state approval' : 'Verified Partner'}
+                >
+                  <Shield className="w-3 h-3" />
+                  {emp.isVerified ? 'VERIFIED' : 'PENDING'}
+                </button>
               </div>
 
-              {/* Lokasyon (Geographic anchor) */}
-              <div className="text-[10px] text-slate-400 uppercase font-bold">
-                Address: <span className="text-slate-600 normal-case">{emp.address}</span>
+              {/* Mga pangunahing detalye (coordinates) ng kumpanya */}
+              <div className="flex-1 p-5 space-y-3.5 text-xs text-slate-650 font-medium">
+                <div className="space-y-1">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Authorized Contact Person</div>
+                  <div className="text-slate-800 font-bold flex items-center gap-1">
+                    {emp.contactPerson} <span className="text-[10px] font-normal text-slate-400">({emp.position})</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 text-slate-505 font-semibold text-xs">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="truncate">{emp.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{emp.phone}</span>
+                  </div>
+                  {emp.website && (
+                    <div className="flex items-center gap-2">
+                      <Link2 className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[#1e4620] font-bold truncate">{emp.website}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Lokasyon (Geographic anchor) */}
+                <div className="text-[10px] text-slate-400 uppercase font-bold">
+                  Address: <span className="text-slate-600 normal-case">{emp.address}</span>
+                </div>
               </div>
-            </div>
 
-            {/* Footer slot: Istatiska ng mga job openings */}
-            <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
-              <span className="text-slate-400">Company Size</span>
-              <span className="text-slate-800 font-semibold">{emp.companySize} employees</span>
-              
-              <span className="bg-emerald-100 text-emerald-950 px-2 py-0.5 rounded-full text-[10px] font-extrabold border border-emerald-200">
-                {emp.vacanciesCount} active slots
-              </span>
-            </div>
+              {/* Footer slot: Istatiska ng mga job openings */}
+              <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                  <span>Size:</span>
+                  <span className="text-slate-700 font-extrabold">{emp.companySize}</span>
+                </div>
+                
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => workingGradsCount > 0 && setViewingGradsOfEmployer(emp)}
+                    disabled={workingGradsCount === 0}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border select-none transition ${
+                      workingGradsCount > 0 
+                        ? 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-150 cursor-pointer' 
+                        : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                    }`}
+                    title={workingGradsCount > 0 ? "Click to view employed graduates" : "No employed graduates tracked"}
+                  >
+                    {workingGradsCount} {workingGradsCount === 1 ? 'grad' : 'grads'} employed
+                  </button>
 
-          </div>
-        ))}
+                  <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full text-[10px] font-extrabold border border-emerald-150 select-none">
+                    {emp.vacanciesCount} vacancy slots
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          );
+        })}
       </div>
 
       {/* ========================================================== */}
@@ -447,6 +476,87 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
           </div>
         </div>
       )}
+      {/* ========================================================== */}
+      {/* MODAL LIST NG GRADUATES NA NAGWOWORK SA PARTIKULAR NA COMPANY */}
+      {/* ========================================================== */}
+      {viewingGradsOfEmployer && (() => {
+        const companyGrads = alumniList.filter(al => 
+          al.isRegistered &&
+          ['Employed', 'Freelance', 'Self-Employed'].includes(al.employmentStatus) &&
+          al.employerName &&
+          al.employerName.trim().toLowerCase() === viewingGradsOfEmployer.companyName.trim().toLowerCase()
+        );
+
+        return (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
+            <div className="bg-white w-full max-w-lg shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative animate-scale-up">
+              
+              {/* Modal Header */}
+              <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building className="w-5 h-5 text-[#1e4620]" />
+                  <div>
+                    <h3 className="text-sm font-extrabold text-[#1e4620] uppercase tracking-wide">Employed Graduates</h3>
+                    <span className="block text-[10px] text-slate-450 font-bold mt-0.5">{viewingGradsOfEmployer.companyName}</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setViewingGradsOfEmployer(null)}
+                  className="p-1.5 hover:bg-slate-100 text-slate-500 rounded-lg transition cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto max-h-[300px] text-xs font-semibold space-y-3">
+                {companyGrads.length > 0 ? (
+                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-450 font-bold uppercase tracking-wider">
+                          <th className="p-2.5 pl-4">Graduate Name</th>
+                          <th className="p-2.5">Degree Program</th>
+                          <th className="p-2.5 pr-4">Job Designation</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-105 text-slate-705 font-medium">
+                        {companyGrads.map((grad) => (
+                          <tr key={grad.studentId} className="hover:bg-slate-50/50">
+                            <td className="p-2.5 pl-4">
+                              <span className="font-extrabold text-slate-800 block">{grad.firstName} {grad.lastName}</span>
+                              <span className="text-[9px] text-[#7c191e] font-mono">{grad.studentId}</span>
+                            </td>
+                            <td className="p-2.5 break-all max-w-[130px]">{grad.program}</td>
+                            <td className="p-2.5 pr-4 font-bold text-slate-800">{grad.jobTitle || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-400 font-bold">
+                    No active graduates currently tracked under this company.
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setViewingGradsOfEmployer(null)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-750 font-bold rounded-lg transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

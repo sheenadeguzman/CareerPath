@@ -360,6 +360,7 @@ export default function App() {
                 activeUser={activeUser}
                 onSaveEmployer={handleSaveEmployer}
                 onInviteEmployer={handleInviteUserByEmail}
+                alumniList={scopedAlumniList}
               />
             )}
 
