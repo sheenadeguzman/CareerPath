@@ -247,8 +247,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
   // State para sa input ng custom useful skill (mga partikular na skill na nagamit sa trabaho)
   const [customUsefulSkill, setCustomUsefulSkill] = useState('');
 
+  // Kumokontrol kung anong tab ang aktibo: 'Tracer' para sa form o 'Resume' para sa CV builder.
   const [activeSubTab, setActiveSubTab] = useState('Tracer');
-  const [resumeMode, setResumeMode] = useState('edit');
 
   // Tema o template ng Resume (e.g. 'modern', 'classic', 'minimalist')
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
@@ -1295,55 +1295,28 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
         />
       ) : (
         // I-render ang Resume/CV section na binubuo ng Builder options at Live Preview
-        <div className="space-y-4">
-          {/* Mobile sub-subtab Switcher for Resume edit vs preview */}
-          <div className="flex bg-white rounded-xl border border-slate-100 p-1.5 shadow-xs w-full max-w-xs mx-auto lg:hidden no-print-resume">
-            <button
-              onClick={() => setResumeMode('edit')}
-              className={`flex-1 py-1.5 text-center rounded-lg text-xs font-bold transition select-none cursor-pointer ${
-                resumeMode === 'edit' ? 'bg-[#7c191e] text-white shadow-sm' : 'hover:bg-slate-100 text-slate-655'
-              }`}
-            >
-              Edit Options
-            </button>
-            <button
-              onClick={() => setResumeMode('preview')}
-              className={`flex-1 py-1.5 text-center rounded-lg text-xs font-bold transition select-none cursor-pointer ${
-                resumeMode === 'preview' ? 'bg-[#7c191e] text-white shadow-sm' : 'hover:bg-slate-100 text-slate-655'
-              }`}
-            >
-              Live Preview
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-            {/* ResumeBuilder: Naglalaman ng controls para sa template type at visibility options */}
-            <div className={resumeMode === 'edit' ? 'block' : 'hidden lg:block'}>
-              <ResumeBuilder
-                selectedTemplate={selectedTemplate}
-                setSelectedTemplate={setSelectedTemplate}
-                cvOptions={cvOptions}
-                setCvOptions={setCvOptions}
-                paperSize={paperSize}
-                setPaperSize={setPaperSize}
-                handleDownloadPDF={handleDownloadCV}
-                handleDownloadWord={handleDownloadWord}
-                selfEditForm={selfEditForm}
-                setSelfEditForm={setSelfEditForm}
-              />
-            </div>
-            {/* ResumePreview: Nagpapakita ng live visual representation ng CV ng user */}
-            <div className={`lg:col-span-2 overflow-x-auto p-1 bg-slate-100 rounded-2xl border border-slate-200 ${
-              resumeMode === 'preview' ? 'block' : 'hidden lg:block'
-            }`}>
-              <ResumePreview
-                selfEditForm={selfEditForm}
-                selectedTemplate={selectedTemplate}
-                cvOptions={cvOptions}
-                paperSize={paperSize}
-                resumeMode={resumeMode}
-              />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+          {/* ResumeBuilder: Naglalaman ng controls para sa template type at visibility options */}
+          <ResumeBuilder
+            selectedTemplate={selectedTemplate}
+            setSelectedTemplate={setSelectedTemplate}
+            cvOptions={cvOptions}
+            setCvOptions={setCvOptions}
+            paperSize={paperSize}
+            setPaperSize={setPaperSize}
+            handleDownloadPDF={handleDownloadCV}
+            handleDownloadWord={handleDownloadWord}
+            selfEditForm={selfEditForm}
+            setSelfEditForm={setSelfEditForm}
+          />
+          {/* ResumePreview: Nagpapakita ng live visual representation ng CV ng user */}
+          <div className="lg:col-span-2 overflow-x-auto p-1 bg-slate-100 rounded-2xl border border-slate-200">
+            <ResumePreview
+              selfEditForm={selfEditForm}
+              selectedTemplate={selectedTemplate}
+              cvOptions={cvOptions}
+              paperSize={paperSize}
+            />
           </div>
         </div>
       )}
