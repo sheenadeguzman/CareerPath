@@ -1341,6 +1341,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
                 selectedTemplate={selectedTemplate}
                 cvOptions={cvOptions}
                 paperSize={paperSize}
+                resumeMode={resumeMode}
               />
             </div>
           </div>

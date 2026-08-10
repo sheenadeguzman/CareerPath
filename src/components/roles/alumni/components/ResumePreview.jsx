@@ -4,7 +4,8 @@ export default function ResumePreview({
   selfEditForm: rawForm,
   selectedTemplate,
   cvOptions,
-  paperSize = 'letter'
+  paperSize = 'letter',
+  resumeMode
 }) {
   const [scale, setScale] = React.useState(1);
   const [scaledHeight, setScaledHeight] = React.useState(0);
@@ -87,11 +88,15 @@ export default function ResumePreview({
       else if (paperSize === 'legal') resumeWidth = 816;
 
       let newScale = 1;
-      if (parentWidth < resumeWidth + 8) {
+      if (parentWidth > 0 && parentWidth < resumeWidth + 8) {
         newScale = (parentWidth - 8) / resumeWidth;
       }
       setScale(newScale);
-      setScaledHeight(containerRef.current.offsetHeight * newScale);
+
+      const elementHeight = containerRef.current.offsetHeight;
+      if (elementHeight > 0) {
+        setScaledHeight(elementHeight * newScale);
+      }
     };
 
     window.addEventListener('resize', handleResize);
@@ -103,7 +108,7 @@ export default function ResumePreview({
       window.removeEventListener('resize', handleResize);
       clearTimeout(t);
     };
-  }, [paperSize, selectedTemplate, cvOptions, rawForm]);
+  }, [paperSize, selectedTemplate, cvOptions, rawForm, resumeMode]);
 
   const renderTemplateContent = () => {
 
