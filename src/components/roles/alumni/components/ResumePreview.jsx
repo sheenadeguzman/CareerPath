@@ -6,6 +6,11 @@ export default function ResumePreview({
   cvOptions,
   paperSize = 'letter'
 }) {
+  const [scale, setScale] = React.useState(1);
+  const [scaledHeight, setScaledHeight] = React.useState(0);
+  const wrapperRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+
   const selfEditForm = rawForm ? {
     ...rawForm,
     employmentStatus: rawForm.employmentStatus === 'No Response' ? 'Unemployed' : (rawForm.employmentStatus || 'Unemployed')
@@ -71,6 +76,36 @@ export default function ResumePreview({
       }
     `}} />
   );
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (!wrapperRef.current || !containerRef.current) return;
+      const parentWidth = wrapperRef.current.clientWidth;
+      
+      let resumeWidth = 816; // letter max width in pixels
+      if (paperSize === 'a4') resumeWidth = 794;
+      else if (paperSize === 'legal') resumeWidth = 816;
+
+      let newScale = 1;
+      if (parentWidth < resumeWidth + 8) {
+        newScale = (parentWidth - 8) / resumeWidth;
+      }
+      setScale(newScale);
+      setScaledHeight(containerRef.current.offsetHeight * newScale);
+    };
+
+    window.addEventListener('resize', handleResize);
+    // Call once initially
+    handleResize();
+    const t = setTimeout(handleResize, 150);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(t);
+    };
+  }, [paperSize, selectedTemplate, cvOptions, rawForm]);
+
+  const renderTemplateContent = () => {
 
   // 1. MODERN PROFESSIONAL RESUME TEMPLATE (May mga Maroon Accents at Left Rail Columns)
   if (selectedTemplate === 'modern') {
@@ -888,6 +923,30 @@ export default function ResumePreview({
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+  };
+
+  return (
+    <div 
+      ref={wrapperRef}
+      className="resume-scaling-wrapper w-full overflow-hidden flex justify-center"
+      style={{
+        height: scale === 1 ? 'auto' : `${scaledHeight}px`
+      }}
+    >
+      <div 
+        ref={containerRef}
+        className="origin-top"
+        style={{
+          transform: `scale(${scale})`,
+          width: paperSize === 'a4' ? '8.27in' : '8.5in',
+          minWidth: paperSize === 'a4' ? '794px' : '816px',
+          flexShrink: 0
+        }}
+      >
+        {renderTemplateContent()}
       </div>
     </div>
   );
