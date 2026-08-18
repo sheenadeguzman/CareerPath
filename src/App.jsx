@@ -490,7 +490,7 @@ export default function App() {
           <div
             id="save-success-toast"
             className={`fixed bottom-6 right-6 ${isWarning ? 'bg-rose-950 border-rose-500/80' : 'bg-[#7c191e] border-amber-400'
-              } text-white border shadow-2xl px-4 py-3 rounded-xl flex items-center gap-3 z-50 animate-bounce font-sans max-w-sm`}
+              } text-white border shadow-2xl px-4 py-3 rounded-xl flex items-center gap-3 z-50 animate-fade-in font-sans max-w-sm`}
           >
             <div className={`w-5 h-5 ${isWarning ? 'bg-rose-500 text-white' : 'bg-amber-400 text-slate-900'
               } rounded-full flex items-center justify-center font-black text-xs shrink-0 select-none`}>

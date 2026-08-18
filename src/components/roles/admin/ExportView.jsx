@@ -143,7 +143,7 @@ export default function ExportView({ alumniList = [] }) {
       
       {/* Toast popup notification para sa download feedback */}
       {showToast && (
-        <div role="alert" className="p-4 bg-emerald-50 text-emerald-950 border border-emerald-250 rounded-xl text-xs font-bold flex items-center gap-2 animate-bounce">
+        <div role="alert" className="p-4 bg-emerald-50 text-emerald-950 border border-emerald-250 rounded-xl text-xs font-bold flex items-center gap-2 animate-fade-in">
           <span className="p-1 bg-[#1e4620] text-emerald-50 rounded-full"><Check className="w-3" /></span>
           {toastMessage}
         </div>

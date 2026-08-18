@@ -82,7 +82,7 @@ export default function AlumniManagementView({
       {showToast && (
         <div 
           role="alert" 
-          className="fixed top-24 right-8 bg-[#1e4620] text-emerald-50 font-bold text-xs p-4 rounded-xl border-2 border-amber-400 shadow-2xl z-50 flex items-center gap-2 max-w-sm animate-bounce"
+          className="fixed top-24 right-8 bg-[#1e4620] text-emerald-50 font-bold text-xs p-4 rounded-xl border-2 border-amber-400 shadow-2xl z-50 flex items-center gap-2 max-w-sm animate-fade-in"
         >
           <span className="bg-amber-400 text-slate-900 rounded-full p-1"><Check className="w-4 h-4" /></span>
           <p>{toastMessage}</p>
