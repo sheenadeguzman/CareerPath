@@ -94,7 +94,7 @@ export default function AdminAlumniListView({
             <input
               id="search-alumni"
               type="text"
-              placeholder="Search graduates name, student ID..."
+              placeholder="Search graduate's name, student ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-55 focus:bg-white border border-slate-200 rounded-lg pl-9 p-2 text-xs font-semibold focus:outline-none focus:border-[#1e4620]"
@@ -128,7 +128,7 @@ export default function AdminAlumniListView({
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
           >
-            <option value="All">All Status</option>
+            <option value="All">All Statuses</option>
             <option value="Registered">Registered</option>
             <option value="Unregistered">Unregistered</option>
             <option value="Employed">Employed</option>
@@ -218,7 +218,7 @@ export default function AdminAlumniListView({
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Showing {filteredAlumni.length} alumni list
+            Showing {filteredAlumni.length} alumni
           </span>
         </div>
         

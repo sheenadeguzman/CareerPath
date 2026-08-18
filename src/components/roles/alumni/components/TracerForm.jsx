@@ -64,8 +64,8 @@ export default function TracerForm({
       {/* Header Section: Nagpapakita ng pamagat ng sheet at ang kasalukuyang Profile Completeness Rate */}
       <div className="p-6 pb-4 border-b border-slate-100 flex justify-between items-center shrink-0 bg-white rounded-t-xl">
         <div>
-          <h2 className="text-sm font-extrabold text-[#7c191e] uppercase tracking-wider">Graduate Tracer intake sheet</h2>
-          <span className="block text-[10px] text-slate-455 mt-0.5">Fill out demographic variables for quality audits</span>
+          <h2 className="text-sm font-extrabold text-[#7c191e] uppercase tracking-wider">Graduate Tracer Intake Sheet</h2>
+          <span className="block text-[10px] text-slate-455 mt-0.5">Fill out demographic details for quality audits</span>
         </div>
         <div className="text-right">
           <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Profile Completeness</span>
@@ -148,7 +148,7 @@ export default function TracerForm({
         {/* Seksyon 1: Mga Impormasyong Personal at Pang-akademiko (Demographic & Academic) */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <GraduationCap className="w-4 h-4 text-[#7c191e]" /> 1. Demographic &amp; Academic variables
+            <GraduationCap className="w-4 h-4 text-[#7c191e]" /> 1. Demographic &amp; Academic Variables
           </h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -981,9 +981,9 @@ export default function TracerForm({
         {/* Seksyon 4: Mga Kasanayang Nakuha sa BSC (Batanes State College) na kapaki-pakinabang sa Trabaho */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <Check className="w-4 h-4 text-[#7c191e]" /> 4. Acquired skills at BSC found most useful in employment
+            <Check className="w-4 h-4 text-[#7c191e]" /> 4. Acquired Skills at BSC Found Most Useful in Employment
           </h3>
-          <p className="text-[10px] text-slate-400 font-bold block">Pumili ng mga kasanayang nakuha sa BSC na kapaki-pakinabang sa iyong trabaho (I-click para i-toggle):</p>
+          <p className="text-[10px] text-slate-400 font-bold block">Select the skills acquired at BSC that you find most useful in your employment (Click to toggle):</p>
           
           {/* Listahan ng default CHED/BSC variables */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">

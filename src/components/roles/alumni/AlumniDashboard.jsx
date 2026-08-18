@@ -147,7 +147,7 @@ export default function AlumniDashboard({
       {/* Welcome Banner block para sa pagbati sa user */}
       <div className="bg-[#7c191e]/5 border border-[#7c191e]/15 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Mabuhay, {activeUser.name.split(' ')[0]}! Welcome to your Career Dashboard</h1>
+          <h1 className="text-xl font-bold text-slate-800">Welcome, {activeUser.name.split(' ')[0]}! Welcome to your Career Dashboard</h1>
           <p className="text-xs text-slate-500 mt-1">
             Batanes State College Tracer Portal &mdash; Let's monitor your employment progress and match your skill sets.
           </p>
@@ -232,7 +232,7 @@ export default function AlumniDashboard({
                     <GraduationCap className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="block font-bold">Update My Intake Tracer Sheet</span>
+                    <span className="block font-bold">Update My Tracer Profile</span>
                     <span className="text-[10px] text-slate-400 font-medium">Keep contact details and employment records fresh</span>
                   </div>
                 </div>

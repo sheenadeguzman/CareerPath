@@ -53,7 +53,7 @@ export default function AddAlumnusModal({ activeUser, onSaveAlumni, setIsAddingA
   const handleNewAlumnusSubmit = async (e) => {
     e.preventDefault();
     if (!newAlumnus.studentId.trim() || !newAlumnus.firstName.trim() || !newAlumnus.lastName.trim() || !newAlumnus.email.trim()) {
-      alert('Please complete all marked required fields.');
+      alert('Please fill in all required fields.');
       return;
     }
 
@@ -67,7 +67,7 @@ export default function AddAlumnusModal({ activeUser, onSaveAlumni, setIsAddingA
 
     await onSaveAlumni(fullAlumnus);
     setIsAddingAlumnus(false);
-    triggerToast(`SUCCESS! Registered new alumni account for '${fullAlumnus.name}'.`);
+    triggerToast(`SUCCESS! Registered new alumnus account for '${fullAlumnus.name}'.`);
   };
 
   return (

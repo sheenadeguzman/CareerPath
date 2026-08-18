@@ -92,7 +92,7 @@ export default function MessageEmailView({
     setTimeout(async () => {
       await onSendReminders(targetIds, customSubject.trim(), customBody.trim());
       setIsSending(false);
-      setShowStatus(`SUCCESS! Customized update dispatch successfully blasted to ${targetIds.length} alumni profiles.`);
+      setShowStatus(`SUCCESS! Customized updates successfully sent to ${targetIds.length} graduates.`);
       setTimeout(() => setShowStatus(''), 5000);
     }, 1800);
   };
@@ -109,7 +109,7 @@ export default function MessageEmailView({
     await onInviteUserByEmail(inviteEmail.trim(), inviteRole);
     setIsInviting(false);
     
-    setShowStatus(`SUCCESS! Invitation credits configured for '${inviteEmail}'. Temporary password set to 'bsc123'.`);
+    setShowStatus(`SUCCESS! Invitation sent to '${inviteEmail}'. Temporary password set to 'bsc123'.`);
     setTimeout(() => setShowStatus(''), 4500);
     setInviteEmail('');
   };
@@ -134,7 +134,7 @@ export default function MessageEmailView({
             <span className="text-xs font-bold text-[#1e4620] uppercase tracking-wider block font-sans">Tracer Update &amp; Reminder Dispatch Workspace</span>
             
             <p className="text-xs text-slate-500 leading-relaxed font-semibold">
-              Compose custom notification alerts or quarterly reminders. This allows you to dispatch direct message reminders requesting graduates to complete their profiles or update their tracer records.
+              Compose custom notification alerts or quarterly reminders. This allows you to dispatch direct email reminders requesting graduates to complete their profiles or update their tracer records.
             </p>
 
             <div className="space-y-4 pt-2 text-xs font-semibold text-slate-600">
