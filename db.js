@@ -133,6 +133,56 @@ export async function initializeDatabase() {
       console.error("Database Migration Error: Failed to seed Super Admin user:", e);
     }
 
+    // MIGRATION: Seed default Administrator user if not exists (bsc-admin-1)
+    try {
+      const [adminCheck] = await pool.query("SELECT id FROM users WHERE id = 'bsc-admin-1'");
+      if (adminCheck.length === 0) {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        await pool.query(
+          `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            'bsc-admin-1',
+            'admin',
+            hashedPassword,
+            encrypt('Sheena De Guzman'),
+            'deguzmansheena30@gmail.com',
+            'Administrator',
+            1,
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120'
+          ]
+        );
+        console.log("Database Migration: Seeded default Administrator user (UserID: admin / Pass: admin123)");
+      }
+    } catch (e) {
+      console.error("Database Migration Error: Failed to seed default Administrator user:", e);
+    }
+
+    // MIGRATION: Seed secondary Administrator user if not exists (bsc-admin-2)
+    try {
+      const [adminCheck2] = await pool.query("SELECT id FROM users WHERE id = 'bsc-admin-2'");
+      if (adminCheck2.length === 0) {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        await pool.query(
+          `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            'bsc-admin-2',
+            'administrator',
+            hashedPassword,
+            encrypt('Alumni President'),
+            'admin2@bsc.edu.ph',
+            'Administrator',
+            1,
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'
+          ]
+        );
+        console.log("Database Migration: Seeded secondary Administrator user (UserID: administrator / Pass: admin123)");
+      }
+    } catch (e) {
+      console.error("Database Migration Error: Failed to seed secondary Administrator user:", e);
+    }
+
 
     // MIGRATION 1: Siguraduhing may columns ang feedbacks table
     try {

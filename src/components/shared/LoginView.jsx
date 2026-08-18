@@ -52,26 +52,14 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       localStorage.setItem(`careerpath_last_username_${role}`, rememberedUsername);
     }
 
-    if (role === 'Alumni' || role === 'Department Chairperson' || role === 'Employer') {
-      setUserIdInput('');
-      setPasswordInput('');
-      return;
-    }
-
     if (rememberedUsername) {
       setUserIdInput(rememberedUsername);
       setPasswordInput('');
       return;
     }
 
-    // Awtomatikong nilalagyan ang mga field ng username para sa madaling pag-test, ngunit iniiwang blanko ang password
-    if (role === 'Super Admin') {
-      setUserIdInput('superadministrator');
-      setPasswordInput('');
-    } else if (role === 'Administrator') {
-      setUserIdInput('admin');
-      setPasswordInput('');
-    }
+    setUserIdInput('');
+    setPasswordInput('');
   };
 
   const handleBackToRoles = () => {

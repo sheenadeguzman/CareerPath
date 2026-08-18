@@ -44,6 +44,15 @@ export const INITIAL_USERS = [
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120'
   },
   {
+    id: 'bsc-admin-2',
+    userId: 'administrator',
+    name: 'Alumni President',
+    email: 'admin2@bsc.edu.ph',
+    role: 'Administrator',
+    isInitialPasswordNeeded: true,
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'
+  },
+  {
     id: 'bsc-chair-it',
     userId: 'ICT Department',
     name: 'Dr. Mark Villanueva',

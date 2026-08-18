@@ -6,13 +6,13 @@
  */
 
 import React, { useState } from 'react';
-import { 
-  GraduationCap, 
-  CheckSquare, 
-  Briefcase, 
-  Award, 
-  ChevronRight, 
-  Building, 
+import {
+  GraduationCap,
+  CheckSquare,
+  Briefcase,
+  Award,
+  ChevronRight,
+  Building,
   MapPin,
   Sparkles,
   Brain,
@@ -24,18 +24,18 @@ import {
 } from 'lucide-react';
 import { aiPredictPlacement } from '../../../services/api';
 
-export default function AlumniDashboard({ 
-  alumni = [], 
-  activeUser, 
-  jobPostings = [], 
-  feedbacks = [], 
-  onNavigate 
+export default function AlumniDashboard({
+  alumni = [],
+  activeUser,
+  jobPostings = [],
+  feedbacks = [],
+  onNavigate
 }) {
-  
+
   // Hinahanap ang katugmang alumni profile record na konektado sa credentials ng naka-login na user
   const myAlumni = alumni.find(
     a => a.email.toLowerCase() === activeUser.email.toLowerCase() ||
-         a.name.toLowerCase() === activeUser.name.toLowerCase()
+      a.name.toLowerCase() === activeUser.name.toLowerCase()
   );
 
   // AI Placement Assessment States
@@ -114,24 +114,24 @@ export default function AlumniDashboard({
     if (job.status !== 'Open') return false;
     const titleLower = job.jobTitle.toLowerCase();
     const descLower = job.description.toLowerCase();
-    
+
     if (!myAlumni) return true; // I-default sa match all kapag pumalya ang profile check
-    
+
     // Tinitingnan ang mga partikular na program affiliations ng alumnus gamit ang bagong opisyal na degree names at fallbacks
     const isIT = myAlumni.program === 'Bachelor of Science in Information Technology' || myAlumni.program === 'BS Information Technology';
     const isHTM = myAlumni.program === 'Bachelor of Science in Hospitality and Tourism Management' || myAlumni.program === 'BS Hospitality and Tourism Management';
     const isEduc = myAlumni.program === 'Bachelor of Elementary Education' || myAlumni.program === 'Bachelor of Secondary Education' || myAlumni.program === 'BS Elementary Education';
     const isAgri = myAlumni.program === 'Bachelor of Science in Agriculture' || myAlumni.program === 'BS Agriculture';
     const isIndTech = myAlumni.program === 'Bachelor of Science in Industrial Technology' || myAlumni.program === 'BS Industrial Technology';
-    
-    if (isIT && (titleLower.includes('tech') || titleLower.includes('it') || titleLower.includes('developer') || titleLower.includes('programmer') || titleLower.includes('network') || titleLower.includes('system') || descLower.includes('software') || descLower.includes('web') )) return true;
+
+    if (isIT && (titleLower.includes('tech') || titleLower.includes('it') || titleLower.includes('developer') || titleLower.includes('programmer') || titleLower.includes('network') || titleLower.includes('system') || descLower.includes('software') || descLower.includes('web'))) return true;
     if (isHTM && (titleLower.includes('hotel') || titleLower.includes('hospitality') || titleLower.includes('chef') || titleLower.includes('restaurant') || titleLower.includes('service') || descLower.includes('hospitality') || titleLower.includes('kitchen') || titleLower.includes('cook') || titleLower.includes('travel') || titleLower.includes('flight') || titleLower.includes('resort') || titleLower.includes('guide') || descLower.includes('tourism'))) return true;
     if (isEduc && (titleLower.includes('teacher') || titleLower.includes('instructor') || titleLower.includes('school') || titleLower.includes('education') || titleLower.includes('tutor') || titleLower.includes('professor'))) return true;
     if (isAgri && (titleLower.includes('agri') || titleLower.includes('farm') || titleLower.includes('crop') || titleLower.includes('plant') || titleLower.includes('vet') || descLower.includes('agriculture') || titleLower.includes('soil') || titleLower.includes('livestock'))) return true;
     if (isIndTech && (titleLower.includes('industrial') || titleLower.includes('machine') || titleLower.includes('operator') || titleLower.includes('electric') || titleLower.includes('tech') || descLower.includes('factory') || titleLower.includes('welder') || titleLower.includes('mechanic'))) return true;
-    
+
     // Fallback matching logic gamit ang mga skill tags
-    const hasSkillMatch = (myAlumni.skills || []).some(skill => 
+    const hasSkillMatch = (myAlumni.skills || []).some(skill =>
       titleLower.includes(skill.toLowerCase()) || descLower.includes(skill.toLowerCase())
     );
     return hasSkillMatch;
@@ -143,7 +143,7 @@ export default function AlumniDashboard({
 
   return (
     <div className="space-y-6 font-sans">
-      
+
       {/* Welcome Banner block para sa pagbati sa user */}
       <div className="bg-[#7c191e]/5 border border-[#7c191e]/15 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
@@ -156,7 +156,7 @@ export default function AlumniDashboard({
 
       {/* Row para sa mga pangunahing metric cards ng alumnus */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         {/* Card para sa kasalukuyang dineklarang Tracer Career Status */}
         <div className="bg-white p-5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs">
           <div className="space-y-1">
@@ -199,7 +199,7 @@ export default function AlumniDashboard({
         </div>
 
         {/* Bilang ng Curriculum Feedback submissions */}
-        <div 
+        <div
           onClick={() => onNavigate('Curriculum Feedback')}
           className="bg-white p-5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs cursor-pointer hover:border-[#7c191e]/20 transition-all"
         >
@@ -214,16 +214,16 @@ export default function AlumniDashboard({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        
+
         {/* Kaliwang column para sa Quick Actions Portal */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-xl border border-slate-100 p-5 space-y-4 shadow-xs">
             <span className="block text-xs font-bold text-[#7c191e] uppercase tracking-wider">Quick Actions Portal</span>
-            
+
             <div className="grid grid-cols-1 gap-2.5">
-              
+
               {/* Shortcut papunta sa Intake Tracer Sheet / Profile */}
-              <button 
+              <button
                 onClick={() => onNavigate('My Profile')}
                 className="w-full text-left p-3 rounded-lg border border-slate-105 hover:border-[#7c191e]/25 hover:bg-[#7c191e]/5 bg-slate-50/50 flex items-center justify-between group transition-all text-xs font-semibold text-slate-700 cursor-pointer"
               >
@@ -240,7 +240,7 @@ export default function AlumniDashboard({
               </button>
 
               {/* Shortcut papunta sa Job Postings / Vacancies */}
-              <button 
+              <button
                 onClick={() => onNavigate('Job Postings')}
                 className="w-full text-left p-3 rounded-lg border border-slate-105 hover:border-[#7c191e]/25 hover:bg-[#7c191e]/5 bg-slate-50/50 flex items-center justify-between group transition-all text-xs font-semibold text-slate-700 cursor-pointer"
               >
@@ -257,7 +257,7 @@ export default function AlumniDashboard({
               </button>
 
               {/* Shortcut papunta sa Skills Matching module */}
-              <button 
+              <button
                 onClick={() => onNavigate('Skills Match')}
                 className="w-full text-left p-3 rounded-lg border border-slate-105 hover:border-[#7c191e]/25 hover:bg-[#7c191e]/5 bg-slate-50/50 flex items-center justify-between group transition-all text-xs font-semibold text-slate-700 cursor-pointer"
               >
@@ -274,7 +274,7 @@ export default function AlumniDashboard({
               </button>
 
               {/* Shortcut papunta sa Curriculum Feedback page */}
-              <button 
+              <button
                 onClick={() => onNavigate('Curriculum Feedback')}
                 className="w-full text-left p-3 rounded-lg border border-slate-105 hover:border-[#7c191e]/25 hover:bg-[#7c191e]/5 bg-slate-50/50 flex items-center justify-between group transition-all text-xs font-semibold text-slate-700 cursor-pointer"
               >
@@ -301,7 +301,7 @@ export default function AlumniDashboard({
             <p className="text-xs text-slate-600 font-medium leading-relaxed">
               BSC conducts yearly institutional tracer surveys to assess curriculum compliance, course design, and post-grad career paths. Your answers directly shape standard class models!
             </p>
-            <button 
+            <button
               onClick={() => onNavigate('Surveys')}
               className="w-full py-2.5 bg-[#7c191e] text-white hover:bg-[#7c191e]/90 transition-all rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer select-none"
             >
@@ -373,7 +373,7 @@ export default function AlumniDashboard({
         <div className="lg:col-span-3 bg-white rounded-xl border border-slate-100 p-5 space-y-4 shadow-xs">
           <div className="flex justify-between items-center border-b border-slate-50 pb-2">
             <span className="block text-xs font-bold text-slate-800 uppercase tracking-wider">Curated Job Positions for You</span>
-            <button 
+            <button
               onClick={() => onNavigate('Job Postings')}
               className="text-[10px] font-bold text-[#7c191e] hover:underline cursor-pointer"
             >
