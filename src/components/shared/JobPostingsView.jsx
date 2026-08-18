@@ -93,7 +93,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newJob.jobTitle.trim() || !newJob.deadline) {
-      alert('Must populate job title and deadline coordinates.');
+      alert('Must populate job title and deadline details.');
       return;
     }
 
@@ -628,7 +628,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 mb-1">Contact Email Coordinates</label>
+                      <label className="block text-slate-550 mb-1">Contact Email Address</label>
                       <input
                         type="email"
                         placeholder="e.g., hr@company.com"

@@ -108,7 +108,7 @@ export default function AddAlumnusModal({ activeUser, onSaveAlumni, setIsAddingA
 
             {/* Input para sa Email Address */}
             <div>
-              <label className="block text-slate-500 mb-1">Email Address Coordinates *</label>
+              <label className="block text-slate-500 mb-1">Email Address *</label>
               <input
                 type="email"
                 required

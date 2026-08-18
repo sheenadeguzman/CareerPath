@@ -196,7 +196,7 @@ export default function MessageEmailView({
                   rows={6}
                   value={customBody}
                   onChange={(e) => setCustomBody(e.target.value)}
-                  placeholder="Insert coordinates of quarterly warning or friendly reminders..."
+                  placeholder="Insert details of quarterly warning or friendly reminders..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-1 focus:ring-[#1e4620] leading-relaxed text-slate-700 font-medium font-sans"
                 />
               </div>
@@ -323,7 +323,7 @@ export default function MessageEmailView({
 
           <form onSubmit={handleInviteSubmit} className="space-y-4 text-xs font-semibold text-slate-600">
             <div>
-              <label className="block text-slate-500 mb-1">Target Email Coordinates</label>
+              <label className="block text-slate-500 mb-1">Target Email Address</label>
               <input
                 type="email"
                 required
@@ -406,7 +406,7 @@ export default function MessageEmailView({
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-6 text-center text-slate-440 font-bold">
-                      No system users found matching search coordinates.
+                      No system users found matching search criteria.
                     </td>
                   </tr>
                 ) : (

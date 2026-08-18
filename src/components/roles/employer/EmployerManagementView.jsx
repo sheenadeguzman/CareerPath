@@ -174,7 +174,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
                 </button>
               </div>
 
-              {/* Mga pangunahing detalye (coordinates) ng kumpanya */}
+              {/* Mga pangunahing detalye ng kumpanya */}
               <div className="flex-1 p-5 space-y-3.5 text-xs text-slate-650 font-medium">
                 <div className="space-y-1">
                   <div className="text-[10px] text-slate-400 font-bold uppercase">Authorized Contact Person</div>
@@ -318,7 +318,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-550 mb-1">Official Email Coordinates *</label>
+                    <label className="block text-slate-550 mb-1">Official Email Address *</label>
                     <input
                       type="email"
                       required
@@ -341,7 +341,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
                 </div>
 
                 <div>
-                  <label className="block text-slate-550 mb-1">Office Address Coordinates</label>
+                  <label className="block text-slate-550 mb-1">Office Address</label>
                   <input
                     type="text"
                     placeholder="e.g., Basco, Batanes"

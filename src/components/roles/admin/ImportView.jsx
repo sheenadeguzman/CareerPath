@@ -590,7 +590,7 @@ export default function ImportView({ onImportAlumni, alumniList = [], activeUser
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 font-bold text-slate-400 uppercase tracking-widest text-[9px]">
                   <th className="p-2.5 pl-4">Student ID / Name</th>
-                  <th className="p-2.5">Email Coordinate</th>
+                  <th className="p-2.5">Email Address</th>
                   <th className="p-2.5">Degree Program</th>
                   <th className="p-2.5">Validation Audit</th>
                   <th className="p-2.5 pr-4 text-right">Grad Year</th>

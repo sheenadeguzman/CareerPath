@@ -100,7 +100,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
               </div>
             </div>
             <div className="space-y-1.5 self-start sm:self-center">
-              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-left sm:text-right">Employment Coordinate</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-left sm:text-right">Employment Status</div>
               <div className="sm:text-right">{renderStatusBadge(alumni.employmentStatus)}</div>
             </div>
           </div>

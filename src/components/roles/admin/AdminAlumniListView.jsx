@@ -218,7 +218,7 @@ export default function AdminAlumniListView({
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Showing {filteredAlumni.length} alumni coordinates
+            Showing {filteredAlumni.length} alumni list
           </span>
         </div>
         
@@ -324,7 +324,7 @@ export default function AdminAlumniListView({
 
           {filteredAlumni.length === 0 && (
             <div className="text-center py-12 text-slate-400 font-medium text-xs">
-              No matching alumni profiles found matching current trace query coordinates.
+              No matching alumni profiles found matching current trace query.
             </div>
           )}
         </div>

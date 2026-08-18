@@ -233,7 +233,7 @@ export default function AlumniDashboard({
                   </div>
                   <div>
                     <span className="block font-bold">Update My Intake Tracer Sheet</span>
-                    <span className="text-[10px] text-slate-400 font-medium">Keep coordinates and employment records fresh</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Keep contact details and employment records fresh</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-455 group-hover:translate-x-1 transition-all" />

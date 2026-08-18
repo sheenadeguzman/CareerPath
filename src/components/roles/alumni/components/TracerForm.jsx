@@ -258,7 +258,7 @@ export default function TracerForm({
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">Mobile Phone Coordinate</label>
+              <label className="block text-slate-400 mb-1">Mobile Phone Number</label>
               <input
                 type="text"
                 placeholder="e.g. 0917-123-4567"
@@ -267,9 +267,9 @@ export default function TracerForm({
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
-            {/* Input box para sa Birth Date Coordinate ng Alumnus */}
+            {/* Input box para sa Birth Date ng Alumnus */}
             <div>
-              <label className="block text-slate-400 mb-1">Birth Date Coordinate</label>
+              <label className="block text-slate-400 mb-1">Birth Date</label>
               <input
                 type="date"
                 value={selfEditForm.dateOfBirth}
