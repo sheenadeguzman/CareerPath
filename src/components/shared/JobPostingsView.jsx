@@ -451,9 +451,8 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
         )}
       </div>
 
-      {/* ========================================================== */}
+      
       {/* MODAL FORM PARA SA PAGLIKHA NG BAGONG JOB POSTING          */}
-      {/* ========================================================== */}
       {isPosting && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
           
@@ -588,7 +587,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 </div>
 
                 <div>
-                  <label className="block text-slate-500 mb-1">Deadline Date Coordinates *</label>
+                  <label className="block text-slate-500 mb-1">Deadline of Submission *</label>
                   <input
                     type="date"
                     required
