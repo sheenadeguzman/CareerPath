@@ -162,8 +162,13 @@ export default function ReportsView({ alumniList, activeUser }) {
         scrollWheelZoom: false, // Avoid page scroll hijacking
       }).setView([20.4487, 121.9696], 11);
 
-      // Clean light-themed base tile map from CartoDB
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      // Clean light-themed base tile map from CartoDB (supports optional VITE_CARTO_API_KEY)
+      const cartoKey = import.meta.env.VITE_CARTO_API_KEY;
+      const tileUrl = cartoKey 
+        ? `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${cartoKey}`
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+      L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 20
