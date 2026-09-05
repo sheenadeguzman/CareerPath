@@ -11,6 +11,7 @@ import L from 'leaflet';
 import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText, ChevronDown } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
+import { MAP_STYLES, DEFAULT_MAP_STYLE } from '../../utils/mapConfig';
 
 /**
  * Calculates age dynamically based on a birth date string.
@@ -88,9 +89,12 @@ export default function ReportsView({ alumniList, activeUser }) {
   // State para sa coordinates ng floating tooltip sa mga nodes ng trend line graph
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
+  const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
+
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapLayersRef = useRef([]);
+  const mapTileLayerRef = useRef(null);
 
   // Inject Leaflet CSS
   useEffect(() => {
@@ -151,6 +155,20 @@ export default function ReportsView({ alumniList, activeUser }) {
   const immediateOrUnder6m = filteredAlumni.filter(a => a.isRegistered && ['Immediate', '1 to 6 months'].includes(a.timeToFirstJob)).length;
   const placementUnder6MonthsRate = total > 0 ? Math.round((immediateOrUnder6m / total) * 100) : 0;
 
+  // Dynamic Map Style Tile Layer switcher
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    if (mapTileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(mapTileLayerRef.current);
+    }
+    const currentStyle = MAP_STYLES[mapStyle] || MAP_STYLES[DEFAULT_MAP_STYLE];
+    mapTileLayerRef.current = L.tileLayer(currentStyle.url, {
+      attribution: currentStyle.attribution,
+      maxZoom: currentStyle.maxZoom
+    }).addTo(mapInstanceRef.current);
+    mapTileLayerRef.current.bringToBack();
+  }, [mapStyle]);
+
   // Initialize and update the map layer
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -162,10 +180,10 @@ export default function ReportsView({ alumniList, activeUser }) {
         scrollWheelZoom: false, // Avoid page scroll hijacking
       }).setView([20.4487, 121.9696], 11);
 
-      // Base tile map from OpenStreetMap (Free, open-source, no watermark)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
+      const currentStyle = MAP_STYLES[mapStyle] || MAP_STYLES[DEFAULT_MAP_STYLE];
+      mapTileLayerRef.current = L.tileLayer(currentStyle.url, {
+        attribution: currentStyle.attribution,
+        maxZoom: currentStyle.maxZoom
       }).addTo(mapInstanceRef.current);
     }
 
@@ -831,29 +849,53 @@ export default function ReportsView({ alumniList, activeUser }) {
             <div ref={mapContainerRef} className="w-full h-full z-10" id="tracer-interactive-map" />
 
             {/* Custom Map Control presets overlay */}
-            <div className="absolute top-3 right-3 z-50 flex flex-col gap-1.5 bg-white/95 backdrop-blur-xs p-2 rounded-lg border border-slate-200 shadow-sm select-none">
-              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-1 text-center font-sans">Zoom View Range</span>
-              <button
-                type="button"
-                onClick={() => handleMapPan('local')}
-                className="px-2.5 py-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 rounded-md transition-all cursor-pointer text-left font-sans"
-              >
-                Local Batanes
-              </button>
-              <button
-                type="button"
-                onClick={() => handleMapPan('national')}
-                className="px-2.5 py-1 text-[10px] font-bold text-sky-850 bg-sky-50 hover:bg-sky-100 border border-sky-250 rounded-md transition-all cursor-pointer text-left font-sans"
-              >
-                Philippines
-              </button>
-              <button
-                type="button"
-                onClick={() => handleMapPan('global')}
-                className="px-2.5 py-1 text-[10px] font-bold text-amber-850 bg-amber-50 hover:bg-amber-100 border border-amber-250 rounded-md transition-all cursor-pointer text-left font-sans"
-              >
-                Global / World
-              </button>
+            <div className="absolute top-3 right-3 z-50 flex flex-col gap-2 bg-white/95 backdrop-blur-xs p-2.5 rounded-lg border border-slate-200 shadow-md select-none font-sans">
+              <div>
+                <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1 text-center font-sans">Map Style</span>
+                <div className="grid grid-cols-2 gap-1">
+                  {Object.values(MAP_STYLES).map(style => (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => setMapStyle(style.id)}
+                      className={`px-2 py-1 text-[9px] font-bold rounded transition-all cursor-pointer text-center ${
+                        mapStyle === style.id
+                          ? 'bg-[#7c191e] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-slate-150 pt-1.5">
+                <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1 text-center font-sans">Zoom View Range</span>
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleMapPan('local')}
+                    className="px-2.5 py-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 rounded-md transition-all cursor-pointer text-left font-sans"
+                  >
+                    Local Batanes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMapPan('national')}
+                    className="px-2.5 py-1 text-[10px] font-bold text-sky-850 bg-sky-50 hover:bg-sky-100 border border-sky-250 rounded-md transition-all cursor-pointer text-left font-sans"
+                  >
+                    Philippines
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMapPan('global')}
+                    className="px-2.5 py-1 text-[10px] font-bold text-amber-850 bg-amber-50 hover:bg-amber-100 border border-amber-250 rounded-md transition-all cursor-pointer text-left font-sans"
+                  >
+                    Global / World
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

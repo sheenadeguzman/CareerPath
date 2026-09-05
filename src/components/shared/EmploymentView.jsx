@@ -13,10 +13,12 @@ import {
   Printer,
   FileText,
   ChevronDown,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Layers
 } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
+import { MAP_STYLES, DEFAULT_MAP_STYLE } from '../../utils/mapConfig';
 import EmploymentAnalytics from './components/EmploymentAnalytics';
 import EmploymentDirectory from './components/EmploymentDirectory';
 
@@ -28,11 +30,13 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
   const [selectedRelatedness, setSelectedRelatedness] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
 
   // Ref hooks para sa pagpapakita ng Leaflet Map
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapLayersRef = useRef([]);
+  const mapTileLayerRef = useRef(null);
 
   // Tinitiyak kung ang logged-in user ay Department Chairperson para i-restrict ang scope sa program nila
   const isChairperson = activeUser?.role === 'Department Chairperson';
@@ -122,6 +126,34 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
   const internationalCount = employedAlumni.filter(a => a.locationRegion === 'International').length;
   const totalEmployed = employedAlumni.length || 1;
 
+  // Dynamic Map Style Tile Layer switcher
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    if (mapTileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(mapTileLayerRef.current);
+    }
+    const currentStyle = MAP_STYLES[mapStyle] || MAP_STYLES[DEFAULT_MAP_STYLE];
+    mapTileLayerRef.current = L.tileLayer(currentStyle.url, {
+      attribution: currentStyle.attribution,
+      maxZoom: currentStyle.maxZoom
+    }).addTo(mapInstanceRef.current);
+    mapTileLayerRef.current.bringToBack();
+  }, [mapStyle]);
+
+  // Handler to smoothly transition camera views
+  const handleMapPan = (viewType) => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    if (viewType === 'local') {
+      map.setView([20.4487, 121.9696], 11, { animate: true, duration: 1.2 });
+    } else if (viewType === 'national') {
+      map.setView([12.8797, 121.7740], 5.5, { animate: true, duration: 1.5 });
+    } else if (viewType === 'global') {
+      map.setView([15.0, 100.0], 2, { animate: true, duration: 1.8 });
+    }
+  };
+
   // Initialize and update the map layers dynamically
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -133,10 +165,10 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
         scrollWheelZoom: false,
       }).setView([20.4487, 121.9696], 11);
 
-      // Base tile map from OpenStreetMap (Free, open-source, no watermark)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
+      const currentStyle = MAP_STYLES[mapStyle] || MAP_STYLES[DEFAULT_MAP_STYLE];
+      mapTileLayerRef.current = L.tileLayer(currentStyle.url, {
+        attribution: currentStyle.attribution,
+        maxZoom: currentStyle.maxZoom
       }).addTo(mapInstanceRef.current);
     }
 
@@ -510,11 +542,63 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
           </span>
         </div>
         
-        {/* Leaflet Map Div Container */}
-        <div 
-          ref={mapContainerRef} 
-          className="h-80 w-full rounded-xl border border-slate-100/80 shadow-inner bg-slate-50 relative overflow-hidden z-10"
-        />
+        {/* Leaflet Map Div Container with Control Overlays */}
+        <div className="relative h-80 w-full rounded-xl border border-slate-100/80 shadow-inner bg-slate-50 overflow-hidden z-10">
+          <div 
+            ref={mapContainerRef} 
+            className="w-full h-full"
+          />
+
+          {/* Custom Map Control presets overlay */}
+          <div className="absolute top-3 right-3 z-[500] flex flex-col gap-2 bg-white/95 backdrop-blur-xs p-2.5 rounded-lg border border-slate-200 shadow-md select-none font-sans">
+            <div>
+              <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1 text-center font-sans">Map Style</span>
+              <div className="grid grid-cols-2 gap-1">
+                {Object.values(MAP_STYLES).map(style => (
+                  <button
+                    key={style.id}
+                    type="button"
+                    onClick={() => setMapStyle(style.id)}
+                    className={`px-2 py-1 text-[9px] font-bold rounded transition-all cursor-pointer text-center ${
+                      mapStyle === style.id
+                        ? 'bg-[#7c191e] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {style.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-150 pt-1.5">
+              <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1 text-center font-sans">Zoom View</span>
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleMapPan('local')}
+                  className="px-2 py-0.5 text-[9.5px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 rounded transition-all cursor-pointer text-left font-sans"
+                >
+                  Local Batanes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMapPan('national')}
+                  className="px-2 py-0.5 text-[9.5px] font-bold text-sky-850 bg-sky-50 hover:bg-sky-100 border border-sky-250 rounded transition-all cursor-pointer text-left font-sans"
+                >
+                  Philippines
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMapPan('global')}
+                  className="px-2 py-0.5 text-[9.5px] font-bold text-amber-850 bg-amber-50 hover:bg-amber-100 border border-amber-250 rounded transition-all cursor-pointer text-left font-sans"
+                >
+                  Global / World
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <EmploymentAnalytics filteredAlumni={filteredAlumni} />
