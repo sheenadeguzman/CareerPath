@@ -3,7 +3,7 @@ import {
   Briefcase, 
   TrendingUp, 
   Clock, 
-  DollarSign, 
+  PhilippinePeso, 
   Award, 
   Building 
 } from 'lucide-react';
@@ -130,7 +130,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             </span>
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
-            <DollarSign className="w-5.5 h-5.5" />
+            <PhilippinePeso className="w-5.5 h-5.5" />
           </div>
         </div>
 
@@ -259,7 +259,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
         {/* Salary Bracket Distributions */}
         <div className="bg-white rounded-xl border border-slate-100 p-5 space-y-4 shadow-xs">
           <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
-            <DollarSign className="w-4 h-4 text-[#cca43b]" />
+            <PhilippinePeso className="w-4 h-4 text-[#cca43b]" />
             <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Salary Bracket Distribution</span>
           </div>
 

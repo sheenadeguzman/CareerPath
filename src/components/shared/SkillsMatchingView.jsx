@@ -244,7 +244,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
       <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 font-sans">
         <div>
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Interactive Hybrid Skills Overlap &amp; Talent Analytics</h2>
-          <p className="text-[11px] text-slate-405 mt-0.5">Comparing graduate competencies and program specialization with vacancy credentials required by partner firms.</p>
+          <p className="text-[11px] text-slate-405 mt-0.5">Comparing graduate competencies and program specialization with vacancy credentials required by partner agencies.</p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-3 shrink-0 w-full md:w-auto">
           {/* Print & Export PDF buttons */}
