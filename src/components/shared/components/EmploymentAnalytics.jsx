@@ -496,20 +496,19 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 </button>
                 {uniqueMajors.map(m => {
                   const isSelected = selectedMajorFilter === m;
-                  const label = m.replace('Bachelor of Science in ', 'BS ').replace('Bachelor of ', 'B. ');
                   return (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setSelectedMajorFilter(m)}
-                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer truncate max-w-[240px] ${
+                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer ${
                         isSelected
                           ? 'bg-[#7c191e] text-white shadow-3xs'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                       }`}
                       title={m}
                     >
-                      {label}
+                      {m.replace('Bachelor of Science in ', 'BS ')}
                     </button>
                   );
                 })}
