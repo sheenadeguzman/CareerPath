@@ -691,7 +691,7 @@ export default function ChairpersonDashboard({
           {/* Seksyon para sa Curricular Relevance & Alignment */}
           <div className="bg-white p-5 rounded-xl border border-slate-100 space-y-4 shadow-sm">
             <div>
-              <span className="block text-xs font-bold text-slate-800 uppercase tracking-wider">Syllabus-to-Career Alignment</span>
+              <span className="block text-xs font-bold text-slate-800 uppercase tracking-wider">Degree-to-Career Alignment</span>
               <span className="block text-[9px] text-slate-400 font-semibold mt-0.5">Graduate job relevance metrics and degree alignment to current employment.</span>
             </div>
             

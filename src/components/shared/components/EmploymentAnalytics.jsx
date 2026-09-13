@@ -296,7 +296,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
         <div className="bg-white rounded-xl border border-slate-100 p-5 space-y-4 shadow-xs">
           <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
             <Award className="w-4 h-4 text-[#7c191e]" />
-            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Syllabus-to-Career Alignment</span>
+            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Degree-to-Career Alignment</span>
           </div>
 
           <div className="space-y-4 pt-2 text-xs">

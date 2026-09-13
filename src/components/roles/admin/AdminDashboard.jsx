@@ -717,7 +717,7 @@ export default function AdminDashboard({
           </div>
           
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Syllabus-to-Career Alignment</h3>
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Degree-to-Career Alignment</h3>
             <div className="space-y-3">
               {/* Yes */}
               <div className="space-y-1">

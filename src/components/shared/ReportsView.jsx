@@ -543,7 +543,7 @@ export default function ReportsView({ alumniList, activeUser }) {
             )}
           </div>
           <h2 className="text-base font-extrabold text-slate-800 uppercase tracking-tight mt-1">Tracer Reports and Analytics Module</h2>
-          <p className="text-[11px] text-slate-405 mt-0.5">Standard aggregate statistics measuring graduate landing timelines, salary indices, and syllabus-to-career alignments.</p>
+          <p className="text-[11px] text-slate-405 mt-0.5">Standard aggregate statistics measuring graduate landing timelines, salary indices, and degree-to-career alignments.</p>
         </div>
 
         <div className="flex gap-2 shrink-0 no-print" data-html2canvas-ignore="true">
