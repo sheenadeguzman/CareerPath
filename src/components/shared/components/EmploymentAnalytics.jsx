@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Briefcase, 
   TrendingUp, 
   Clock, 
   PhilippinePeso, 
   Award, 
-  Building 
+  Building,
+  GraduationCap
 } from 'lucide-react';
+import { BSC_PROGRAMS } from '../../../bscData';
 
 export default function EmploymentAnalytics({ filteredAlumni = [] }) {
+  const [selectedMajorFilter, setSelectedMajorFilter] = useState('All');
+  const [viewMode, setViewMode] = useState('byMajor');
   const totalInScope = filteredAlumni.length;
   const registeredInScope = filteredAlumni.filter(a => a.isRegistered);
   const totalRegisteredCount = registeredInScope.length;
@@ -99,6 +103,77 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     .map(([industry, count]) => ({ industry, count }))
     .concat(unregisteredCount > 0 ? [{ industry: 'Unregistered / No Response', count: unregisteredCount }] : [])
     .sort((a, b) => b.count - a.count);
+
+  // Group alumni by Major / Program for per-major field of employment analytics
+  const uniqueMajors = useMemo(() => {
+    const set = new Set();
+    filteredAlumni.forEach(a => {
+      const prog = (a.program || '').trim() || 'Unspecified Program';
+      set.add(prog);
+    });
+    return Array.from(set).sort((a, b) => {
+      const idxA = BSC_PROGRAMS.indexOf(a);
+      const idxB = BSC_PROGRAMS.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+  }, [filteredAlumni]);
+
+  const majorAnalytics = useMemo(() => {
+    return uniqueMajors.map(majorName => {
+      const cohort = filteredAlumni.filter(a => ((a.program || '').trim() || 'Unspecified Program') === majorName);
+      const total = cohort.length;
+      const registered = cohort.filter(a => a.isRegistered);
+      const employed = registered.filter(a => 
+        ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
+      );
+      const employedCount = employed.length;
+      const placementRate = total > 0 ? Math.round((employedCount / total) * 100) : 0;
+      const unregisteredCount = total - registered.length;
+      const unemployedCount = registered.filter(a => a.employmentStatus === 'Unemployed').length;
+      const furtherStudiesCount = registered.filter(a => a.employmentStatus === 'Further Studies').length;
+      const noResponseCount = registered.filter(a => 
+        !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
+      ).length;
+
+      // Group employed by jobIndustry
+      const industryMap = {};
+      employed.forEach(a => {
+        const ind = a.jobIndustry?.trim() || 'Others';
+        industryMap[ind] = (industryMap[ind] || 0) + 1;
+      });
+
+      const industries = Object.entries(industryMap)
+        .map(([industry, count]) => ({
+          industry,
+          count,
+          pct: total > 0 ? Math.round((count / total) * 100) : 0
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      const nonEmployedBreakdown = [
+        ...(unemployedCount > 0 ? [{ label: 'Unemployed', count: unemployedCount, pct: Math.round((unemployedCount / total) * 100) }] : []),
+        ...(furtherStudiesCount > 0 ? [{ label: 'Further Studies', count: furtherStudiesCount, pct: Math.round((furtherStudiesCount / total) * 100) }] : []),
+        ...(noResponseCount > 0 ? [{ label: 'No Status Response', count: noResponseCount, pct: Math.round((noResponseCount / total) * 100) }] : []),
+        ...(unregisteredCount > 0 ? [{ label: 'Unregistered', count: unregisteredCount, pct: Math.round((unregisteredCount / total) * 100) }] : [])
+      ];
+
+      return {
+        majorName,
+        total,
+        employedCount,
+        placementRate,
+        industries,
+        nonEmployedBreakdown
+      };
+    });
+  }, [uniqueMajors, filteredAlumni]);
+
+  const displayedMajors = selectedMajorFilter === 'All' 
+    ? majorAnalytics 
+    : majorAnalytics.filter(m => m.majorName === selectedMajorFilter);
 
   return (
     <div className="space-y-6">
@@ -360,28 +435,202 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
         </div>
       </div>
 
-      {/* Industry / Field of Employment Distribution */}
-      <div className="bg-white rounded-xl border border-slate-100 p-5 space-y-4 shadow-xs">
-        <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
-          <Building className="w-4 h-4 text-[#7c191e]" />
-          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Field of Employment / Industry Distribution</span>
+      {/* Industry / Field of Employment Distribution (Separated by Major) */}
+      <div className="bg-white rounded-xl border border-slate-100 p-5 space-y-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-50 pb-3">
+          <div className="flex items-center gap-2">
+            <Building className="w-4.5 h-4.5 text-[#7c191e]" />
+            <div>
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                Field of Employment / Industry Distribution
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium block">
+                Employment industry breakdown separated across degree majors
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-[10.5px] font-bold self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setViewMode('byMajor')}
+              className={`px-3 py-1 rounded-md transition cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'byMajor'
+                  ? 'bg-white text-[#7c191e] shadow-3xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              Per Major
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('consolidated')}
+              className={`px-3 py-1 rounded-md transition cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'consolidated'
+                  ? 'bg-white text-[#7c191e] shadow-3xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Building className="w-3.5 h-3.5" />
+              Consolidated
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-1 text-xs">
-          {industryDistribution.map(({ industry, count }) => {
-           const pct = totalInScope > 0 ? Math.round((count / totalInScope) * 100) : 0;
-            return (
-              <div key={industry} className="space-y-1">
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span className="font-extrabold text-slate-655 truncate pr-2 w-3/4" title={industry}>{industry}</span>
-                  <span className="font-mono text-slate-455 font-bold shrink-0">{count} {count <= 1 ? 'grad' : 'grads'} ({pct}%)</span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#1e4620]" style={{ width: `${pct}%` }} />
-                </div>
+
+        {viewMode === 'byMajor' ? (
+          <div className="space-y-4">
+            {/* Major Filter Pills (only show if more than 1 major) */}
+            {uniqueMajors.length > 1 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMajorFilter('All')}
+                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer ${
+                    selectedMajorFilter === 'All'
+                      ? 'bg-[#7c191e] text-white shadow-3xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  All Majors ({uniqueMajors.length})
+                </button>
+                {uniqueMajors.map(m => {
+                  const isSelected = selectedMajorFilter === m;
+                  const label = m.replace('Bachelor of Science in ', 'BS ').replace('Bachelor of ', 'B. ');
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSelectedMajorFilter(m)}
+                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer truncate max-w-[240px] ${
+                        isSelected
+                          ? 'bg-[#7c191e] text-white shadow-3xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                      }`}
+                      title={m}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            )}
+
+            {/* Major Cards Grid */}
+            {displayedMajors.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 text-xs font-semibold">
+                No alumni records found for this major.
+              </div>
+            ) : (
+              <div className={`grid gap-4 ${selectedMajorFilter === 'All' && displayedMajors.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+                {displayedMajors.map(item => (
+                  <div 
+                    key={item.majorName}
+                    className="bg-slate-50/50 border border-slate-200/80 rounded-xl p-4.5 space-y-3.5 hover:border-slate-300 transition"
+                  >
+                    {/* Card Header with Major Title and Placement Badges */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
+                      <div className="flex items-start gap-2">
+                        <GraduationCap className="w-4.5 h-4.5 text-[#7c191e] shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="text-xs font-extrabold text-slate-800 leading-snug">
+                            {item.majorName}
+                          </h4>
+                          <span className="text-[10px] font-bold text-slate-400">
+                            {item.total} total {item.total <= 1 ? 'grad' : 'grads'} in scope
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                          item.employedCount > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {item.employedCount} employed ({item.placementRate}%)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Industries for this major */}
+                    {item.industries.length > 0 ? (
+                      <div className="space-y-2.5 pt-1">
+                        <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Field / Industry Placement
+                        </span>
+                        <div className="space-y-2">
+                          {item.industries.map(ind => (
+                            <div key={ind.industry} className="space-y-1">
+                              <div className="flex justify-between items-center text-[11px]">
+                                <span className="font-bold text-slate-700 truncate pr-2" title={ind.industry}>
+                                  {ind.industry}
+                                </span>
+                                <span className="font-mono text-slate-600 font-bold shrink-0">
+                                  {ind.count} {ind.count <= 1 ? 'grad' : 'grads'} ({ind.pct}%)
+                                </span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-[#1e4620] rounded-full" 
+                                  style={{ width: `${ind.pct}%` }} 
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-3 px-3 bg-white rounded-lg text-center text-slate-400 text-[11px] font-medium border border-slate-100">
+                        No active employed graduates recorded in this major yet.
+                      </div>
+                    )}
+
+                    {/* Non-employed distribution if any */}
+                    {item.nonEmployedBreakdown.length > 0 && (
+                      <div className="pt-2 border-t border-slate-200/50 space-y-1.5">
+                        <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Other Status Breakdown
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {item.nonEmployedBreakdown.map(st => (
+                            <div key={st.label} className="flex items-center justify-between text-[10px] bg-white border border-slate-200/60 px-2.5 py-1 rounded">
+                              <span className="text-slate-600 font-semibold truncate pr-1">{st.label}</span>
+                              <span className="font-mono text-slate-500 font-bold shrink-0">
+                                {st.count} {st.count <= 1 ? 'grad' : 'grads'} ({st.pct}%)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Consolidated View (College-wide) */
+          <div className="space-y-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              Consolidated Aggregate Industry Distribution (All Majors Combined)
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-1 text-xs">
+              {industryDistribution.map(({ industry, count }) => {
+                const pct = totalInScope > 0 ? Math.round((count / totalInScope) * 100) : 0;
+                return (
+                  <div key={industry} className="space-y-1">
+                    <div className="flex justify-between items-center text-[10.5px]">
+                      <span className="font-extrabold text-slate-655 truncate pr-2 w-3/4" title={industry}>{industry}</span>
+                      <span className="font-mono text-slate-455 font-bold shrink-0">{count} {count <= 1 ? 'grad' : 'grads'} ({pct}%)</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#1e4620]" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
