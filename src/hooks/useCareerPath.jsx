@@ -311,7 +311,7 @@ export function useCareerPath() {
     sessionStorage.removeItem('careerpath_token');
   };
 
-  // Idle timeout / Inactivity logout
+  // Idle timeout / Inactivity logout (Configurable via Settings: 5, 10, 15, 20 mins, or 'none')
   useEffect(() => {
     if (!activeUser) return;
 
@@ -319,10 +319,20 @@ export function useCareerPath() {
 
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
+
+      const savedTimeout = localStorage.getItem('careerpath_inactivity_timeout') || '20';
+      if (savedTimeout === 'none' || savedTimeout === '0') {
+        // Disabled: do not set any timeout
+        return;
+      }
+
+      const parsedMins = parseInt(savedTimeout, 10);
+      const timeoutMs = (!isNaN(parsedMins) && parsedMins > 0 ? parsedMins : 20) * 60 * 1000;
+
       timeoutId = setTimeout(() => {
         handleLogout();
         showSuccessToast('You have been logged out due to inactivity for security purposes.');
-      }, 10 * 60 * 1000); // 10 minutes idle timeout
+      }, timeoutMs);
     };
 
     const activityEvents = [
@@ -338,6 +348,13 @@ export function useCareerPath() {
       window.addEventListener(event, resetTimer);
     });
 
+    const handleTimeoutConfigChange = () => {
+      resetTimer();
+    };
+
+    window.addEventListener('careerpath_timeout_changed', handleTimeoutConfigChange);
+    window.addEventListener('storage', handleTimeoutConfigChange);
+
     resetTimer();
 
     return () => {
@@ -345,6 +362,8 @@ export function useCareerPath() {
       activityEvents.forEach((event) => {
         window.removeEventListener(event, resetTimer);
       });
+      window.removeEventListener('careerpath_timeout_changed', handleTimeoutConfigChange);
+      window.removeEventListener('storage', handleTimeoutConfigChange);
     };
   }, [activeUser]);
 

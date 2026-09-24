@@ -138,4 +138,4 @@ Before accessing the system, ensure your device meets the following requirements
 ## 4. Troubleshooting & Support
 *   **Forgot Password**: Click the **Forgot Password?** link on the login form, input your registered email address, and receive a **6-digit verification code**. Enter this code along with your new password on the screen to reset your credentials.
 *   **Blank Login Screen**: The Clever Cloud platform runs the system within a secure iframe. If you encounter a blank page, make sure Third-Party Cookies are allowed in your browser settings.
-*   **Inactivity Logout**: For your account security, you will be automatically logged out after 30 minutes of inactivity. Always save your updates.
+*   **Inactivity Logout**: For your account security, you will be automatically logged out after 20 minutes of inactivity by default. You can adjust this duration (5, 10, 15, 20, 30, 60 minutes, or None to disable) under **Settings > Privacy & Security**. Always save your updates before leaving your screen unattended.

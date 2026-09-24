@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ChevronRight, User, Bell, Lock, HelpCircle, Info, 
-  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff, ShieldCheck, Shield, RefreshCw
+  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff, ShieldCheck, Shield, RefreshCw, Clock
 } from 'lucide-react';
 
 const MOCK_AVATARS = [
@@ -66,6 +66,17 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
     } finally {
       setIsTogglingMfa(false);
     }
+  };
+
+  // Inactivity Auto-Logout Timer State (defaults to 20 minutes)
+  const [inactivityTimeout, setInactivityTimeout] = useState(() => localStorage.getItem('careerpath_inactivity_timeout') || '20');
+
+  const handleInactivityTimeoutChange = (val) => {
+    setInactivityTimeout(val);
+    localStorage.setItem('careerpath_inactivity_timeout', val);
+    window.dispatchEvent(new Event('careerpath_timeout_changed'));
+    setShowStatus(val === 'none' ? 'Inactivity auto-logout disabled.' : `Auto-logout set to ${val} minutes of inactivity.`);
+    setTimeout(() => setShowStatus(''), 4500);
   };
 
   // Help & Support Ticket State
@@ -278,6 +289,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
       localStorage.removeItem('careerpath_avatar');
       localStorage.removeItem('careerpath_compact_sidebar');
       localStorage.removeItem('careerpath_color_accent');
+      localStorage.removeItem('careerpath_inactivity_timeout');
       document.documentElement.classList.remove('dark');
       window.location.reload();
     }
@@ -287,7 +299,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
   const menuItems = [
     { id: 'account', label: 'Account', icon: <User className="w-5 h-5 text-slate-500" />, keywords: 'profile name email avatar phone contact font size' },
     { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5 text-slate-500" />, keywords: 'alerts email job surveys digests push messages' },
-    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock settings questions delete recovery safety reset defaults' },
+    { id: 'security', label: 'Privacy & Security', icon: <Lock className="w-5 h-5 text-slate-500" />, keywords: 'password lock settings questions delete recovery safety reset defaults inactivity timeout logout session idle' },
     { id: 'help', label: 'Help and Support', icon: <HelpCircle className="w-5 h-5 text-slate-500" />, keywords: 'tickets admin support contact website issues bugs help' },
     { id: 'about', label: 'About', icon: <Info className="w-5 h-5 text-slate-500" />, keywords: 'version copyright information build tracer details developer' }
   ];
@@ -794,6 +806,59 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
                   'Enable 2FA'
                 )}
               </button>
+            </div>
+
+            {/* Inactivity Auto-Logout Configuration Card */}
+            <div 
+              className="p-5 border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none shadow-xs"
+              style={{ 
+                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                borderColor: isSystemDark ? '#334155' : '#e2e8f0' 
+              }}
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 rounded-xl shrink-0 bg-amber-500/10 text-amber-600 border border-amber-500/20 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-400">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-sm text-slate-800 dark:text-white">
+                      Inactivity Auto-Logout
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                      inactivityTimeout === 'none'
+                        ? 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                    }`}>
+                      {inactivityTimeout === 'none' ? 'Disabled' : `${inactivityTimeout} mins`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md">
+                    Automatically sign out and return to the login screen when there is no user activity (mouse, typing, touch) on CareerPath.
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0 w-full sm:w-auto">
+                <select
+                  value={inactivityTimeout}
+                  onChange={(e) => handleInactivityTimeoutChange(e.target.value)}
+                  className="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-700 text-xs focus:ring-1 focus:ring-slate-900 cursor-pointer shadow-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  style={{ 
+                    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
+                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
+                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
+                  }}
+                >
+                  <option value="5">5 Minutes</option>
+                  <option value="10">10 Minutes</option>
+                  <option value="15">15 Minutes</option>
+                  <option value="20">20 Minutes (Default)</option>
+                  <option value="30">30 Minutes</option>
+                  <option value="60">60 Minutes (1 Hour)</option>
+                  <option value="none">None (Never auto-logout)</option>
+                </select>
+              </div>
             </div>
 
             {/* Password edit inputs */}
