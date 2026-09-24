@@ -752,36 +752,30 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
           <div className="p-6 space-y-6">
             
             {/* Two-Factor Authentication (Email OTP) Config Card */}
-            <div 
-              className="p-5 border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none shadow-xs"
-              style={{ 
-                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
-                borderColor: isSystemDark ? '#334155' : '#e2e8f0' 
-              }}
-            >
+            <div className="p-5 border border-slate-200 bg-slate-50/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none shadow-xs dark:bg-slate-800/60 dark:border-slate-700">
               <div className="flex items-start gap-3.5">
-                <div className={`p-2.5 rounded-xl shrink-0 ${
+                <div className={`p-3 rounded-xl shrink-0 ${
                   mfaEnabled 
-                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' 
-                    : 'bg-slate-200/60 text-slate-500 border border-slate-300/40'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800' 
+                    : 'bg-slate-200 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                 }`}>
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-sm text-slate-800 dark:text-white">
+                    <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
                       Two-Factor Authentication (Email OTP)
                     </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                       mfaEnabled 
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' 
-                        : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800' 
+                        : 'bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                     }`}>
                       {mfaEnabled ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md">
-                    Require a 6-digit One-Time Security PIN sent to your registered email (<strong>{activeUser?.email || profileForm.email}</strong>) every time you sign in to CareerPath.
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed max-w-md dark:text-slate-300">
+                    Require a 6-digit One-Time Security PIN sent to your registered email (<strong className="text-slate-900 font-bold dark:text-white">{activeUser?.email || profileForm.email}</strong>) every time you sign in to CareerPath.
                   </p>
                 </div>
               </div>
@@ -790,7 +784,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
                 type="button"
                 disabled={isTogglingMfa}
                 onClick={() => handleToggleMfa(!mfaEnabled)}
-                className={`px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 shadow-xs flex items-center justify-center gap-1.5 ${
+                className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 shadow-xs flex items-center justify-center gap-1.5 ${
                   mfaEnabled
                     ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300'
                     : 'bg-[#7c191e] hover:bg-[#5b1216] text-white shadow-sm'
@@ -809,31 +803,25 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
             </div>
 
             {/* Inactivity Auto-Logout Configuration Card */}
-            <div 
-              className="p-5 border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none shadow-xs"
-              style={{ 
-                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
-                borderColor: isSystemDark ? '#334155' : '#e2e8f0' 
-              }}
-            >
+            <div className="p-5 border border-slate-200 bg-slate-50/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none shadow-xs dark:bg-slate-800/60 dark:border-slate-700">
               <div className="flex items-start gap-3.5">
-                <div className="p-2.5 rounded-xl shrink-0 bg-amber-500/10 text-amber-600 border border-amber-500/20 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-400">
+                <div className="p-3 rounded-xl shrink-0 bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">
                   <Clock className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-sm text-slate-800 dark:text-white">
+                    <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
                       Inactivity Auto-Logout
                     </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                       inactivityTimeout === 'none'
-                        ? 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        ? 'bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                        : 'bg-amber-100 text-amber-950 border border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
                     }`}>
                       {inactivityTimeout === 'none' ? 'Disabled' : `${inactivityTimeout} mins`}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md">
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed max-w-md dark:text-slate-300">
                     Automatically sign out and return to the login screen when there is no user activity (mouse, typing, touch) on CareerPath.
                   </p>
                 </div>
@@ -843,12 +831,7 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
                 <select
                   value={inactivityTimeout}
                   onChange={(e) => handleInactivityTimeoutChange(e.target.value)}
-                  className="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-700 text-xs focus:ring-1 focus:ring-slate-900 cursor-pointer shadow-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  style={{ 
-                    backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
-                    borderColor: isSystemDark ? '#334155' : '#e2e8f0',
-                    color: isSystemDark ? '#f1f5f9' : '#1e293b'
-                  }}
+                  className="w-full sm:w-auto bg-white border-2 border-slate-300 text-slate-900 font-bold text-xs rounded-xl px-4 py-2.5 shadow-xs hover:border-slate-400 focus:ring-2 focus:ring-[#7c191e]/20 focus:border-[#7c191e] cursor-pointer dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                 >
                   <option value="5">5 Minutes</option>
                   <option value="10">10 Minutes</option>
@@ -864,66 +847,58 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
             {/* Password edit inputs */}
             <div className="space-y-4 text-xs font-semibold">
               <div className="space-y-1 relative">
-                <label className="text-slate-455 block font-bold">Current Account Password</label>
+                <label className="text-slate-800 block font-bold text-xs dark:text-slate-200">Current Account Password</label>
                 <div className="relative">
                   <input
                     type={showOldPass ? 'text' : 'password'}
                     required
+                    placeholder="Enter your current password..."
                     value={passwordForm.oldPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
-                    className="w-full border rounded-xl p-2.5 font-bold transition"
-                    style={{ 
-                      backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
-                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
-                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
-                    }}
+                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl px-3.5 py-2.5 font-bold transition focus:ring-2 focus:ring-[#7c191e]/20 focus:border-[#7c191e] dark:bg-slate-900 dark:border-slate-700 dark:text-white placeholder:text-slate-400 shadow-xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowOldPass(!showOldPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-605 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showOldPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1 relative">
-                  <label className="text-slate-455 block font-bold">New Password</label>
+                  <label className="text-slate-800 block font-bold text-xs dark:text-slate-200">New Password</label>
                   <div className="relative">
                     <input
                       type={showNewPass ? 'text' : 'password'}
+                      placeholder="Enter new password..."
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="w-full border rounded-xl p-2.5 font-bold transition"
-                      style={{ 
-                        backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
-                        borderColor: isSystemDark ? '#334155' : '#e2e8f0',
-                        color: isSystemDark ? '#f1f5f9' : '#1e293b'
-                      }}
+                      className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl px-3.5 py-2.5 font-bold transition focus:ring-2 focus:ring-[#7c191e]/20 focus:border-[#7c191e] dark:bg-slate-900 dark:border-slate-700 dark:text-white placeholder:text-slate-400 shadow-xs"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-405 hover:text-slate-655 cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
-                      {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
                   {passwordForm.newPassword && (
                     <div className="pt-2 space-y-1">
                       <div className="flex justify-between items-center text-[10px] font-bold">
-                        <span className="text-slate-400">Password Strength:</span>
-                        <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-extrabold ${
-                          strength.score <= 1 ? 'text-red-755 bg-red-50' :
-                          strength.score === 2 ? 'text-amber-755 bg-amber-50' :
-                          strength.score === 3 ? 'text-sky-755 bg-sky-50' :
-                          'text-emerald-755 bg-emerald-50'
+                        <span className="text-slate-500 dark:text-slate-400">Password Strength:</span>
+                        <span className={`text-[9px] uppercase px-2 py-0.5 rounded font-extrabold ${
+                          strength.score <= 1 ? 'text-rose-700 bg-rose-50 border border-rose-200' :
+                          strength.score === 2 ? 'text-amber-700 bg-amber-50 border border-amber-200' :
+                          strength.score === 3 ? 'text-sky-700 bg-sky-50 border border-sky-200' :
+                          'text-emerald-700 bg-emerald-50 border border-emerald-200'
                         }`}>{strength.label}</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden dark:bg-slate-700">
                         <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score + 1) * 20}%` }}></div>
                       </div>
                     </div>
@@ -931,43 +906,28 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Confirm New Password</label>
+                  <label className="text-slate-800 block font-bold text-xs dark:text-slate-200">Confirm New Password</label>
                   <input
                     type="password"
+                    placeholder="Re-type new password..."
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                    className="w-full border rounded-xl p-2.5 font-bold transition"
-                    style={{ 
-                      backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
-                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
-                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
-                    }}
+                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl px-3.5 py-2.5 font-bold transition focus:ring-2 focus:ring-[#7c191e]/20 focus:border-[#7c191e] dark:bg-slate-900 dark:border-slate-700 dark:text-white placeholder:text-slate-400 shadow-xs"
                   />
                 </div>
               </div>
             </div>
 
             {/* Recovery security question */}
-            <div 
-              className="p-4.5 border rounded-2xl space-y-3.5 text-xs font-semibold"
-              style={{ 
-                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
-                borderColor: isSystemDark ? '#334155' : '#f1f5f9' 
-              }}
-            >
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Credentials Recovery Config</span>
+            <div className="p-5 border border-slate-200 bg-slate-50/90 rounded-2xl space-y-3.5 text-xs font-semibold shadow-xs dark:bg-slate-800/60 dark:border-slate-700">
+              <span className="text-[11px] text-slate-500 font-extrabold uppercase tracking-wider block dark:text-slate-400">Credentials Recovery Config</span>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-slate-455 block font-bold">Recovery Question Selection</label>
+                  <label className="text-slate-800 block font-bold text-xs dark:text-slate-200">Recovery Question Selection</label>
                   <select
                     value={passwordForm.securityQuestion}
                     onChange={(e) => setPasswordForm({...passwordForm, securityQuestion: e.target.value})}
-                    className="w-full border rounded-xl p-2 font-bold"
-                    style={{ 
-                      backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
-                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
-                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
-                    }}
+                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-2.5 font-bold focus:ring-2 focus:ring-[#7c191e]/20 focus:border-[#7c191e] dark:bg-slate-900 dark:border-slate-700 dark:text-white shadow-xs"
                   >
                     <option value="school">What elementary school did you attend?</option>
                     <option value="pet">What was the name of your first childhood pet?</option>
@@ -977,33 +937,28 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-400 block font-bold">Answer Verification Key</label>
+                  <label className="text-slate-800 block font-bold text-xs dark:text-slate-200">Answer Verification Key</label>
                   <input
                     type="text"
                     value={passwordForm.securityAnswer}
                     onChange={(e) => setPasswordForm({...passwordForm, securityAnswer: e.target.value})}
                     placeholder="Type recovery key response..."
-                    className="w-full border rounded-xl p-2.5 font-bold focus:ring-1 focus:ring-slate-900"
-                    style={{ 
-                      backgroundColor: isSystemDark ? '#1e293b' : '#ffffff',
-                      borderColor: isSystemDark ? '#334155' : '#e2e8f0',
-                      color: isSystemDark ? '#f1f5f9' : '#1e293b'
-                    }}
+                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-2.5 font-bold focus:ring-2 focus:ring-[#7c191e]/20 focus:border-[#7c191e] dark:bg-slate-900 dark:border-slate-700 dark:text-white shadow-xs placeholder:text-slate-400"
                   />
                 </div>
               </div>
             </div>
 
             {/* Reset Defaults button */}
-            <div className="p-4 bg-rose-50/40 border border-rose-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs dark:bg-rose-955/10 dark:border-rose-900">
+            <div className="p-4 bg-rose-50/70 border border-rose-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs dark:bg-rose-950/20 dark:border-rose-900">
               <div>
-                <span className="font-extrabold text-slate-800 block dark:text-rose-250">Reset settings database</span>
-                <span className="text-[10px] text-slate-400 leading-relaxed block dark:text-slate-400">Restore original font scaling and clear local theme profiles.</span>
+                <span className="font-extrabold text-slate-900 block dark:text-rose-200">Reset settings database</span>
+                <span className="text-[11px] text-slate-600 leading-relaxed block dark:text-slate-400">Restore original font scaling, theme profiles, and session timeouts.</span>
               </div>
               <button
                 type="button"
                 onClick={handleResetDefaults}
-                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] rounded-lg transition uppercase cursor-pointer shrink-0"
+                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition uppercase cursor-pointer shrink-0 shadow-xs"
               >
                 Reset
               </button>
