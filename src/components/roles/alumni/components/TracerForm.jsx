@@ -5,14 +5,16 @@
  * CHED employment metrics, career history timeline, at core skills.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   GraduationCap, 
   Briefcase, 
   Building, 
   Check, 
   X,
-  Info 
+  Info,
+  ShieldCheck,
+  FileText 
 } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../../../bscData';
 
@@ -34,6 +36,20 @@ export default function TracerForm({
   handleSelfFormSubmit,        // Function na tatawagin kapag nag-submit ang form
   calculateAge                 // Helper function para kalkulahin ang edad base sa DOB
 }) {
+  // State para sa Data Privacy Consent at modal viewer
+  const [consentAgreed, setConsentAgreed] = useState(
+    selfEditForm?.dataPrivacyConsent !== undefined ? Boolean(selfEditForm.dataPrivacyConsent) : false
+  );
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  const handleFormSubmitWithConsent = (e) => {
+    e.preventDefault();
+    if (!consentAgreed) {
+      alert('Please read and agree to the Data Privacy Consent before saving your tracer profile details.');
+      return;
+    }
+    handleSelfFormSubmit(e);
+  };
 
   /**
    * Pagbabago ng base course (e.g. BSIT).
@@ -75,7 +91,7 @@ export default function TracerForm({
       </div>
 
       {/* Main Scrollable Form Area */}
-      <form onSubmit={handleSelfFormSubmit} className="flex-1 overflow-y-auto px-6 pt-6 pb-0 space-y-6 text-xs font-semibold text-slate-655">
+      <form onSubmit={handleFormSubmitWithConsent} className="flex-1 overflow-y-auto px-6 pt-6 pb-0 space-y-6 text-xs font-semibold text-slate-655">
         
         {/* Profile Picture Upload Section: Dito pwedeng pumili ng file o mag-paste ng URL */}
         <div className="bg-slate-55 p-4 rounded-xl border border-slate-100 flex flex-col sm:flex-row items-center gap-4">
@@ -1139,28 +1155,178 @@ export default function TracerForm({
 
         <hr className="border-slate-100" />
 
-        {/* Guideline Notice: Paalala sa layunin at gamit ng nakolektang Tracer statistics para sa CHED audits */}
-        <div className="bg-[#7c191e]/5 rounded-xl border border-[#7c191e]/15 p-4 flex gap-3 text-[11px] font-semibold text-slate-655 leading-relaxed">
-          <div className="w-5 h-5 bg-[#7c191e]/10 text-[#7c191e] rounded-full flex items-center justify-center shrink-0 font-bold">i</div>
-          <div className="space-y-1">
-            <span className="font-extrabold text-[#7c191e] uppercase tracking-wider">Graduate Tracer Guideline Notice</span>
-            <p>
-              Our Tracer statistics are submitted annually to the Commission on Higher Education (CHED) to qualify the national standing of Batanes State College programs.
-            </p>
+        {/* Data Privacy Consent & Agreement Card (RA 10173 & CHED Compliance) */}
+        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4.5 space-y-3 shadow-3xs select-none">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <div className="p-2 bg-[#7c191e]/10 text-[#7c191e] rounded-xl shrink-0 mt-0.5">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-extrabold text-xs text-slate-800 uppercase tracking-wide block">
+                  Data Privacy Consent &amp; Alumni Tracer Agreement
+                </span>
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                  In compliance with Republic Act No. 10173 (Data Privacy Act of 2012) and CHED requirements, Batanes State College securely processes your personal, academic, and employment data for institutional research, curriculum review, and accreditation audits.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPrivacyModal(true)}
+              className="text-[10px] font-bold text-[#7c191e] hover:underline flex items-center gap-1 shrink-0 bg-[#7c191e]/5 hover:bg-[#7c191e]/10 px-2.5 py-1.5 rounded-lg border border-[#7c191e]/15 transition cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5" /> View Agreement
+            </button>
           </div>
+
+          <label className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-200/80 cursor-pointer hover:border-slate-300 transition">
+            <input
+              type="checkbox"
+              required
+              checked={consentAgreed}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setConsentAgreed(checked);
+                setSelfEditForm({ ...selfEditForm, dataPrivacyConsent: checked });
+              }}
+              className="mt-0.5 rounded border-slate-300 text-[#7c191e] focus:ring-[#7c191e] w-4 h-4 cursor-pointer shrink-0"
+            />
+            <span className="text-[11px] text-slate-700 leading-snug font-semibold">
+              I have read and voluntarily agree to the <strong>Data Privacy Consent &amp; Alumni Tracer Participation Agreement</strong>. I authorize Batanes State College to securely process my information for graduate tracking, CHED compliance, and career development.
+            </span>
+          </label>
         </div>
 
         {/* Submit Button na naka-sticky sa ibaba ng overlay sheet */}
-        <div className="sticky bottom-0 bg-white pt-4 border-t border-slate-100 -mx-6 px-6 pb-6 rounded-b-xl z-10 flex justify-end">
+        <div className="sticky bottom-0 bg-white pt-4 border-t border-slate-100 -mx-6 px-6 pb-6 rounded-b-xl z-10 flex items-center justify-between gap-4">
+          <span className="text-[11px] text-slate-400 font-medium">
+            {!consentAgreed && <span className="text-amber-600 font-semibold">* Consent required to save</span>}
+          </span>
           <button
             type="submit"
-            className="px-6 py-2.5 bg-[#cca43b] hover:bg-[#cca43b]/90 text-slate-900 font-extrabold text-xs rounded-lg transition shadow-md uppercase tracking-wider cursor-pointer"
+            disabled={!consentAgreed}
+            className="px-6 py-2.5 bg-[#cca43b] hover:bg-[#cca43b]/90 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-900 font-extrabold text-xs rounded-lg transition shadow-md uppercase tracking-wider cursor-pointer flex items-center gap-2"
           >
-            Save Tracer Profile Details
+            <Check className="w-4 h-4" /> Save Tracer Profile Details
           </button>
         </div>
 
       </form>
+
+      {/* Full Data Privacy Agreement Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in font-sans">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-200 animate-scale-up">
+            
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-[#7c191e] to-[#581014] text-white flex items-center justify-between select-none">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-6 h-6 text-amber-300 shrink-0" />
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wide">
+                    Data Privacy Consent &amp; Tracer Agreement
+                  </h3>
+                  <p className="text-[10px] text-amber-200 uppercase tracking-widest font-semibold mt-0.5">
+                    Batanes State College &bull; CareerPath Portal
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="p-1.5 hover:bg-white/10 rounded-lg text-white/80 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Content */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs font-normal text-slate-655 leading-relaxed">
+              <p className="font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, its Implementing Rules and Regulations (IRR), and the institutional monitoring guidelines of the <strong>Commission on Higher Education (CHED)</strong>, Batanes State College (BSC) is committed to protecting your privacy and ensuring the security of your personal data.
+              </p>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide text-[#7c191e]">
+                  1. Purpose of Data Collection and Processing
+                </h4>
+                <p className="text-slate-600">
+                  Batanes State College collects and processes your personal, academic, and professional information for legitimate institutional purposes, including:
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-slate-600">
+                  <li><strong>Graduate Tracking:</strong> Evaluating the employability, career growth, and industry placement of BSC graduates.</li>
+                  <li><strong>Curriculum Improvement:</strong> Ensuring academic competencies and skills align with modern industry standards.</li>
+                  <li><strong>Accreditation Compliance:</strong> Generating official census statistics required for CHED, AACCUP, and PRC audit reviews.</li>
+                  <li><strong>Career Support:</strong> Connecting alumni with verified industry partners and career opportunities.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide text-[#7c191e]">
+                  2. Scope of Collected Information
+                </h4>
+                <ul className="list-disc pl-5 space-y-1 text-slate-600">
+                  <li><strong>Personal:</strong> Full name, gender, civil status, date of birth, contact number, residential address, and profile photo.</li>
+                  <li><strong>Academic:</strong> Student ID, degree program, major specialization, graduation batch year, and professional licensure exam records.</li>
+                  <li><strong>Employment:</strong> Current employment status, occupation/job title, employer name, industry sector, job location, income bracket, and duration taken to land first employment.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide text-[#7c191e]">
+                  3. Data Security and Confidentiality
+                </h4>
+                <p className="text-slate-600">
+                  All personal data submitted will be stored securely using database encryption. Access is strictly limited to authorized college administrators, program chairpersons, and tracer coordinators. Published statistical reports and institutional analytics will be presented in <strong>aggregate and anonymized forms</strong>, ensuring no individual can be personally identified.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide text-[#7c191e]">
+                  4. Rights of the Data Subject
+                </h4>
+                <p className="text-slate-600">
+                  Under RA 10173, you retain the right to be informed, access, review, and request correction of any inaccurate or outdated information in your profile through your CareerPath account.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide text-[#7c191e]">
+                  5. Declaration and Express Consent
+                </h4>
+                <p className="text-slate-600">
+                  By accepting this agreement, you confirm that you have read and understood these terms and voluntarily authorize Batanes State College to process your personal data for the declared institutional objectives.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-bold rounded-xl transition cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConsentAgreed(true);
+                  setSelfEditForm({ ...selfEditForm, dataPrivacyConsent: true });
+                  setShowPrivacyModal(false);
+                }}
+                className="px-5 py-2 bg-[#7c191e] hover:bg-[#5b1216] text-white text-xs font-extrabold rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+              >
+                <Check className="w-4 h-4" /> I Understand &amp; Agree
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
