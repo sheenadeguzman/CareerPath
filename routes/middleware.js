@@ -7,10 +7,8 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bsc_careerpath_super_secret_key';
 
-/**
- * Express Middleware para i-authorize at i-verify ang mga client request gamit ang JWT.
- * Kinukuha nito ang token mula sa HTTP request headers.
- */
+//Express Middleware para i-authorize at i-verify ang mga client request gamit ang JWT.
+//Kinukuha nito ang token mula sa HTTP request headers.
 export function authenticateToken(req, res, next) {
   // Kunin ang Authorization header galing sa request
   const authHeader = req.headers['authorization'];

@@ -1,7 +1,6 @@
 /**
  * @file surveys.js
- * @description Router para sa pag-save ng surveys at pagsusumite ng survey responses ng mga alumni.
- */
+ * @description Router para sa pag-save ng surveys at pagsusumite ng survey responses ng mga alumni.*/
 
 import express from 'express';
 import { pool } from '../db.js';
@@ -11,11 +10,9 @@ import { transporter } from './mailer.js';
 
 const router = express.Router();
 
-/**
- * POST /api/save-survey
- * Endpoint para gumawa o mag-update ng isang survey questionnaire.
- * Kapag ang survey ay bagong gawa at naka-set sa "Active" status, awtomatiko nitong aabisuhan ang lahat ng alumni sa pamamagitan ng system notification at email.
- */
+//POST /api/save-survey
+//Endpoint para gumawa o mag-update ng isang survey questionnaire.
+//Kapag ang survey ay bagong gawa at naka-set sa "Active" status, awtomatiko nitong aabisuhan ang lahat ng alumni sa pamamagitan ng system notification at email.
 router.post('/save-survey', authenticateToken, async (req, res) => {
   try {
     const { survey, activeUserId } = req.body;
@@ -113,10 +110,8 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * POST /api/submit-survey-response
- * Endpoint para sa mga alumni para isumite ang kanilang mga sagot sa survey questionnaire.
- */
+//POST /api/submit-survey-response
+//Endpoint para sa mga alumni para isumite ang kanilang mga sagot sa survey questionnaire.
 router.post('/submit-survey-response', authenticateToken, async (req, res) => {
   try {
     const { surveyId, alumniId, alumniName, answers } = req.body;

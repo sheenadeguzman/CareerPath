@@ -10,13 +10,11 @@ import { mapUserFromDB, mapFeedbackFromDB } from '../mappers.js';
 
 const router = express.Router();
 
-/**
- * POST /api/submit-feedback
- * Endpoint para sa pagsusumite ng feedback.
- * May dalawang uri ito:
- * 1. Log Event: kapag ang message ay nagsisimula sa '[LOG EVENT]', ito ay ise-save sa activity_logs table.
- * 2. Normal Feedback: ise-save sa feedbacks table para sa kalidad ng curriculum o system evaluation.
- */
+//POST /api/submit-feedback
+//Endpoint para sa pagsusumite ng feedback.
+//May dalawang uri ito:
+//1. Log Event: kapag ang message ay nagsisimula sa '[LOG EVENT]', ito ay ise-save sa activity_logs table.
+//2. Normal Feedback: ise-save sa feedbacks table para sa kalidad ng curriculum o system evaluation.
 router.post('/submit-feedback', authenticateToken, async (req, res) => {
   try {
     const { feedback, activeUserId } = req.body;

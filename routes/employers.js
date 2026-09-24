@@ -11,11 +11,9 @@ import { transporter } from './mailer.js';
 
 const router = express.Router();
 
-/**
- * POST /api/save-employer
- * Endpoint para sa pag-save (insert) o pag-update ng records ng partner employers.
- * Tumutulong din ito sa pag-verify ng employer profile at pagpapadala ng alert notifications.
- */
+//POST /api/save-employer
+//Endpoint para sa pag-save (insert) o pag-update ng records ng partner employers.
+//Tumutulong din ito sa pag-verify ng employer profile at pagpapadala ng alert notifications.
 router.post('/save-employer', authenticateToken, async (req, res) => {
   try {
     const { employer, activeUserId } = req.body;

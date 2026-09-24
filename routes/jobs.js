@@ -10,11 +10,9 @@ import { mapUserFromDB, mapJobPostingFromDB } from '../mappers.js';
 
 const router = express.Router();
 
-/**
- * POST /api/save-job
- * Endpoint para mag-save o mag-update ng isang job posting.
- * Awtomatiko nitong kinakalkula ang bilang ng mga aktibong bakanteng trabaho ng employer sa employers table.
- */
+//POST /api/save-job
+//Endpoint para mag-save o mag-update ng isang job posting.
+//Awtomatiko nitong kinakalkula ang bilang ng mga aktibong bakanteng trabaho ng employer sa employers table.
 router.post('/save-job', authenticateToken, async (req, res) => {
   try {
     const { job, activeUserId } = req.body;

@@ -1,7 +1,6 @@
 /**
  * @file alumni.js
- * @description Router para sa pag-sync ng database collections, pati na rin ang pag-save, pag-delete, at bulk import ng alumni profiles.
- */
+ * @description Router para sa pag-sync ng database collections, pati na rin ang pag-save, pag-delete, at bulk import ng alumni profiles.*/
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
@@ -24,11 +23,9 @@ import {
 
 const router = express.Router();
 
-/**
- * GET /api/data
- * Nagbabalik ng kumpletong sync ng lahat ng collections mula sa MySQL database.
- * Ito ang ginagamit ng frontend app pagka-login para makuha agad ang buong state ng dashboard.
- */
+//GET /api/data
+//Nagbabalik ng kumpletong sync ng lahat ng collections mula sa MySQL database.
+//Ito ang ginagamit ng frontend app pagka-login para makuha agad ang buong state ng dashboard.
 router.get('/data', async (req, res) => {
   try {
     // Kuhanin ang bawat table isa-isa mula sa MySQL
@@ -94,10 +91,8 @@ router.get('/data', async (req, res) => {
   }
 });
 
-/**
- * POST /api/save-alumni
- * Endpoint para sa pag-save o pag-update ng profile details ng isang alumni.
- */
+//POST /api/save-alumni
+//Endpoint para sa pag-save o pag-update ng profile details ng isang alumni.
 router.post('/save-alumni', authenticateToken, async (req, res) => {
   try {
     const { profile, activeUserId } = req.body;
@@ -290,10 +285,8 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * POST /api/delete-alumni
- * Endpoint para burahin ang alumni profile. Tanging mga Admins, Super Admins, at Chairperson lang ang pwede rito.
- */
+// POST /api/delete-alumni
+//Endpoint para burahin ang alumni profile. Tanging mga Admins, Super Admins, at Chairperson lang ang pwede rito.
 router.post('/delete-alumni', authenticateToken, async (req, res) => {
   try {
     const { studentId, activeUserId } = req.body;
@@ -356,10 +349,8 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * POST /api/import-alumni
- * Endpoint para sa bulk importing ng alumni records mula sa CSV o Excel upload file ng admin.
- */
+//POST /api/import-alumni
+//Endpoint para sa bulk importing ng alumni records mula sa CSV o Excel upload file ng admin.
 router.post('/import-alumni', authenticateToken, async (req, res) => {
   try {
     const { rows, activeUserId } = req.body;

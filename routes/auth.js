@@ -17,10 +17,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'bsc_careerpath_super_secret_key';
 // In-memory record ng password reset codes. Naka-map ito mula email patungong {code, expires}
 const resetCodes = new Map();
 
-/**
- * POST /api/login
- * Endpoint para sa pag-log in ng mga user (Admin, Chairperson, Alumni, o Employer).
- */
+//POST /api/login
+//Endpoint para sa pag-log in ng mga user (Admin, Chairperson, Alumni, o Employer).
 router.post('/login', async (req, res) => {
   try {
     const { userId, password } = req.body;
@@ -77,10 +75,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/**
- * POST /api/forgot-password
- * Endpoint para sa pag-request ng password reset code kapag nakalimutan ng user ang kanilang password.
- */
+//POST /api/forgot-password
+//Endpoint para sa pag-request ng password reset code kapag nakalimutan ng user ang kanilang password.
+
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -149,10 +146,8 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-/**
- * POST /api/reset-password
- * Dito pina-process ang bagong password matapos ma-verify ang nilagay na 6-digit recovery code.
- */
+//POST /api/reset-password
+//Dito pina-process ang bagong password matapos ma-verify ang nilagay na 6-digit recovery code.
 router.post('/reset-password', async (req, res) => {
   try {
     const { email, code, newPassword } = req.body;
@@ -204,10 +199,8 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-/**
- * POST /api/change-password
- * Endpoint para sa unang beses na pag-login ng bagong rehistrong user para palitan ang default password.
- */
+//POST /api/change-password
+//Endpoint para sa unang beses na pag-login ng bagong rehistrong user para palitan ang default password.
 router.post('/change-password', async (req, res) => {
   try {
     const { userId, newPassword } = req.body;
@@ -256,10 +249,8 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
-/**
- * POST /api/delete-user
- * Endpoint para burahin ang isang user sa system. Super Admin lamang ang may pahintulot na gawin ito.
- */
+//POST /api/delete-user
+//Endpoint para burahin ang isang user sa system. Super Admin lamang ang may pahintulot na gawin ito.
 router.post('/delete-user', authenticateToken, async (req, res) => {
   try {
     const { userId, activeUserId } = req.body;
@@ -310,10 +301,8 @@ router.post('/delete-user', authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * POST /api/update-username
- * Endpoint para sa pagpapalit ng login user_id ng kasalukuyang user. May limitasyon na isang beses lang kada 30 days.
- */
+//POST /api/update-username
+//Endpoint para sa pagpapalit ng login user_id ng kasalukuyang user. May limitasyon na isang beses lang kada 30 days.
 router.post('/update-username', authenticateToken, async (req, res) => {
   try {
     const { newUsername, activeUserId } = req.body;

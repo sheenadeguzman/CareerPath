@@ -12,9 +12,7 @@ import { transporter } from './mailer.js';
 
 const router = express.Router();
 
-/**
- * Helper function upang makuha ang opisyal na Department name mula sa email ng Chairperson.
- */
+//Helper function upang makuha ang opisyal na Department name mula sa email ng Chairperson.
 function getDepartmentFromEmail(email) {
   const emailLower = email.toLowerCase();
   if (emailLower.includes('it') || emailLower.includes('ict')) {
@@ -31,9 +29,8 @@ function getDepartmentFromEmail(email) {
   return 'General Department';
 }
 
-/**
- * Helper function upang makuha ang maikling Department username/user_id mula sa email ng Chairperson.
- */
+// Helper function upang makuha ang maikling Department username/user_id mula sa email ng Chairperson.
+
 function getDepartmentAbbreviation(email) {
   const emailLower = email.toLowerCase();
   if (emailLower.includes('it') || emailLower.includes('ict')) {
@@ -50,12 +47,11 @@ function getDepartmentAbbreviation(email) {
   return 'Department';
 }
 
-/**
- * POST /api/invite-user
- * Endpoint para mag-invite ng bagong user (Alumni, Employer, o Chairperson).
- * Awtomatiko nitong ginagawan ng user account na may default password na 'bsc123'.
- * Gagawa rin ito ng company record kung Employer ang in-invite, at empty profile stub naman kung Alumni.
- */
+//POST /api/invite-user
+//Endpoint para mag-invite ng bagong user (Alumni, Employer, o Chairperson).
+//Awtomatiko nitong ginagawan ng user account na may default password na 'bsc123'.
+//Gagawa rin ito ng company record kung Employer ang in-invite, at empty profile stub naman kung Alumni.
+
 router.post('/invite-user', authenticateToken, async (req, res) => {
   try {
     const { email, role, activeUserId } = req.body;
@@ -139,7 +135,7 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
 
     // Magpadala ng email invitation details gamit ang nodemailer SMTP transporter
     const emailSubject = 'Portal Access Invitation | Batanes State College CareerPath';
-    const emailBody = `Hello,\n\nYou have been invited by Batanes State College to register and access the CareerPath Graduate Tracer & Employability Analytics System as an ${role}.\n\nBelow are your initial portal credentials:\nPortal URL: http://localhost:3000/\nUser ID: ${newUser.userId}\nTemporary Password: bsc123\n\nPlease log in and update your password immediately upon your first access.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`;
+    const emailBody = `Hello,\n\nYou have been invited by Batanes State College to register and access the CareerPath Graduate Tracer & Employability Analytics System as an ${role}.\n\nBelow are your initial portal credentials:\nPortal URL: http://localhost:3000/\nUser ID: ${newUser.userId}\nTemporary Password: bsc123\n\nPlease log in and update your password immediately upon your first access.\n\nRespectfully,\nBatanes State College`;
 
     if (transporter && cleanEmail) {
       try {
@@ -199,10 +195,8 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * POST /api/send-email
- * Endpoint para sa pagpapadala ng batch emails/nudges (reminders) sa mga alumni na hindi pa kumpleto ang tracer profile.
- */
+//POST /api/send-email
+//Endpoint para sa pagpapadala ng batch emails/nudges (reminders) sa mga alumni na hindi pa kumpleto ang tracer profile.
 router.post('/send-email', authenticateToken, async (req, res) => {
   try {
     const { activeUserId, targetAlumniIds, customSubject, customBody } = req.body;
@@ -301,10 +295,8 @@ router.post('/send-email', authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * POST /api/toggle-notification-read
- * Endpoint para baguhin ang estado ng notification (Read / Unread) batay sa ID nito.
- */
+//POST /api/toggle-notification-read
+//Endpoint para baguhin ang estado ng notification (Read / Unread) batay sa ID nito.
 router.post('/toggle-notification-read', authenticateToken, async (req, res) => {
   try {
     const { id, read } = req.body;
