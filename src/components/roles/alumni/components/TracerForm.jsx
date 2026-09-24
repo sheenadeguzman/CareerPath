@@ -11,7 +11,8 @@ import {
   Briefcase, 
   Building, 
   Check, 
-  X 
+  X,
+  Info 
 } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../../../bscData';
 
@@ -141,6 +142,19 @@ export default function TracerForm({
                 onChange={(e) => setSelfEditForm({ ...selfEditForm, avatar: e.target.value })}
                 className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-slate-700 focus:outline-none focus:border-[#7c191e] flex-1 max-w-xs font-mono"
               />
+            </div>
+
+            {/* Formal Photo Advisory Notice */}
+            <div className="mt-2.5 p-2.5 rounded-lg bg-amber-50/90 border border-amber-200/90 text-left flex items-start gap-2.5 select-none shadow-3xs">
+              <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+              <div className="text-[10px] text-amber-900 leading-snug space-y-0.5">
+                <span className="font-extrabold text-amber-850 uppercase tracking-wide block">
+                  Profile Photo Guidelines:
+                </span>
+                <p className="text-amber-850/90 font-medium leading-relaxed">
+                  Please upload a <strong>formal and decent profile picture</strong> (such as a 2x2 ID photo, corporate attire, or graduation portrait with a plain background). Avoid casual selfies, informal snapshots, or filtered images, as this photo is visible to prospective <strong>partner employers</strong> and featured directly on your <strong>generated Resume / CV</strong>.
+                </p>
+              </div>
             </div>
           </div>
         </div>

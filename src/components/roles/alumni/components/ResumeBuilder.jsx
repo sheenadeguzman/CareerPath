@@ -8,7 +8,8 @@ import {
   RefreshCw,
   Copy,
   CheckCheck,
-  X
+  X,
+  Info
 } from 'lucide-react';
 import { aiOptimizeSummary, aiGenerateCoverLetter } from '../../../../services/api';
 
@@ -198,6 +199,13 @@ export default function ResumeBuilder({
         {cvOptions.showPhoto && !selfEditForm?.avatar && (
           <p className="text-[10px] text-amber-700 font-bold bg-amber-50 p-2 rounded-md border border-amber-200 leading-normal animate-pulse">
             ⚠️ No profile photo found. Please upload one in the "Tracer Intake Sheet" tab.
+          </p>
+        )}
+
+        {cvOptions.showPhoto && selfEditForm?.avatar && (
+          <p className="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded-md border border-slate-200 leading-normal flex items-start gap-1.5">
+            <Info className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+            <span>Note: Please ensure you use a formal and professional photo for an executive CV / Resume appearance.</span>
           </p>
         )}
         
