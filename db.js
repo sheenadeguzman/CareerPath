@@ -108,6 +108,12 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added user_id column to notifications table.');
     } catch (e) { }
 
+    // MIGRATION: Add mfa_enabled to users table if not exists
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN mfa_enabled TINYINT(1) DEFAULT 0');
+      console.log('Database Migration: Added mfa_enabled column to users table.');
+    } catch (e) { }
+
     // MIGRATION: Seed default Super Admin user if not exists
     try {
       const [superCheck] = await pool.query("SELECT id FROM users WHERE id = 'bsc-super-admin'");

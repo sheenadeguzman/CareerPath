@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Shield, BookOpen, Users, Briefcase, Eye, EyeOff, Lock, RefreshCw, Key, Mail, ShieldAlert } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, BookOpen, Users, Briefcase, Eye, EyeOff, Lock, RefreshCw, Key, Mail, ShieldAlert, Check } from 'lucide-react';
 import bcrypt from 'bcryptjs';
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
@@ -30,6 +30,24 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   const [recoveryStep, setRecoveryStep] = useState(1); // 1 = Enter Email, 2 = Enter Code & New Pass
   const [recoveryError, setRecoveryError] = useState('');
   const [recoverySuccess, setRecoverySuccess] = useState('');
+
+  // Workflow para sa Two-Factor Authentication (Email OTP)
+  const [showMfa, setShowMfa] = useState(false);
+  const [mfaData, setMfaData] = useState(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaError, setMfaError] = useState('');
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaResendLoading, setMfaResendLoading] = useState(false);
+  const [mfaResendMessage, setMfaResendMessage] = useState('');
+  const [mfaCountdown, setMfaCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (mfaCountdown > 0) {
+      timer = setTimeout(() => setMfaCountdown(c => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [mfaCountdown]);
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
@@ -152,6 +170,23 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
 
       fetchSuccessful = true;
       const result = await response.json();
+
+      // Kung kailangan ng Email OTP Two-Factor Authentication
+      if (result.requireMfa) {
+        setMfaData({
+          mfaSessionToken: result.mfaSessionToken,
+          maskedEmail: result.maskedEmail,
+          user: result.user
+        });
+        setShowMfa(true);
+        setMfaCountdown(60);
+        setMfaError('');
+        setMfaCode('');
+        setMfaResendMessage('');
+        setIsSubmitting(false);
+        return;
+      }
+
       const authenticatedUser = result.user;
 
       // Tinitiyak na ang role ng user ay tumutugma sa napiling role
@@ -187,6 +222,74 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const cleanCode = mfaCode.trim().replace(/\s+/g, '');
+    if (!cleanCode || cleanCode.length !== 6) {
+      setMfaError('Please enter the complete 6-digit security code.');
+      return;
+    }
+
+    setMfaLoading(true);
+    setMfaError('');
+    setMfaResendMessage('');
+
+    try {
+      const response = await fetch('/api/verify-mfa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mfaSessionToken: mfaData.mfaSessionToken,
+          code: cleanCode
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to verify security code.');
+      }
+
+      const verifiedUser = data.user;
+      onAddActivity(
+        'User Secured Portal Entrance (2FA Verified)',
+        'Authentication',
+        `Logged in with 2-Factor Authentication as ${verifiedUser.name} (${verifiedUser.role})`,
+        verifiedUser,
+        data.token
+      );
+      onLoginSuccess(verifiedUser, data.token);
+    } catch (err) {
+      setMfaError(err.message || 'Verification failed. Please try again.');
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleResendMfa = async () => {
+    if (mfaCountdown > 0 || mfaResendLoading) return;
+    setMfaResendLoading(true);
+    setMfaError('');
+    setMfaResendMessage('');
+
+    try {
+      const response = await fetch('/api/resend-mfa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mfaSessionToken: mfaData.mfaSessionToken })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resend code.');
+      }
+      setMfaResendMessage(data.message || 'A new verification code has been dispatched.');
+      setMfaCountdown(60);
+    } catch (err) {
+      setMfaError(err.message || 'Failed to resend verification code.');
+    } finally {
+      setMfaResendLoading(false);
     }
   };
 
@@ -616,6 +719,110 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                 >
                   <Lock className="w-4 h-4" /> Save New Password & Login
                 </button>
+              </form>
+            </div>
+          ) : showMfa ? (
+            /* ==================================================== */
+            /* TWO-FACTOR AUTHENTICATION (EMAIL OTP VERIFICATION)   */
+            /* ==================================================== */
+            <div className="space-y-4 animate-fade-in text-slate-800">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMfa(false);
+                    setMfaData(null);
+                    setMfaCode('');
+                    setMfaError('');
+                    setMfaResendMessage('');
+                  }}
+                  className="px-2.5 py-1 text-xs border border-slate-200 hover:bg-slate-100 rounded-lg transition cursor-pointer font-bold text-slate-600"
+                >
+                  &larr; Back to Login
+                </button>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#7c191e] flex items-center gap-1">
+                  <Shield className="w-3.5 h-3.5" /> 2-Factor Auth
+                </span>
+              </div>
+
+              <div className="text-center space-y-1.5 pt-1">
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto text-amber-600 border border-amber-200/80 shadow-sm">
+                  <Key className="w-6 h-6 animate-pulse" />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-800 tracking-wide uppercase">Enter Security PIN</h3>
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed max-w-xs mx-auto">
+                  A 6-digit One-Time Password (OTP) was dispatched to your registered email address:
+                </p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full text-xs font-mono font-bold text-slate-700">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{mfaData?.maskedEmail || 'your registered email'}</span>
+                </div>
+              </div>
+
+              {mfaError && (
+                <div role="alert" className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold text-center">
+                  {mfaError}
+                </div>
+              )}
+
+              {mfaResendMessage && (
+                <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold text-center">
+                  {mfaResendMessage}
+                </div>
+              )}
+
+              <form onSubmit={handleMfaSubmit} className="space-y-4 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider text-center mb-2">
+                    6-Digit Verification PIN
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    maxLength={6}
+                    placeholder="••••••"
+                    value={mfaCode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setMfaCode(val);
+                    }}
+                    className="w-full text-center tracking-[0.4em] text-2xl font-mono font-black py-3 px-4 bg-slate-50 focus:bg-white border-2 border-slate-200 focus:border-[#7c191e] focus:ring-2 focus:ring-[#7c191e]/20 rounded-xl transition text-slate-900 placeholder:text-slate-300"
+                  />
+                  <span className="block text-[10px] text-slate-400 text-center font-medium mt-1.5">
+                    Valid for 10 minutes. Please check your inbox or spam folder.
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={mfaLoading || mfaCode.length !== 6}
+                  className="w-full bg-[#7c191e] hover:bg-[#5b1216] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold p-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {mfaLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Verifying Code...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" /> Verify &amp; Sign In
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-between text-xs pt-1 px-1">
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Didn't receive code?
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResendMfa}
+                    disabled={mfaCountdown > 0 || mfaResendLoading}
+                    className="text-[11px] font-bold text-[#7c191e] hover:underline disabled:text-slate-400 disabled:no-underline cursor-pointer"
+                  >
+                    {mfaResendLoading ? 'Sending...' : mfaCountdown > 0 ? `Resend in ${mfaCountdown}s` : 'Resend Code'}
+                  </button>
+                </div>
               </form>
             </div>
           ) : !selectedRole ? (

@@ -20,6 +20,7 @@ export function mapUserFromDB(row) {
     email: row.email,
     role: row.role,
     isInitialPasswordNeeded: !!row.is_initial_password_needed,
+    mfaEnabled: !!row.mfa_enabled,
     avatar: row.avatar,
     program: row.program,
     companyId: row.company_id,

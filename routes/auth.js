@@ -11,11 +11,29 @@ import { mapUserFromDB } from '../mappers.js';
 import { transporter } from './mailer.js';
 import { authenticateToken } from './middleware.js';
 
+import crypto from 'crypto';
+
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'bsc_careerpath_super_secret_key';
 
 // In-memory record ng password reset codes. Naka-map ito mula email patungong {code, expires}
 const resetCodes = new Map();
+
+// In-memory record ng active MFA sessions: mfaSessionToken -> { userId, user, code, expires, attempts, lastResent }
+const mfaSessions = new Map();
+
+/**
+ * Mask email address for secure public display: e.g., sheena@gmail.com -> s***a@gmail.com
+ */
+function maskEmail(email) {
+  if (!email || !email.includes('@')) return 'your registered email';
+  const [local, domain] = email.split('@');
+  if (local.length <= 2) {
+    return `${local.charAt(0)}*@${domain}`;
+  }
+  const maskedLocal = `${local.charAt(0)}${'*'.repeat(Math.min(local.length - 2, 4))}${local.charAt(local.length - 1)}`;
+  return `${maskedLocal}@${domain}`;
+}
 
 //POST /api/login
 //Endpoint para sa pag-log in ng mga user (Admin, Chairperson, Alumni, o Employer).
@@ -42,7 +60,87 @@ router.post('/login', async (req, res) => {
 
     // Kung match ang password (o kung match sa default plaintext para sa mga bagong gawang account)
     if (isMatch || password === user.password) {
-      // Gagawa ng JWT token na may expiration na 24 hours para sa authentication middleware validation
+      // Kung kailangang magpalit ng initial password, idirekta agad sa initial password setup
+      if (user.isInitialPasswordNeeded) {
+        return res.json({
+          success: true,
+          user: {
+            id: user.id,
+            userId: user.userId,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            isInitialPasswordNeeded: true,
+            mfaEnabled: user.mfaEnabled,
+            avatar: user.avatar,
+            program: user.program,
+            companyId: user.companyId
+          }
+        });
+      }
+
+      // Check kung may naka-enable na Email-based Two-Factor Authentication (MFA)
+      if (user.mfaEnabled) {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const mfaSessionToken = 'mfa_' + crypto.randomBytes(32).toString('hex');
+        const expires = Date.now() + 10 * 60 * 1000; // 10 minutes duration
+
+        mfaSessions.set(mfaSessionToken, {
+          userId: user.userId,
+          user,
+          code,
+          expires,
+          attempts: 0,
+          createdAt: Date.now()
+        });
+
+        const maskedEmail = maskEmail(user.email);
+        const subject = 'Your Login Verification Code (MFA) | BSC CareerPath';
+        const body = `Hello ${user.name},\n\nA login attempt was made to your Batanes State College CareerPath account.\n\nYour 6-digit One-Time Security PIN (OTP) is:\n\n   ${code}\n\nThis verification code will expire in 10 minutes.\nIf you did not initiate this login request, please change your account password immediately.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`;
+
+        // Send email via configured mail transporter
+        if (transporter && user.email) {
+          try {
+            await transporter.sendMail({
+              from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
+              to: user.email,
+              subject: subject,
+              text: body
+            });
+            console.log(`[MFA OTP Mail] Verification code emailed to ${user.name} (${user.email})`);
+          } catch (mailErr) {
+            console.error(`[MFA OTP Mail Error] Failed to email code to ${user.name}:`, mailErr.message);
+          }
+        } else {
+          console.log(`[MFA OTP Console Log] Security verification code for ${user.name} (${user.email}): ${code}`);
+        }
+
+        // Mag-save rin ng notification record sa database para sa user
+        try {
+          const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+          await pool.query(
+            `INSERT INTO notifications (id, title, text, date, \`read\`, user_id) 
+             VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, ?)`,
+            [notifyId, 'MFA Security Verification Code', `Your login OTP code is ${code}. Dispatched to ${maskedEmail}.`, user.userId]
+          );
+        } catch (e) { }
+
+        return res.json({
+          success: true,
+          requireMfa: true,
+          mfaSessionToken,
+          maskedEmail,
+          user: {
+            id: user.id,
+            userId: user.userId,
+            name: user.name,
+            role: user.role
+          },
+          message: `A 6-digit verification code was sent to ${maskedEmail}.`
+        });
+      }
+
+      // Kung walang MFA, mag-issue ng karaniwang 24h JWT token
       const token = jwt.sign(
         { id: user.id, userId: user.userId, role: user.role, email: user.email },
         JWT_SECRET,
@@ -60,6 +158,7 @@ router.post('/login', async (req, res) => {
           email: user.email,
           role: user.role,
           isInitialPasswordNeeded: user.isInitialPasswordNeeded,
+          mfaEnabled: user.mfaEnabled,
           avatar: user.avatar,
           program: user.program,
           companyId: user.companyId
@@ -71,6 +170,187 @@ router.post('/login', async (req, res) => {
     res.status(401).json({ error: 'Incorrect Password' });
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST /api/verify-mfa
+// Endpoint para i-verify ang 6-digit MFA OTP code at mag-issue ng JWT access token
+router.post('/verify-mfa', async (req, res) => {
+  try {
+    const { mfaSessionToken, code } = req.body;
+    if (!mfaSessionToken || !code) {
+      return res.status(400).json({ error: 'Session token and 6-digit verification code are required.' });
+    }
+
+    const session = mfaSessions.get(mfaSessionToken);
+    if (!session) {
+      return res.status(401).json({ error: 'Your MFA session has expired or is invalid. Please sign in again.' });
+    }
+
+    if (Date.now() > session.expires) {
+      mfaSessions.delete(mfaSessionToken);
+      return res.status(401).json({ error: 'Verification code has expired. Please request a new code.' });
+    }
+
+    if (session.attempts >= 5) {
+      mfaSessions.delete(mfaSessionToken);
+      return res.status(429).json({ error: 'Too many incorrect attempts. Please sign in again.' });
+    }
+
+    const cleanInputCode = String(code).trim().replace(/\s+/g, '');
+    if (cleanInputCode !== session.code) {
+      session.attempts += 1;
+      const remainingAttempts = 5 - session.attempts;
+      return res.status(401).json({ 
+        error: `Incorrect verification code. ${remainingAttempts} attempt(s) remaining.` 
+      });
+    }
+
+    // Validated! I-clear ang pansamantalang session
+    mfaSessions.delete(mfaSessionToken);
+    const user = session.user;
+
+    const token = jwt.sign(
+      { id: user.id, userId: user.userId, role: user.role, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Audit log
+    try {
+      const logId = `log-${Date.now()}`;
+      await pool.query(
+        'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          logId, 
+          new Date().toISOString().slice(0, 19).replace('T', ' '), 
+          user.id, 
+          user.email, 
+          user.name, 
+          user.role, 
+          'Two-Factor Authentication Completed', 
+          'Security / Authentication', 
+          `MFA OTP verified successfully for ${user.userId} (${user.email})`
+        ]
+      );
+    } catch (e) { }
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isInitialPasswordNeeded: user.isInitialPasswordNeeded,
+        mfaEnabled: user.mfaEnabled,
+        avatar: user.avatar,
+        program: user.program,
+        companyId: user.companyId
+      }
+    });
+  } catch (err) {
+    console.error('Verify MFA error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST /api/resend-mfa
+// Endpoint para mag-resend ng panibagong 6-digit MFA OTP code
+router.post('/resend-mfa', async (req, res) => {
+  try {
+    const { mfaSessionToken } = req.body;
+    if (!mfaSessionToken) {
+      return res.status(400).json({ error: 'MFA session token is required.' });
+    }
+
+    const session = mfaSessions.get(mfaSessionToken);
+    if (!session) {
+      return res.status(401).json({ error: 'MFA session has expired. Please sign in again.' });
+    }
+
+    // Cooldown para sa resend (30 seconds)
+    if (session.lastResent && Date.now() - session.lastResent < 30000) {
+      const waitSec = Math.ceil((30000 - (Date.now() - session.lastResent)) / 1000);
+      return res.status(429).json({ error: `Please wait ${waitSec}s before requesting a new code.` });
+    }
+
+    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+    session.code = newCode;
+    session.expires = Date.now() + 10 * 60 * 1000;
+    session.attempts = 0;
+    session.lastResent = Date.now();
+
+    const user = session.user;
+    const maskedEmail = maskEmail(user.email);
+    const subject = 'Your New Login Verification Code (MFA) | BSC CareerPath';
+    const body = `Hello ${user.name},\n\nA new 6-digit One-Time Security PIN (OTP) was requested for your BSC CareerPath account:\n\n   ${newCode}\n\nThis verification code will expire in 10 minutes.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`;
+
+    if (transporter && user.email) {
+      try {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
+          to: user.email,
+          subject: subject,
+          text: body
+        });
+      } catch (e) {
+        console.error('[Resend MFA Mail Error]', e);
+      }
+    } else {
+      console.log(`[Resend MFA Console Log] New security code for ${user.name} (${user.email}): ${newCode}`);
+    }
+
+    return res.json({
+      success: true,
+      maskedEmail,
+      message: `A fresh 6-digit verification code has been dispatched to ${maskedEmail}.`
+    });
+  } catch (err) {
+    console.error('Resend MFA error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST /api/toggle-mfa
+// Endpoint para i-enable o i-disable ang MFA sa sariling account (nangangailangan ng authentication)
+router.post('/toggle-mfa', authenticateToken, async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    const targetUserId = req.user.id;
+
+    const mfaVal = enabled ? 1 : 0;
+    await pool.query('UPDATE users SET mfa_enabled = ? WHERE id = ?', [mfaVal, targetUserId]);
+
+    // Audit log
+    try {
+      const logId = `log-${Date.now()}`;
+      await pool.query(
+        'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          logId, 
+          new Date().toISOString().slice(0, 19).replace('T', ' '), 
+          req.user.id, 
+          req.user.email, 
+          req.user.userId, 
+          req.user.role, 
+          enabled ? 'Enabled Two-Factor Authentication' : 'Disabled Two-Factor Authentication', 
+          'Security / Settings', 
+          `Two-Factor Authentication setting updated to ${enabled ? 'ENABLED' : 'DISABLED'}`
+        ]
+      );
+    } catch (e) { }
+
+    return res.json({
+      success: true,
+      mfaEnabled: !!enabled,
+      message: `Two-Factor Authentication is now ${enabled ? 'enabled' : 'disabled'}.`
+    });
+  } catch (err) {
+    console.error('Toggle MFA error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

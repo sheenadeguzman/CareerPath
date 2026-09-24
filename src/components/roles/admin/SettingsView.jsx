@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, ChevronRight, User, Bell, Lock, HelpCircle, Info, 
-  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff
+  ArrowLeft, Check, Save, Camera, Mail, Eye, EyeOff, ShieldCheck, Shield, RefreshCw
 } from 'lucide-react';
 
 const MOCK_AVATARS = [
@@ -26,11 +26,47 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
   const [usernameInput, setUsernameInput] = useState(activeUser?.userId || '');
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
 
+  // Two-Factor Authentication State
+  const [mfaEnabled, setMfaEnabled] = useState(!!activeUser?.mfaEnabled);
+  const [isTogglingMfa, setIsTogglingMfa] = useState(false);
+
   useEffect(() => {
     if (activeUser) {
       setUsernameInput(activeUser.userId || '');
+      setMfaEnabled(!!activeUser.mfaEnabled);
     }
   }, [activeUser]);
+
+  const handleToggleMfa = async (newValue) => {
+    setIsTogglingMfa(true);
+    setShowStatus('');
+    try {
+      const token = sessionStorage.getItem('careerpath_token');
+      const response = await fetch('/api/toggle-mfa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ enabled: newValue })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update MFA settings.');
+      }
+      setMfaEnabled(data.mfaEnabled);
+      if (activeUser && setActiveUser) {
+        const updated = { ...activeUser, mfaEnabled: data.mfaEnabled };
+        setActiveUser(updated);
+        sessionStorage.setItem('careerpath_user', JSON.stringify(updated));
+      }
+      setShowStatus(data.message || 'Two-Factor Authentication updated successfully.');
+    } catch (err) {
+      setShowStatus('Error: ' + err.message);
+    } finally {
+      setIsTogglingMfa(false);
+    }
+  };
 
   // Help & Support Ticket State
   const [supportTicket, setSupportTicket] = useState({ subject: '', message: '' });
@@ -703,6 +739,63 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
 
           <div className="p-6 space-y-6">
             
+            {/* Two-Factor Authentication (Email OTP) Config Card */}
+            <div 
+              className="p-5 border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none shadow-xs"
+              style={{ 
+                backgroundColor: isSystemDark ? '#111827' : '#f8fafc',
+                borderColor: isSystemDark ? '#334155' : '#e2e8f0' 
+              }}
+            >
+              <div className="flex items-start gap-3.5">
+                <div className={`p-2.5 rounded-xl shrink-0 ${
+                  mfaEnabled 
+                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' 
+                    : 'bg-slate-200/60 text-slate-500 border border-slate-300/40'
+                }`}>
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-sm text-slate-800 dark:text-white">
+                      Two-Factor Authentication (Email OTP)
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                      mfaEnabled 
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' 
+                        : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                    }`}>
+                      {mfaEnabled ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md">
+                    Require a 6-digit One-Time Security PIN sent to your registered email (<strong>{activeUser?.email || profileForm.email}</strong>) every time you sign in to CareerPath.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={isTogglingMfa}
+                onClick={() => handleToggleMfa(!mfaEnabled)}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 shadow-xs flex items-center justify-center gap-1.5 ${
+                  mfaEnabled
+                    ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300'
+                    : 'bg-[#7c191e] hover:bg-[#5b1216] text-white shadow-sm'
+                }`}
+              >
+                {isTogglingMfa ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Updating...
+                  </>
+                ) : mfaEnabled ? (
+                  'Disable 2FA'
+                ) : (
+                  'Enable 2FA'
+                )}
+              </button>
+            </div>
+
             {/* Password edit inputs */}
             <div className="space-y-4 text-xs font-semibold">
               <div className="space-y-1 relative">
