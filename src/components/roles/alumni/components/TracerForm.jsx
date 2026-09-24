@@ -1315,15 +1315,8 @@ export default function TracerForm({
               </div>
             </div>
 
-            {/* Modal Actions Footer - Sticky at bottom with prominent Close and Agree buttons */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowPrivacyModal(false)}
-                className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-200/70 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
-              >
-                <X className="w-4 h-4" /> Close
-              </button>
+            {/* Modal Actions Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -1331,7 +1324,7 @@ export default function TracerForm({
                   setSelfEditForm({ ...selfEditForm, dataPrivacyConsent: true });
                   setShowPrivacyModal(false);
                 }}
-                className="px-5 py-2 bg-[#7c191e] hover:bg-[#5b1216] text-white text-xs font-extrabold rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                className="px-6 py-2.5 bg-[#7c191e] hover:bg-[#5b1216] text-white text-xs font-extrabold rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
               >
                 <Check className="w-4 h-4" /> I Understand &amp; Agree
               </button>
