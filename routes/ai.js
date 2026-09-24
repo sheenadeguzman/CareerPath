@@ -1,8 +1,6 @@
 /**
- * @file ai.js
- * @description Express Router para sa Gemini AI integrations (Free Tier).
- * Pinapamahalaan nito ang pag-communicate sa Google Gemini API gamit ang @google/genai SDK.
- */
+* @file ai.js
+ * @description Express Router para sa Gemini AI integrations (Free Tier).**/
 
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
@@ -12,9 +10,7 @@ const router = express.Router();
 
 const modelsToTry = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3-flash', 'gemini-2.5-flash'];
 
-/**
- * Robust helper function to execute prompt calls on available Gemini models in sequence.
- */
+//Robust helper function to execute prompt calls on available Gemini models in sequence.
 async function callGemini(ai, prompt) {
   let lastError = null;
   for (const modelName of modelsToTry) {
@@ -37,11 +33,10 @@ async function callGemini(ai, prompt) {
   throw new Error(lastError ? lastError.message : 'Hindi nakakonekta sa anumang Gemini models.');
 }
 
-/**
- * POST /api/gemini-match
- * Pinaproseso ang pagtutugma ng bakanteng trabaho (Job Vacancy) at mga alumni candidates gamit ang Gemini AI.
- * Nagbabalik ito ng markdown analysis, curriculum recommendations, at recruitment message draft.
- */
+
+ //POST /api/gemini-match
+ //Pinaproseso ang pagtutugma ng bakanteng trabaho (Job Vacancy) at mga alumni candidates gamit ang Gemini AI.
+ //Nagbabalik ito ng markdown analysis, curriculum recommendations, at recruitment message draft.
 router.post('/gemini-match', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -76,18 +71,18 @@ Job Title: ${job.jobTitle}
 Description: ${job.description}
 Prerequisite Skills Required: ${job.requirements ? job.requirements.join(', ') : 'N/A'}
 
-=== TOP MATCHING GRADUATES (ALUMNI) ===
+= TOP MATCHING GRADUATES (ALUMNI) =
 ${alumniListString}
 
 Based on this information, please provide a professional analysis containing exactly these three parts:
 
-1. ## AI Candidate Match & Fit Analysis
+1. AI Candidate Match & Fit Analysis
 Analyze why these specific graduates are good fits, which candidate stands out as the strongest fit, and explain any skill advantages they possess. Write this analysis in professional, friendly English.
 
-2. ## Curriculum & Syllabus Gap Recommendations
+2. Curriculum & Syllabus Gap Recommendations
 Provide actionable recommendations for Batanes State College (BSC) on how to improve its curriculum. Based on what the employer requires and what graduates lack, specify which modern technologies, methodologies, or specific topics should be integrated into the syllabus (e.g. BSIT, BSHM, BSED, etc.) to bridge this gap.
 
-3. ## Draft Invitation Message for Employer
+3. Draft Invitation Message for Employer
 Provide a ready-to-copy recruitment/invitation email or chat message draft (written in professional English) that the employer can send to their top recommended candidate to invite them for an interview or discuss the vacancy.
 
 Guidelines:
@@ -107,10 +102,8 @@ Guidelines:
   }
 });
 
-/**
- * POST /api/ai-optimize-summary
- * Binabago ang "About Me" summary ng alumnus upang maging mas kaakit-akit at propesyonal para sa mga kumpanya.
- */
+//POST /api/ai-optimize-summary
+//Binabago ang "About Me" summary ng alumnus upang maging mas kaakit-akit at propesyonal para sa mga kumpanya. 
 router.post('/ai-optimize-summary', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -150,10 +143,8 @@ Guidelines:
   }
 });
 
-/**
- * POST /api/ai-cover-letter
- * Gumagawa ng custom at pormal na cover letter batay sa napiling trabaho at profile ng alumnus.
- */
+//POST /api/ai-cover-letter
+//Gumagawa ng custom at pormal na cover letter batay sa napiling trabaho at profile ng alumnus.
 router.post('/ai-cover-letter', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -200,10 +191,8 @@ Guidelines:
   }
 });
 
-/**
- * POST /api/ai-feedback-summary
- * Gumagawa ng SWOT analysis at syllabus improvement recommendations batay sa employer feedbacks.
- */
+//POST /api/ai-feedback-summary
+//Gumagawa ng SWOT analysis at syllabus improvement recommendations batay sa employer feedbacks.
 router.post('/ai-feedback-summary', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -231,13 +220,13 @@ Analyze the following curriculum feedback submitted by employers and stakeholder
 ${feedbackList}
 
 Based on this data, write a professional audit report in English containing exactly these two parts:
-1. ## SWOT Analysis
-- **Strengths**: What are they rating highly or praising?
-- **Weaknesses**: What gaps, issues, or complaints are mentioned?
-- **Opportunities**: What emerging fields, technologies, or training areas should be targeted?
-- **Threats**: Risks to graduate employability if the curriculum remains outdated.
+1. SWOT Analysis
+- Strengths: What are they rating highly or praising?
+- Weaknesses: What gaps, issues, or complaints are mentioned?
+- Opportunities: What emerging fields, technologies, or training areas should be targeted?
+- Threats: Risks to graduate employability if the curriculum remains outdated.
 
-2. ## Curriculum & Syllabus Improvement Action Plan
+2. Curriculum & Syllabus Improvement Action Plan
 Specific, actionable changes that Batanes State College should integrate into their department courses (such as BSIT, BSHM, BSED, etc.) to bridge the competency gap.
 `;
 
@@ -250,10 +239,8 @@ Specific, actionable changes that Batanes State College should integrate into th
   }
 });
 
-/**
- * POST /api/ai-survey-analytics
- * Pinaproseso ang qualitative answers ng survey upang makita ang sentiment at employment trends.
- */
+//POST /api/ai-survey-analytics
+//Pinaproseso ang qualitative answers ng survey upang makita ang sentiment at employment trends.
 router.post('/ai-survey-analytics', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -294,10 +281,9 @@ Format your response using exactly these three headings:
   }
 });
 
-/**
- * POST /api/ai-predictive-placement
- * Nagbibigay ng simulated employability index, target career path, at tips base sa credential tags.
- */
+
+//POST /api/ai-predictive-placement
+//Nagbibigay ng simulated employability index, target career path, at tips base sa credential tags.
 router.post('/ai-predictive-placement', authenticateToken, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
