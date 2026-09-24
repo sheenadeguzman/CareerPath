@@ -5,16 +5,17 @@
  * CHED employment metrics, career history timeline, at core skills.
  */
 
-import React, { useState } from 'react';
-import { 
-  GraduationCap, 
-  Briefcase, 
-  Building, 
-  Check, 
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  GraduationCap,
+  Briefcase,
+  Building,
+  Check,
   X,
   Info,
   ShieldCheck,
-  FileText 
+  FileText
 } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../../../bscData';
 
@@ -41,6 +42,18 @@ export default function TracerForm({
     selfEditForm?.dataPrivacyConsent !== undefined ? Boolean(selfEditForm.dataPrivacyConsent) : false
   );
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  // Close agreement modal on Escape key
+  useEffect(() => {
+    if (!showPrivacyModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowPrivacyModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showPrivacyModal]);
 
   const handleFormSubmitWithConsent = (e) => {
     e.preventDefault();
@@ -77,7 +90,7 @@ export default function TracerForm({
 
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-100 animate-fade-in no-print-resume flex flex-col max-h-[72vh] overflow-hidden">
-      
+
       {/* Header Section: Nagpapakita ng pamagat ng sheet at ang kasalukuyang Profile Completeness Rate */}
       <div className="p-6 pb-4 border-b border-slate-100 flex justify-between items-center shrink-0 bg-white rounded-t-xl">
         <div>
@@ -92,7 +105,7 @@ export default function TracerForm({
 
       {/* Main Scrollable Form Area */}
       <form onSubmit={handleFormSubmitWithConsent} className="flex-1 overflow-y-auto px-6 pt-6 pb-0 space-y-6 text-xs font-semibold text-slate-655">
-        
+
         {/* Profile Picture Upload Section: Dito pwedeng pumili ng file o mag-paste ng URL */}
         <div className="bg-slate-55 p-4 rounded-xl border border-slate-100 flex flex-col sm:flex-row items-center gap-4">
           <div className="relative shrink-0">
@@ -180,7 +193,7 @@ export default function TracerForm({
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
             <GraduationCap className="w-4 h-4 text-[#7c191e]" /> 1. Demographic &amp; Academic Variables
           </h3>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {/* Student ID - Protektado at hindi maaaring baguhin ng user (Read-only) */}
             <div>
@@ -360,39 +373,39 @@ export default function TracerForm({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-slate-400 mb-1">Current Address</label>
-            <input
-              type="text"
-              placeholder="Street, Barangay, Municipality, Province"
-              value={selfEditForm.address}
-              onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
-            />
-          </div>
+            <div>
+              <label className="block text-slate-400 mb-1">Current Address</label>
+              <input
+                type="text"
+                placeholder="Street, Barangay, Municipality, Province"
+                value={selfEditForm.address}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+              />
+            </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Permanent Address</label>
-            <input
-              type="text"
-              placeholder="Street, Barangay, Municipality, Province"
-              value={selfEditForm.address}
-              onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
-            />
-          </div>
+            <div>
+              <label className="block text-slate-400 mb-1">Permanent Address</label>
+              <input
+                type="text"
+                placeholder="Street, Barangay, Municipality, Province"
+                value={selfEditForm.address}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+              />
+            </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Professional License / Exams Passed</label>
-            <input
-              type="text"
-              placeholder="e.g. LET (Licensure Exam for Teachers), Civil Service, TESDA NC II"
-              value={selfEditForm.professionalExamPassed}
-              onChange={(e) => setSelfEditForm({ ...selfEditForm, professionalExamPassed: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
-            />
+            <div>
+              <label className="block text-slate-400 mb-1">Professional License / Exams Passed</label>
+              <input
+                type="text"
+                placeholder="e.g. LET (Licensure Exam for Teachers), Civil Service, TESDA NC II"
+                value={selfEditForm.professionalExamPassed}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, professionalExamPassed: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
+              />
+            </div>
           </div>
-           </div>
 
           {/* Seksyon para sa Licensure Exam Details kung mayroon */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -430,43 +443,42 @@ export default function TracerForm({
               />
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {/* Alumni Association membership at dahilan sa pagpili ng kurso */}
-          <div>
-            <label className="block text-slate-400 mb-1">Alumni Association Membership Status</label>
-            <select
-              value={selfEditForm.alumniAssociationStatus || 'Non-Member'}
-              onChange={(e) => setSelfEditForm({ ...selfEditForm, alumniAssociationStatus: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
-            >
-              <option value="" className="text-slate-400 bg-white">Select Status--</option>
-              <option value="Non-Member">Non-Member</option>
-              <option value="Active Member">Active Member</option>
-              <option value="Inactive Member">Inactive Member</option>
-              <option value="Officer">Association Officer / Coordinator</option>
-            </select>
-          </div>
 
-          <div>
-            <label className="block text-slate-400 mb-1">Reason for Pursuing this Degree Program</label>
-            <select
-              value={selfEditForm.reasonsPursuingProgram || ''}
-              onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsPursuingProgram: e.target.value })}
-              className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${
-                !selfEditForm.reasonsPursuingProgram ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-              }`}
-            >
-              <option value="" className="text-slate-400 bg-white">Select Reason --</option>
-              <option value="Personal Interest" className="text-slate-700 bg-white">Personal Interest</option>
-              <option value="Influence of Parents / Relatives" className="text-slate-700 bg-white">Influence of Parents / Relatives</option>
-              <option value="Influence of Peers / Friends" className="text-slate-700 bg-white">Influence of Peers / Friends</option>
-              <option value="High Employment Prospects / Demand" className="text-slate-700 bg-white">High Employment Prospects / Demand</option>
-              <option value="No other choice" className="text-slate-700 bg-white">No other choice (course of least resistance)</option>
-              <option value="Others" className="text-slate-700 bg-white">Others</option>
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Alumni Association membership at dahilan sa pagpili ng kurso */}
+            <div>
+              <label className="block text-slate-400 mb-1">Alumni Association Membership Status</label>
+              <select
+                value={selfEditForm.alumniAssociationStatus || 'Non-Member'}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, alumniAssociationStatus: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
+              >
+                <option value="" className="text-slate-400 bg-white">Select Status--</option>
+                <option value="Non-Member">Non-Member</option>
+                <option value="Active Member">Active Member</option>
+                <option value="Inactive Member">Inactive Member</option>
+                <option value="Officer">Association Officer / Coordinator</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-400 mb-1">Reason for Pursuing this Degree Program</label>
+              <select
+                value={selfEditForm.reasonsPursuingProgram || ''}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsPursuingProgram: e.target.value })}
+                className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.reasonsPursuingProgram ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
+                  }`}
+              >
+                <option value="" className="text-slate-400 bg-white">Select Reason --</option>
+                <option value="Personal Interest" className="text-slate-700 bg-white">Personal Interest</option>
+                <option value="Influence of Parents / Relatives" className="text-slate-700 bg-white">Influence of Parents / Relatives</option>
+                <option value="Influence of Peers / Friends" className="text-slate-700 bg-white">Influence of Peers / Friends</option>
+                <option value="High Employment Prospects / Demand" className="text-slate-700 bg-white">High Employment Prospects / Demand</option>
+                <option value="No other choice" className="text-slate-700 bg-white">No other choice (course of least resistance)</option>
+                <option value="Others" className="text-slate-700 bg-white">Others</option>
+              </select>
+            </div>
           </div>
-        </div>
         </div>
 
         {/* Educational History Editor: Listahan ng iba pang natapos na paaralan */}
@@ -513,22 +525,22 @@ export default function TracerForm({
                   const schoolInput = document.getElementById('new-edu-school');
                   const degreeInput = document.getElementById('new-edu-degree');
                   const yearsInput = document.getElementById('new-edu-years');
-                  
+
                   const school = schoolInput.value.trim();
                   const degree = degreeInput.value.trim();
                   const years = yearsInput.value.trim();
-                  
+
                   if (!school || !degree || !years) {
                     alert('Please fill out all education details (School Name, Level, Years).');
                     return;
                   }
-                  
+
                   const newEdu = { school, degree, years };
                   setSelfEditForm({
                     ...selfEditForm,
                     educationHistory: [...(selfEditForm.educationHistory || []), newEdu]
                   });
-                  
+
                   // Reset inputs
                   schoolInput.value = '';
                   degreeInput.value = '';
@@ -726,9 +738,8 @@ export default function TracerForm({
                   <select
                     value={selfEditForm.jobIndustry || ''}
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, jobIndustry: e.target.value })}
-                    className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${
-                      !selfEditForm.jobIndustry ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-                    }`}
+                    className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.jobIndustry ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
+                      }`}
                   >
                     <option value="" className="text-slate-400 bg-white">Select Industry--</option>
                     <option value="Information Technology" className="text-slate-700 bg-white">Information Technology / CS</option>
@@ -762,9 +773,8 @@ export default function TracerForm({
                   <select
                     value={selfEditForm.findFirstJob || ''}
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, findFirstJob: e.target.value })}
-                    className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${
-                      !selfEditForm.findFirstJob ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-                    }`}
+                    className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.findFirstJob ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
+                      }`}
                   >
                     <option value="" className="text-slate-400 bg-white">Select Option--</option>
                     <option value="Walk-in application" className="text-slate-700 bg-white">Walk-in application</option>
@@ -780,9 +790,8 @@ export default function TracerForm({
                   <select
                     value={selfEditForm.reasonsAcceptingJob || ''}
                     onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsAcceptingJob: e.target.value })}
-                    className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${
-                      !selfEditForm.reasonsAcceptingJob ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-                    }`}
+                    className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.reasonsAcceptingJob ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
+                      }`}
                   >
                     <option value="" className="text-slate-400 bg-white">Select Reason--</option>
                     <option value="High Salary &amp; Benefits" className="text-slate-700 bg-white">High Salary &amp; Benefits</option>
@@ -805,9 +814,8 @@ export default function TracerForm({
                 <select
                   value={selfEditForm.reasonsUnemployment || ''}
                   onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsUnemployment: e.target.value })}
-                  className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${
-                    !selfEditForm.reasonsUnemployment ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-                  }`}
+                  className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.reasonsUnemployment ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
+                    }`}
                 >
                   <option value="" className="text-slate-400 bg-white">Select Reason--</option>
                   <option value="Family Concerns / Duties" className="text-slate-700 bg-white">Family Concerns / Duties</option>
@@ -844,7 +852,7 @@ export default function TracerForm({
                 Isulat ang buong kasaysayan ng iyong trabaho (mula sa pinakaunang trabaho pagkapagtapos ng kolehiyo hanggang sa kasalukuyan).
               </span>
             </div>
-            
+
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
               <div className="sm:col-span-4">
                 <label className="block text-[10px] text-slate-405 uppercase font-bold mb-1">Job Title</label>
@@ -881,22 +889,22 @@ export default function TracerForm({
                     const titleInput = document.getElementById('new-history-title');
                     const companyInput = document.getElementById('new-history-company');
                     const yearsInput = document.getElementById('new-history-years');
-                    
+
                     const title = titleInput.value.trim();
                     const company = companyInput.value.trim();
                     const years = yearsInput.value.trim();
-                    
+
                     if (!title || !company || !years) {
                       alert('Please fill out all timeline details (Title, Company, Years).');
                       return;
                     }
-                    
+
                     const newEvent = { title, company, years };
                     setSelfEditForm({
                       ...selfEditForm,
                       careerHistory: [...(selfEditForm.careerHistory || []), newEvent]
                     });
-                    
+
                     // I-reset ang mga input field matapos magdagdag
                     titleInput.value = '';
                     companyInput.value = '';
@@ -963,7 +971,7 @@ export default function TracerForm({
           <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
             <Building className="w-4 h-4 text-[#7c191e]" /> 3. Core Competencies &amp; Technical Skills
           </h3>
-          
+
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
@@ -985,14 +993,14 @@ export default function TracerForm({
           <div className="flex flex-wrap gap-1.5 pt-1.5">
             {selfEditForm.skills && selfEditForm.skills.length > 0 ? (
               selfEditForm.skills.map((skill) => (
-                <span 
-                  key={skill} 
+                <span
+                  key={skill}
                   className="px-3 py-1 bg-amber-500/10 border border-amber-300 text-amber-800 rounded-full font-bold text-[10px] inline-flex items-center gap-1.5"
                 >
                   {skill}
-                  <button 
-                    type="button" 
-                    onClick={() => removeSkillToken(skill)} 
+                  <button
+                    type="button"
+                    onClick={() => removeSkillToken(skill)}
                     className="text-slate-400 hover:text-rose-600 transition font-bold"
                     title="Remove tag"
                   >
@@ -1014,7 +1022,7 @@ export default function TracerForm({
             <Check className="w-4 h-4 text-[#7c191e]" /> 4. Acquired Skills at BSC Found Most Useful in Employment
           </h3>
           <p className="text-[10px] text-slate-400 font-bold block">Select the skills acquired at BSC that you find most useful in your employment (Click to toggle):</p>
-          
+
           {/* Listahan ng default CHED/BSC variables */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {[
@@ -1036,15 +1044,13 @@ export default function TracerForm({
                       : [...currentSkills, skillOption];
                     setSelfEditForm({ ...selfEditForm, usefulSkills: nextSkills });
                   }}
-                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer select-none transition-all duration-200 ${
-                    isChecked 
-                      ? 'bg-[#7c191e]/5 border-[#7c191e] text-[#7c191e] shadow-xs' 
+                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer select-none transition-all duration-200 ${isChecked
+                      ? 'bg-[#7c191e]/5 border-[#7c191e] text-[#7c191e] shadow-xs'
                       : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
-                  }`}
+                    }`}
                 >
-                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isChecked ? 'border-[#7c191e] bg-[#7c191e] text-white' : 'border-slate-300 bg-white'
-                  }`}>
+                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'border-[#7c191e] bg-[#7c191e] text-white' : 'border-slate-300 bg-white'
+                    }`}>
                     {isChecked && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                   </span>
                   <span className="text-[11px] font-bold">{skillOption}</span>
@@ -1056,7 +1062,7 @@ export default function TracerForm({
           {/* Section para sa Custom 'Others' Input at listahan ng custom useful skills */}
           <div className="space-y-3 pt-2">
             <label className="block text-[10px] text-slate-405 font-bold uppercase">Others (May iba pa bang kasanayan? Isulat at i-dagdag dito):</label>
-            
+
             <div className="flex gap-2">
               <input
                 type="text"
@@ -1097,13 +1103,13 @@ export default function TracerForm({
               return (
                 <div className="flex flex-wrap gap-2 pt-1.5">
                   {customSkills.map((skill) => (
-                    <span 
-                      key={skill} 
+                    <span
+                      key={skill}
                       className="inline-flex items-center gap-1.5 bg-[#cca43b]/10 text-slate-800 border border-[#cca43b]/30 px-3 py-1 rounded-full text-[10px] font-bold uppercase transition"
                     >
                       {skill}
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => removeUsefulSkill(skill)}
                         className="text-[12px] text-slate-850 hover:text-rose-600 font-extrabold focus:outline-none transition cursor-pointer"
                         title="Remove custom skill"
@@ -1139,7 +1145,7 @@ export default function TracerForm({
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e] font-sans text-xs font-bold text-slate-705"
               />
             </div>
-            
+
             <div>
               <label className="block text-slate-400 mb-1">Languages Spoken (Separated by commas, e.g. English, Tagalog, Ivatan)</label>
               <input
@@ -1214,13 +1220,18 @@ export default function TracerForm({
 
       </form>
 
-      {/* Full Data Privacy Agreement Modal */}
-      {showPrivacyModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in font-sans">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-200 animate-scale-up">
-            
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-gradient-to-r from-[#7c191e] to-[#581014] text-white flex items-center justify-between select-none">
+      {/* Full Data Privacy Agreement Modal - Portaled directly to document.body to prevent parent container clipping */}
+      {showPrivacyModal && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-6 animate-fade-in font-sans"
+          onClick={() => setShowPrivacyModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header - Sticky at top with visible Close button */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-[#7c191e] to-[#581014] text-white flex items-center justify-between shrink-0 select-none shadow-sm">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-6 h-6 text-amber-300 shrink-0" />
                 <div>
@@ -1235,14 +1246,17 @@ export default function TracerForm({
               <button
                 type="button"
                 onClick={() => setShowPrivacyModal(false)}
-                className="p-1.5 hover:bg-white/10 rounded-lg text-white/80 hover:text-white transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-lg text-xs font-bold transition cursor-pointer border border-white/20 shadow-xs"
+                title="Close agreement (Esc)"
+                aria-label="Close dialog"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
+                <span>Close</span>
               </button>
             </div>
 
             {/* Modal Scrollable Content */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs font-normal text-slate-655 leading-relaxed">
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs font-normal text-slate-655 leading-relaxed flex-1">
               <p className="font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
                 In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, its Implementing Rules and Regulations (IRR), and the institutional monitoring guidelines of the <strong>Commission on Higher Education (CHED)</strong>, Batanes State College (BSC) is committed to protecting your privacy and ensuring the security of your personal data.
               </p>
@@ -1301,14 +1315,14 @@ export default function TracerForm({
               </div>
             </div>
 
-            {/* Modal Actions Footer */}
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            {/* Modal Actions Footer - Sticky at bottom with prominent Close and Agree buttons */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setShowPrivacyModal(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-bold rounded-xl transition cursor-pointer"
+                className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-200/70 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
               >
-                Close
+                <X className="w-4 h-4" /> Close
               </button>
               <button
                 type="button"
@@ -1324,7 +1338,8 @@ export default function TracerForm({
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

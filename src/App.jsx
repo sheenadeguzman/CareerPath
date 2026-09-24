@@ -222,7 +222,7 @@ export default function App() {
   // Apply saved global appearance settings on mount & activeUser changes
   useEffect(() => {
     if (!activeUser) return;
-    
+
     // 1. Apply Dark Mode
     document.documentElement.classList.toggle('dark', darkMode);
 
@@ -520,14 +520,14 @@ export default function App() {
                 Download this application on your phone for faster access, offline stability, and native notifications.
               </p>
             </div>
-            <button 
+            <button
               onClick={handleDismissInstall}
               className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          
+
           {deferredPrompt ? (
             <div className="flex items-center justify-end gap-2 pt-1">
               <button

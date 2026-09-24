@@ -13,13 +13,13 @@ import AdminAlumniListView from '../roles/admin/AdminAlumniListView';
 import AddAlumnusModal from '../roles/admin/AddAlumnusModal';
 import BulkImportModal from '../roles/admin/BulkImportModal';
 
-export default function AlumniManagementView({ 
-  alumniList, 
-  activeUser, 
-  onSaveAlumni, 
+export default function AlumniManagementView({
+  alumniList,
+  activeUser,
+  onSaveAlumni,
   onDeleteAlumni,
-  onTriggerEmail, 
-  onImportAlumni 
+  onTriggerEmail,
+  onImportAlumni
 }) {
   // Sinusuri kung ang kasalukuyang user ay may role na 'Alumni' para i-toggle ang mga interface control
   const isAlumniUser = activeUser.role === 'Alumni';
@@ -44,44 +44,44 @@ export default function AlumniManagementView({
   };
 
   // Hinahanap ang profile coordinates ng naka-login na Alumnus user (gumagawa ng default mock profile kapag hindi nahanap)
-  const currentAlAlumnus = isAlumniUser 
+  const currentAlAlumnus = isAlumniUser
     ? (alumniList.find(a => a.studentId === activeUser.userId) || {
-        studentId: activeUser.userId,
-        name: activeUser.name,
-        firstName: activeUser.name.split(' ')[0] || '',
-        lastName: activeUser.name.split(' ').slice(1).join(' ') || '',
-        email: activeUser.email,
-        phone: '',
-        gender: '',
-        civilStatus: '',
-        dateOfBirth: '',
-        address: '',
-        program: activeUser.program || 'Bachelor of Science in Information Technology',
-        yearGraduated: 2026,
-        honors: '',
-        professionalExamPassed: '',
-        employmentStatus: 'No Response',
-        jobTitle: '',
-        jobDescription: '',
-        employerName: '',
-        employmentType: '',
-        sector: '',
-        monthlyIncome: '',
-        jobRelatedToCourse: '',
-        timeToFirstJob: '',
-        skills: [],
-        profileCompleteness: 30,
-        lastUpdated: new Date().toISOString()
-      })
+      studentId: activeUser.userId,
+      name: activeUser.name,
+      firstName: activeUser.name.split(' ')[0] || '',
+      lastName: activeUser.name.split(' ').slice(1).join(' ') || '',
+      email: activeUser.email,
+      phone: '',
+      gender: '',
+      civilStatus: '',
+      dateOfBirth: '',
+      address: '',
+      program: activeUser.program || 'Bachelor of Science in Information Technology',
+      yearGraduated: 2026,
+      honors: '',
+      professionalExamPassed: '',
+      employmentStatus: 'No Response',
+      jobTitle: '',
+      jobDescription: '',
+      employerName: '',
+      employmentType: '',
+      sector: '',
+      monthlyIncome: '',
+      jobRelatedToCourse: '',
+      timeToFirstJob: '',
+      skills: [],
+      profileCompleteness: 30,
+      lastUpdated: new Date().toISOString()
+    })
     : null;
 
   return (
     <div className="space-y-6 font-sans">
-      
+
       {/* Popup ng Toast Notification */}
       {showToast && (
-        <div 
-          role="alert" 
+        <div
+          role="alert"
           className="fixed top-24 right-8 bg-[#1e4620] text-emerald-50 font-bold text-xs p-4 rounded-xl border-2 border-amber-400 shadow-2xl z-50 flex items-center gap-2 max-w-sm animate-fade-in"
         >
           <span className="bg-amber-400 text-slate-900 rounded-full p-1"><Check className="w-4 h-4" /></span>
@@ -91,13 +91,13 @@ export default function AlumniManagementView({
 
       {/* Nag-re-render ng Alumni intake form o Administrator list view depende sa user role */}
       {isAlumniUser ? (
-        <AlumniSelfProfileForm 
+        <AlumniSelfProfileForm
           currentAlAlumnus={currentAlAlumnus}
           onSaveAlumni={onSaveAlumni}
           triggerToast={triggerToast}
         />
       ) : (
-        <AdminAlumniListView 
+        <AdminAlumniListView
           alumniList={alumniList}
           activeUser={activeUser}
           onTriggerEmail={onTriggerEmail}
@@ -110,7 +110,7 @@ export default function AlumniManagementView({
 
       {/* Modal overlay para sa mga detalye ng profile ng Alumnus */}
       {viewingAlumni && (
-        <AlumniProfileModal 
+        <AlumniProfileModal
           alumni={viewingAlumni}
           onClose={() => setViewingAlumni(null)}
         />
@@ -118,7 +118,7 @@ export default function AlumniManagementView({
 
       {/* Modal overlay para sa manu-manong pagrehistro ng Alumnus (creation form) */}
       {isAddingAlumnus && (
-        <AddAlumnusModal 
+        <AddAlumnusModal
           activeUser={activeUser}
           onSaveAlumni={onSaveAlumni}
           setIsAddingAlumnus={setIsAddingAlumnus}
@@ -128,7 +128,7 @@ export default function AlumniManagementView({
 
       {/* Modal overlay para sa bulk validation at pag-upload ng roster */}
       {showImportModal && (
-        <BulkImportModal 
+        <BulkImportModal
           alumniList={alumniList}
           activeUser={activeUser}
           onImportAlumni={onImportAlumni}

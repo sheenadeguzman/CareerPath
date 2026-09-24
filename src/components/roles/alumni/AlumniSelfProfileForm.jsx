@@ -40,12 +40,12 @@ const parseOklchArgs = (innerStr) => {
   const cleaned = innerStr.replace(/,/g, ' ').replace(/\//g, ' ').trim();
   const parts = cleaned.split(/\s+/);
   if (parts.length < 3) return null;
-  
+
   let L = parseFloat(parts[0]);
   if (parts[0].endsWith('%')) L = L / 100;
-  
+
   const C = parseFloat(parts[1]);
-  
+
   let H = parseFloat(parts[2]);
   if (parts[2].endsWith('rad')) {
     H = (H * 180) / Math.PI;
@@ -54,13 +54,13 @@ const parseOklchArgs = (innerStr) => {
   } else if (parts[2].endsWith('turn')) {
     H = H * 360;
   }
-  
+
   let alpha = 1;
   if (parts.length >= 4) {
     alpha = parseFloat(parts[3]);
     if (parts[3].endsWith('%')) alpha = alpha / 100;
   }
-  
+
   return { L, C, H, alpha };
 };
 
@@ -70,7 +70,7 @@ const oklchToRgbMath = (oklchStr) => {
     if (!match) return oklchStr;
     const parsed = parseOklchArgs(match[1]);
     if (!parsed) return oklchStr;
-    
+
     const { L, C, H, alpha } = parsed;
 
     // Convert H from degrees to radians
@@ -119,7 +119,7 @@ let tempCtx = null;
 const oklchToRgb = (colorStr) => {
   if (!colorStr || typeof colorStr !== 'string') return colorStr;
   if (!colorStr.toLowerCase().includes('oklch')) return colorStr;
-  
+
   try {
     if (!tempCanvas) {
       tempCanvas = document.createElement('canvas');
@@ -149,7 +149,7 @@ const makeStyleProxy = (style) => {
   return new Proxy(style, {
     get(target, prop) {
       if (prop === 'getPropertyValue') {
-        return function(name) {
+        return function (name) {
           const val = target.getPropertyValue(name);
           if (val && typeof val === 'string' && val.toLowerCase().includes('oklch')) {
             return val.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
@@ -157,7 +157,7 @@ const makeStyleProxy = (style) => {
           return val;
         };
       }
-      
+
       const val = target[prop];
       if (typeof val === 'string' && val.toLowerCase().includes('oklch')) {
         return val.replace(/oklch\(([^)]+)\)/gi, (match) => oklchToRgb(match));
@@ -449,10 +449,10 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     const origWindowGCS = window.getComputedStyle;
     const origProtoGCS = Window.prototype.getComputedStyle;
 
-    window.getComputedStyle = function(el, pseudoEl) {
+    window.getComputedStyle = function (el, pseudoEl) {
       return makeStyleProxy(origWindowGCS.call(this, el, pseudoEl));
     };
-    Window.prototype.getComputedStyle = function(el, pseudoEl) {
+    Window.prototype.getComputedStyle = function (el, pseudoEl) {
       return makeStyleProxy(origProtoGCS.call(this, el, pseudoEl));
     };
 
@@ -472,7 +472,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
         onclone: (clonedDoc) => {
           if (clonedDoc.defaultView) {
             const origClonedGCS = clonedDoc.defaultView.getComputedStyle;
-            clonedDoc.defaultView.getComputedStyle = function(el, pseudoEl) {
+            clonedDoc.defaultView.getComputedStyle = function (el, pseudoEl) {
               return makeStyleProxy(origClonedGCS.call(this, el, pseudoEl));
             };
           }
@@ -480,7 +480,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
           // 1. Kumuha ng kopya ng lahat ng CSS rules sa active page at linisin ang oklch rules
           const cleanStyle = clonedDoc.createElement('style');
           let combinedCss = '';
-          
+
           for (let i = 0; i < document.styleSheets.length; i++) {
             const sheet = document.styleSheets[i];
             try {
