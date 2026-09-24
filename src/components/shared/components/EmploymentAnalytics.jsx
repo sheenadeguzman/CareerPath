@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Briefcase, 
-  TrendingUp, 
-  Clock, 
-  PhilippinePeso, 
-  Award, 
+import {
+  Briefcase,
+  TrendingUp,
+  Clock,
+  PhilippinePeso,
+  Award,
   Building,
   GraduationCap
 } from 'lucide-react';
@@ -18,14 +18,14 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const totalRegisteredCount = registeredInScope.length;
 
   // Employed base sets
-  const employedList = registeredInScope.filter(a => 
+  const employedList = registeredInScope.filter(a =>
     ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
   );
   const employedCount = employedList.length;
 
   // Employment placement rate calculation
-  const employmentRate = totalInScope > 0 
-    ? Math.round((employedCount / totalInScope) * 100) 
+  const employmentRate = totalInScope > 0
+    ? Math.round((employedCount / totalInScope) * 100)
     : 0;
 
   // Average Monthly Income ng mga employed (gumagamit ng tinantyang numerical average base sa bracket string)
@@ -37,26 +37,26 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     return 0;
   };
   const validSalaries = employedList.map(a => getSalaryNumeric(a.monthlyIncome)).filter(val => val > 0);
-  const averageSalaryNumeric = validSalaries.length > 0 
-    ? Math.round(validSalaries.reduce((acc, curr) => acc + curr, 0) / validSalaries.length) 
+  const averageSalaryNumeric = validSalaries.length > 0
+    ? Math.round(validSalaries.reduce((acc, curr) => acc + curr, 0) / validSalaries.length)
     : 0;
 
-      const unregisteredCount = totalInScope - totalRegisteredCount;
+  const unregisteredCount = totalInScope - totalRegisteredCount;
 
   // Time to First Job representation (mga nakahanap ng trabaho sa loob ng 6 na buwan)
-  const fastLandingCount = employedList.filter(a => 
+  const fastLandingCount = employedList.filter(a =>
     a.timeToFirstJob === 'Immediate' || a.timeToFirstJob === '1 to 6 months'
   ).length;
-  const fastLandingPct = totalInScope > 0 
-    ? Math.round((fastLandingCount / totalInScope) * 100) 
+  const fastLandingPct = totalInScope > 0
+    ? Math.round((fastLandingCount / totalInScope) * 100)
     : 0;
 
   // Course Relatedness distribution
   const courseAlignedCount = employedList.filter(a => a.jobRelatedToCourse === 'Yes').length;
   const courseAlignedPart = employedList.filter(a => a.jobRelatedToCourse === 'Partially').length;
   const courseAlignedNo = employedList.filter(a => a.jobRelatedToCourse === 'No').length;
-  const alignedPct = totalInScope > 0 
-    ? Math.round((courseAlignedCount / totalInScope) * 100) 
+  const alignedPct = totalInScope > 0
+    ? Math.round((courseAlignedCount / totalInScope) * 100)
     : 0;
   const courseUnresponsiveCount = totalInScope - (courseAlignedCount + courseAlignedPart + courseAlignedNo);
   const courseUnregisteredPct = totalInScope > 0 ? Math.round((courseUnresponsiveCount / totalInScope) * 100) : 0;
@@ -67,7 +67,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const selfCount = employedList.filter(a => a.employmentStatus === 'Self-Employed').length;
   const studyCount = registeredInScope.filter(a => a.employmentStatus === 'Further Studies').length;
   const unemployedCount = registeredInScope.filter(a => a.employmentStatus === 'Unemployed').length;
-  const noResponseStatusCount = registeredInScope.filter(a => 
+  const noResponseStatusCount = registeredInScope.filter(a =>
     !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
   ).length;
 
@@ -79,9 +79,9 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     'Above 40k': employedList.filter(a => a.monthlyIncome === 'Above 40,000').length,
   };
   const salUnresponsiveCount = totalInScope - (
-    salaryBrackets['10k - 20k'] + 
-    salaryBrackets['20k - 30k'] + 
-    salaryBrackets['30k - 40k'] + 
+    salaryBrackets['10k - 20k'] +
+    salaryBrackets['20k - 30k'] +
+    salaryBrackets['30k - 40k'] +
     salaryBrackets['Above 40k']
   );
   const salUnregisteredPct = totalInScope > 0 ? Math.round((salUnresponsiveCount / totalInScope) * 100) : 0;
@@ -126,7 +126,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
       const cohort = filteredAlumni.filter(a => ((a.program || '').trim() || 'Unspecified Program') === majorName);
       const total = cohort.length;
       const registered = cohort.filter(a => a.isRegistered);
-      const employed = registered.filter(a => 
+      const employed = registered.filter(a =>
         ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
       );
       const employedCount = employed.length;
@@ -134,7 +134,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
       const unregisteredCount = total - registered.length;
       const unemployedCount = registered.filter(a => a.employmentStatus === 'Unemployed').length;
       const furtherStudiesCount = registered.filter(a => a.employmentStatus === 'Further Studies').length;
-      const noResponseCount = registered.filter(a => 
+      const noResponseCount = registered.filter(a =>
         !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
       ).length;
 
@@ -171,8 +171,8 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     });
   }, [uniqueMajors, filteredAlumni]);
 
-  const displayedMajors = selectedMajorFilter === 'All' 
-    ? majorAnalytics 
+  const displayedMajors = selectedMajorFilter === 'All'
+    ? majorAnalytics
     : majorAnalytics.filter(m => m.majorName === selectedMajorFilter);
 
   return (
@@ -378,7 +378,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             <p className="text-[10.5px] text-slate-455 font-medium leading-relaxed">
               Measures how well the graduates' active work profiles align with their degree programs at Batanes State College.
             </p>
-            
+
             {/* Yes - Course Related */}
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] font-bold text-slate-700">
@@ -411,27 +411,27 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-rose-500 rounded-full block" /> Non-Related
                 </span>
-               <span>{courseAlignedNo} {courseAlignedNo <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((courseAlignedNo / totalInScope) * 100) : 0}%)</span>
+                <span>{courseAlignedNo} {courseAlignedNo <= 1 ? 'grad' : 'grads'} ({totalInScope > 0 ? Math.round((courseAlignedNo / totalInScope) * 100) : 0}%)</span>
               </div>
               <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-               <div className="h-full bg-rose-500" style={{ width: `${totalInScope > 0 ? (courseAlignedNo / totalInScope) * 100 : 0}%` }} />
+                <div className="h-full bg-rose-500" style={{ width: `${totalInScope > 0 ? (courseAlignedNo / totalInScope) * 100 : 0}%` }} />
               </div>
             </div>
           </div>
-           {/* Unregistered / No Response */}
-            {courseUnresponsiveCount > 0 && (
-              <div className="space-y-1">
-                <div className="flex justify-between text-[11px] font-bold text-slate-705">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-slate-400 rounded-full block" /> Unregistered / No Response
-                  </span>
-                  <span>{courseUnresponsiveCount} {courseUnresponsiveCount <= 1 ? 'grad' : 'grads'} ({courseUnregisteredPct}%)</span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                  <div className="h-full bg-slate-400" style={{ width: `${courseUnregisteredPct}%` }} />
-                </div>
+          {/* Unregistered / No Response */}
+          {courseUnresponsiveCount > 0 && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-[11px] font-bold text-slate-705">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-slate-400 rounded-full block" /> Unregistered / No Response
+                </span>
+                <span>{courseUnresponsiveCount} {courseUnresponsiveCount <= 1 ? 'grad' : 'grads'} ({courseUnregisteredPct}%)</span>
               </div>
-            )}
+              <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                <div className="h-full bg-slate-400" style={{ width: `${courseUnregisteredPct}%` }} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -454,11 +454,10 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             <button
               type="button"
               onClick={() => setViewMode('byMajor')}
-              className={`px-3 py-1 rounded-md transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'byMajor'
+              className={`px-3 py-1 rounded-md transition cursor-pointer flex items-center gap-1.5 ${viewMode === 'byMajor'
                   ? 'bg-white text-[#7c191e] shadow-3xs'
                   : 'text-slate-500 hover:text-slate-800'
-              }`}
+                }`}
             >
               <GraduationCap className="w-3.5 h-3.5" />
               Per Major
@@ -466,11 +465,10 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             <button
               type="button"
               onClick={() => setViewMode('consolidated')}
-              className={`px-3 py-1 rounded-md transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'consolidated'
+              className={`px-3 py-1 rounded-md transition cursor-pointer flex items-center gap-1.5 ${viewMode === 'consolidated'
                   ? 'bg-white text-[#7c191e] shadow-3xs'
                   : 'text-slate-500 hover:text-slate-800'
-              }`}
+                }`}
             >
               <Building className="w-3.5 h-3.5" />
               Consolidated
@@ -486,11 +484,10 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                 <button
                   type="button"
                   onClick={() => setSelectedMajorFilter('All')}
-                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer ${
-                    selectedMajorFilter === 'All'
+                  className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer ${selectedMajorFilter === 'All'
                       ? 'bg-[#7c191e] text-white shadow-3xs'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                  }`}
+                    }`}
                 >
                   All Majors ({uniqueMajors.length})
                 </button>
@@ -501,11 +498,10 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                       key={m}
                       type="button"
                       onClick={() => setSelectedMajorFilter(m)}
-                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer ${
-                        isSelected
+                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer ${isSelected
                           ? 'bg-[#7c191e] text-white shadow-3xs'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                      }`}
+                        }`}
                       title={m}
                     >
                       {m.replace('Bachelor of Science in ', 'BS ')}
@@ -523,7 +519,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
             ) : (
               <div className={`grid gap-4 ${selectedMajorFilter === 'All' && displayedMajors.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
                 {displayedMajors.map(item => (
-                  <div 
+                  <div
                     key={item.majorName}
                     className="bg-slate-50/50 border border-slate-200/80 rounded-xl p-4.5 space-y-3.5 hover:border-slate-300 transition"
                   >
@@ -542,9 +538,8 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
-                          item.employedCount > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${item.employedCount > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500'
+                          }`}>
                           {item.employedCount} employed ({item.placementRate}%)
                         </span>
                       </div>
@@ -568,9 +563,9 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
                                 </span>
                               </div>
                               <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-[#1e4620] rounded-full" 
-                                  style={{ width: `${ind.pct}%` }} 
+                                <div
+                                  className="h-full bg-[#1e4620] rounded-full"
+                                  style={{ width: `${ind.pct}%` }}
                                 />
                               </div>
                             </div>

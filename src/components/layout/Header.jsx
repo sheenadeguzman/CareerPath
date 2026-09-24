@@ -24,7 +24,7 @@ export default function Header({
       <div className="flex items-center gap-3 select-none">
         {/* Rounded na logo badge na naglalaman ng BSC image asset */}
         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md shrink-0 overflow-hidden border border-slate-100 p-1">
-          <img src="/assets/logo.png" alt="BSC Logo" className="w-full h-full object-contain" />
+          <img src="/assets/careerpath.png" alt="Careerpath Logo" className="w-full h-full object-contain" />
         </div>
         <div>
           <span className="block text-[13px] font-sans font-black text-[#7c191e] uppercase tracking-wide leading-none">CareerPath</span>
