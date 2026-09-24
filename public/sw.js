@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bsc-careerpath-cache-v3';
+const CACHE_NAME = 'bsc-careerpath-cache-v4';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -39,18 +39,40 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Use Network-First strategy for navigation requests (HTML pages)
+  // Fast Navigation strategy with 2.5s network timeout and instant offline fallback
   if (event.request.mode === 'navigate' || event.request.url.endsWith('/') || event.request.url.endsWith('index.html')) {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
+      (async () => {
+        // 1. Kung disconnected / offline, mag-serve agad mula sa cache (0 ms)
+        if (!navigator.onLine) {
+          const cached = await caches.match(event.request) || await caches.match('/index.html') || await caches.match('/');
+          if (cached) return cached;
+        }
+
+        // 2. Kapag online, subukang kumuha sa network pero may 2.5s race timeout
+        const fetchPromise = fetch(event.request)
+          .then(response => {
+            if (response && response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            }
+            return response;
+          })
+          .catch(async () => {
+            return await caches.match(event.request) || await caches.match('/index.html') || await caches.match('/');
+          });
+
+        const timeoutPromise = new Promise((resolve) => {
+          setTimeout(async () => {
+            const cached = await caches.match(event.request) || await caches.match('/index.html') || await caches.match('/');
+            if (cached) resolve(cached);
+          }, 2500);
+        });
+
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        if (result) return result;
+        return await caches.match('/index.html') || await caches.match('/');
+      })()
     );
     return;
   }

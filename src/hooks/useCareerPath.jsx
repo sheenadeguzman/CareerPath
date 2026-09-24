@@ -189,20 +189,34 @@ export function useCareerPath() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
+  // Helper para basahin kaagad ang cached data sa simula pa lang (Instant 0ms initial load)
+  const getInitialDashboardCache = () => {
+    try {
+      const cached = localStorage.getItem('careerpath_dashboard_cache');
+      return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+      console.error('Failed to parse initial dashboard cache:', e);
+      return null;
+    }
+  };
+
+  const initialDBCache = getInitialDashboardCache();
+
   // =========================================================================
   // MGA COLLECTIONS MULA SA DATABASE
   // =========================================================================
-  const [users, setUsers] = useState([]);
-  const [alumniList, setAlumniList] = useState([]);
-  const [employers, setEmployers] = useState([]);
-  const [jobPostings, setJobPostings] = useState([]);
-  const [surveys, setSurveys] = useState([]);
-  const [feedbacks, setFeedbacks] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [surveyResponses, setSurveyResponses] = useState([]);
+  const [users, setUsers] = useState(() => initialDBCache?.users || []);
+  const [alumniList, setAlumniList] = useState(() => initialDBCache?.alumni || []);
+  const [employers, setEmployers] = useState(() => initialDBCache?.employers || []);
+  const [jobPostings, setJobPostings] = useState(() => initialDBCache?.jobPostings || []);
+  const [surveys, setSurveys] = useState(() => initialDBCache?.surveys || []);
+  const [feedbacks, setFeedbacks] = useState(() => initialDBCache?.feedbacks || []);
+  const [logs, setLogs] = useState(() => initialDBCache?.logs || []);
+  const [notifications, setNotifications] = useState(() => initialDBCache?.notifications || []);
+  const [surveyResponses, setSurveyResponses] = useState(() => initialDBCache?.surveyResponses || []);
 
-  const [isLoading, setIsLoading] = useState(true);
+  // Kapag may local cache na mula sa nakaraang bisita, WAG nang i-block ang UI sa "Initializing..." loading screen!
+  const [isLoading, setIsLoading] = useState(() => !initialDBCache);
   const [toastMessage, setToastMessage] = useState(null);
 
   const showSuccessToast = (message) => {
@@ -218,7 +232,52 @@ export function useCareerPath() {
     };
   }, []);
 
+  // Awtomatikong i-update ang local cache kapag may nabago sa alinmang data habang offline man o online
+  useEffect(() => {
+    if (users.length > 0 || alumniList.length > 0) {
+      const timer = setTimeout(() => {
+        const currentDB = {
+          users,
+          alumni: alumniList,
+          employers,
+          jobPostings,
+          surveys,
+          feedbacks,
+          logs,
+          notifications,
+          surveyResponses
+        };
+        localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(currentDB));
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [users, alumniList, employers, jobPostings, surveys, feedbacks, logs, notifications, surveyResponses]);
+
   const fetchData = async () => {
+    // 1. Kung offline, kuhanin agad sa cache nang walang network delay
+    if (!navigator.onLine) {
+      const cached = localStorage.getItem('careerpath_dashboard_cache');
+      if (cached) {
+        try {
+          const db = JSON.parse(cached);
+          setUsers(db.users || []);
+          setAlumniList(db.alumni || []);
+          setEmployers(db.employers || []);
+          setJobPostings(db.jobPostings || []);
+          setSurveys(db.surveys || []);
+          setFeedbacks(db.feedbacks || []);
+          setLogs(db.logs || []);
+          setNotifications(db.notifications || []);
+          setSurveyResponses(db.surveyResponses || []);
+        } catch (e) {
+          console.error('Failed to parse cached dashboard data:', e);
+        }
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    // 2. Kung online, mag-sync sa backend (revalidate) nang hindi bina-block ang UI kung may data na
     try {
       const db = await fetchDashboardData(getAuthHeaders());
       setUsers(db.users || []);
@@ -231,10 +290,10 @@ export function useCareerPath() {
       setNotifications(db.notifications || []);
       setSurveyResponses(db.surveyResponses || []);
       
-      // Save cache to localStorage
+      // I-save ang sariwang cache sa localStorage
       localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
     } catch (err) {
-      console.error('Failed to sync backend state:', err);
+      console.warn('Backend sync deferred (cold start / network issue), using local cache:', err.message);
       // Fallback to cache if available
       const cached = localStorage.getItem('careerpath_dashboard_cache');
       if (cached) {
@@ -249,7 +308,6 @@ export function useCareerPath() {
           setLogs(db.logs || []);
           setNotifications(db.notifications || []);
           setSurveyResponses(db.surveyResponses || []);
-          showSuccessToast('Offline: Loaded cached dashboard data.');
         } catch (e) {
           console.error('Failed to parse cached dashboard data:', e);
         }

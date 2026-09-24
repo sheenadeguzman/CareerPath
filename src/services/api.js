@@ -22,8 +22,17 @@ async function handleResponse(response) {
  * Kuhanin ang kumpletong dashboard sync data mula sa database.
  */
 export async function fetchDashboardData(headers) {
-  const response = await fetch('/api/data', { headers });
-  return handleResponse(response);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  try {
+    const response = await fetch('/api/data', { 
+      headers,
+      signal: controller.signal
+    });
+    return await handleResponse(response);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**

@@ -151,16 +151,27 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       return;
     }
 
+    // Kung offline, huwag nang maghintay sa mabagal o patay na network request - pumasok agad via offline login!
+    if (!navigator.onLine) {
+      tryOfflineLogin();
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage('');
 
     let fetchSuccessful = false;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userIdInput.trim(), password: passwordInput.trim() })
+        body: JSON.stringify({ userId: userIdInput.trim(), password: passwordInput.trim() }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
