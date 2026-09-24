@@ -123,9 +123,9 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
 
   const majorAnalytics = useMemo(() => {
     return uniqueMajors.map(majorName => {
-      const cohort = filteredAlumni.filter(a => ((a.program || '').trim() || 'Unspecified Program') === majorName);
-      const total = cohort.length;
-      const registered = cohort.filter(a => a.isRegistered);
+      const batch = filteredAlumni.filter(a => ((a.program || '').trim() || 'Unspecified Program') === majorName);
+      const total = batch.length;
+      const registered = batch.filter(a => a.isRegistered);
       const employed = registered.filter(a =>
         ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
       );

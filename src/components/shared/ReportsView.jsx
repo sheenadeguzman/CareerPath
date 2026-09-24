@@ -338,7 +338,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         <div style="font-family: sans-serif; font-size: 11px; padding: 4px; color: #1e293b; line-height: 1.4;">
           <strong style="color: ${pinColor}; font-size: 12px; display: block; margin-bottom: 2px;">${spot.name}</strong>
           <div>Category: <span style="text-transform: capitalize; font-weight: bold;">${spot.type} Placement</span></div>
-          <div>Graduates: <strong>${spot.count} ${spot.count === 1 ? 'grad' : 'grads'}</strong> (${spot.pct}% of cohort)</div>
+          <div>Graduates: <strong>${spot.count} ${spot.count === 1 ? 'grad' : 'grads'}</strong> (${spot.pct}% of batch)</div>
         </div>
       `;
       marker.bindPopup(popupContent, { closeButton: false });
@@ -457,7 +457,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const getCy = (rate) => 170 - (rate * 1.4);
 
   const trendPoints = yearsToDisplay.map((yearStr, idx) => {
-    const cohort = alumniList.filter(a => 
+    const batch = alumniList.filter(a => 
       a.yearGraduated.toString() === yearStr &&
       (selectedProgram === 'All' || (
         a.program && (
@@ -471,9 +471,9 @@ export default function ReportsView({ alumniList, activeUser }) {
     let employedCount = 0;
     let totalCount = 0;
 
-    if (cohort.length > 0) {
-      totalCount = cohort.length;
-      employedCount = cohort.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
+    if (batch.length > 0) {
+      totalCount = batch.length;
+      employedCount = batch.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
       rate = Math.round((employedCount / totalCount) * 100);
     } else {
       const defaults = {
@@ -518,9 +518,9 @@ export default function ReportsView({ alumniList, activeUser }) {
   const timeUnresponsive = employedAlumni.length - (timeImmediate + time1to6m + time7to12m + time1to2y + timeMore2y);
 
   // 4. Licensure Board Passing Rate
-  const cohortWithBoardExam = filteredAlumni.filter(a => a.isBoardPasser === 'Yes' || a.isBoardPasser === 'No');
+  const batchWithBoardExam = filteredAlumni.filter(a => a.isBoardPasser === 'Yes' || a.isBoardPasser === 'No');
   const boardPassers = filteredAlumni.filter(a => a.isBoardPasser === 'Yes').length;
-  const boardPassingRate = cohortWithBoardExam.length > 0 ? Math.round((boardPassers / cohortWithBoardExam.length) * 100) : 'N/A';
+  const boardPassingRate = batchWithBoardExam.length > 0 ? Math.round((boardPassers / batchWithBoardExam.length) * 100) : 'N/A';
 
   // Flag para malaman kung ang kasalukuyang session ay naka-lock sa partikular na Department Chairperson
   const isChairperson = activeUser?.role === 'Department Chairperson';
@@ -644,7 +644,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
           <span className="text-[10px] text-slate-405 font-bold block mt-0.5">Alumni Registered</span>
           <div className="text-xl font-extrabold text-[#1e4620] mt-1">{totalRegistered} / {filteredAlumni.length}</div>
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">{regRate}% Reg. Rate &middot; Avg Cohort Age: {averageAge}</span>
+          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">{regRate}% Reg. Rate &middot; Avg Batch Age: {averageAge}</span>
         </div>
 
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
@@ -797,7 +797,7 @@ export default function ReportsView({ alumniList, activeUser }) {
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               <Compass className="w-4.5 h-4.5 text-[#7c191e] animate-spin-slow" /> Graduate Placement &amp; Network Reach Index
             </h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-semibold">Tracer logistics detailing cohort distribution from Batanes State College to global sectors.</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-semibold">Tracer logistics detailing batch distribution from Batanes State College to global sectors.</p>
           </div>
           <span className="text-[9px] bg-slate-50 text-slate-500 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-slate-200">
             GIS-Network Core
@@ -1127,7 +1127,7 @@ export default function ReportsView({ alumniList, activeUser }) {
                   <span className="text-[10px] text-slate-500 font-semibold block leading-tight">
                     {boardPassingRate === 'N/A' 
                       ? 'No licensure exam records tracked in selected filter.' 
-                      : `Comprising ${boardPassers} passers out of ${cohortWithBoardExam.length} board-eligible graduates.`
+                      : `Comprising ${boardPassers} passers out of ${batchWithBoardExam.length} board-eligible graduates.`
                     }
                   </span>
                 </div>
@@ -1163,7 +1163,7 @@ export default function ReportsView({ alumniList, activeUser }) {
               </thead>
               <tbody className="divide-y divide-slate-200 font-sans">
                 <tr>
-                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Total Graduate Cohort Size (N)</td>
+                  <td className="p-3 pl-5 border-r border-slate-200 font-bold">Total Graduate Batch Size (N)</td>
                   <td className="p-3 border-r border-slate-200 text-center font-black text-slate-800">{total} grads</td>
                   <td className="p-3 text-slate-500 font-semibold">Overall census data tracked in portal</td>
                 </tr>

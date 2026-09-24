@@ -33,7 +33,7 @@ export default function AdminDashboard({
   // Mga lokal na state para sa interactivity
   const [hoveredInstSegment, setHoveredInstSegment] = useState(null); // Aktibong segment sa donut chart kapag tinapatan ng cursor
   const [tooltip, setTooltip] = useState(null); // State para sa coordinates at data ng SVG hover tooltip
-  const [selectedYear, setSelectedYear] = useState('All'); // State para sa filter ng graduation class year ng cohort
+  const [selectedYear, setSelectedYear] = useState('All'); // State para sa filter ng graduation class year ng batch
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   // Dynamic na pagkuha ng mga unique graduation years mula sa listahan ng alumni
@@ -125,7 +125,7 @@ export default function AdminDashboard({
   const handleExportCSV = () => {
     let csvHeader = 'Metric,Value\n';
     let csvContent = [
-      `Total Cohort Graduates,${totalAlumni}`,
+      `Total Batch Graduates,${totalAlumni}`,
       `Registered Graduates,${totalRegistered}`,
       `Registration Rate,${registrationRate}%`,
       `Employed Graduates,${employedCount}`,
@@ -782,28 +782,28 @@ export default function AdminDashboard({
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg text-center space-y-1">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Immediate</span>
                 <div className="text-lg font-black text-slate-800">{timeImmediate}</div>
-                <span className="text-[10px] text-emerald-600 font-bold block">{timeImmediatePct}% of cohort</span>
+                <span className="text-[10px] text-emerald-600 font-bold block">{timeImmediatePct}% of batch</span>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg text-center space-y-1">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">1 to 6 Months</span>
                 <div className="text-lg font-black text-slate-800">{time1to6}</div>
-                <span className="text-[10px] text-slate-500 font-bold block">{time1to6Pct}% of cohort</span>
+                <span className="text-[10px] text-slate-500 font-bold block">{time1to6Pct}% of batch</span>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg text-center space-y-1">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">7 to 11 Months</span>
                 <div className="text-lg font-black text-slate-800">{time7to11}</div>
-                <span className="text-[10px] text-slate-500 font-bold block">{time7to11Pct}% of cohort</span>
+                <span className="text-[10px] text-slate-500 font-bold block">{time7to11Pct}% of batch</span>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg text-center space-y-1">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">1 Year or Longer</span>
                 <div className="text-lg font-black text-slate-800">{time1YearPlus}</div>
-                <span className="text-[10px] text-rose-500 font-bold block">{time1YearPlusPct}% of cohort</span>
+                <span className="text-[10px] text-rose-500 font-bold block">{time1YearPlusPct}% of batch</span>
               </div>
               {timeUnresponsiveCount > 0 && (
                 <div className="p-3 bg-slate-50/70 border border-slate-200/60 rounded-lg text-center space-y-1 col-span-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Unregistered / No Response</span>
                   <div className="text-lg font-black text-slate-505">{timeUnresponsiveCount}</div>
-                  <span className="text-[10px] text-slate-455 font-bold block">{timeUnregisteredPct}% of cohort</span>
+                  <span className="text-[10px] text-slate-455 font-bold block">{timeUnregisteredPct}% of batch</span>
                 </div>
               )}
             </div>

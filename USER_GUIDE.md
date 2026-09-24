@@ -115,7 +115,7 @@ Before accessing the system, ensure your device meets the following requirements
 #### C. Submitting Curriculum evaluations
 1.  Go to the **Curriculum Feedback** tab and select the **"Curriculum"** category.
 2.  Enter the subject topic (e.g., *Competency of BSIT Graduates*).
-3.  Rate the graduate cohorts (1 to 5 stars) across five key dimensions: **Technical Skills, Communication, Problem Solving, Work Ethics, and Teamwork**.
+3.  Rate the graduate batches (1 to 5 stars) across five key dimensions: **Technical Skills, Communication, Problem Solving, Work Ethics, and Teamwork**.
 4.  Input specific graduate strengths and recommended syllabus changes.
 5.  Click **Submit Feedback**.
 

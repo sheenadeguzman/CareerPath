@@ -53,7 +53,7 @@ export default function ChairpersonDashboard({
   // Mga state hooks para sa interactivity ng graphs at filters
   const [hoveredDeptSegment, setHoveredDeptSegment] = useState(null); // Aktibong segment sa SVG pie/donut chart kapag tinapatan ng cursor
   const [tooltip, setTooltip] = useState(null); // Mga coordinate para sa tooltip overlay
-  const [selectedYear, setSelectedYear] = useState('All'); // Filter para sa taon ng pagtatapos (graduation cohort class year)
+  const [selectedYear, setSelectedYear] = useState('All'); // Filter para sa taon ng pagtatapos (graduation batch class year)
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
 
@@ -114,7 +114,7 @@ export default function ChairpersonDashboard({
     let csvHeader = 'Metric,Value\n';
     let csvContent = [
       `Department Name,"${chairProgram}"`,
-      `Total Cohort Graduates,${totalDeptAlumni}`,
+      `Total Batch Graduates,${totalDeptAlumni}`,
       `Registered Graduates,${totalRegisteredDept}`,
       `Registration Rate,${deptRegistrationRate}%`,
       `Employed Graduates,${employedCount}`,

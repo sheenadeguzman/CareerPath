@@ -298,7 +298,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
         <div style="font-family: sans-serif; font-size: 11px; padding: 4px; color: #1e293b; line-height: 1.4;">
           <strong style="color: ${pinColor}; font-size: 12px; display: block; margin-bottom: 2px;">${spot.name}</strong>
           <div>Category: <span style="text-transform: capitalize; font-weight: bold;">${spot.type} Placement</span></div>
-          <div>Graduates: <strong>${spot.count} ${spot.count === 1 ? 'grad' : 'grads'}</strong> (${spot.pct}% of cohort)</div>
+          <div>Graduates: <strong>${spot.count} ${spot.count === 1 ? 'grad' : 'grads'}</strong> (${spot.pct}% of batch)</div>
         </div>
       `;
       marker.bindPopup(popupContent, { closeButton: false });
