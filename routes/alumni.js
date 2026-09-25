@@ -349,6 +349,72 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
   }
 });
 
+// POST /api/delete-multiple-alumni
+// Endpoint para sa maramihang (bulk) pagbura ng alumni profiles.
+router.post('/delete-multiple-alumni', authenticateToken, async (req, res) => {
+  try {
+    const { studentIds, activeUserId } = req.body;
+
+    if (!Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ error: 'No student IDs provided for deletion.' });
+    }
+
+    let activeUser = null;
+    if (activeUserId) {
+      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
+      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    }
+
+    // Pigilan kung hindi admin, super admin, o chairperson ang nagbubura
+    if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators, Super Admins, and Department Chairpersons can delete profiles.' });
+    }
+
+    const placeholders = studentIds.map(() => '?').join(',');
+
+    // Burahin muna ang survey responses at alumni_profiles, at pagkatapos ay users
+    await pool.query(`DELETE FROM survey_responses WHERE alumni_id IN (${placeholders})`, studentIds);
+    await pool.query(`DELETE FROM alumni_profiles WHERE student_id IN (${placeholders})`, studentIds);
+    await pool.query(`DELETE FROM users WHERE id IN (${placeholders})`, studentIds);
+
+    // Itala ang bultuhang pagbura sa logs
+    const newLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      userId: activeUser.id,
+      userEmail: activeUser.email,
+      userName: activeUser.name,
+      userRole: activeUser.role,
+      action: 'Bulk Deleted Alumni Profiles',
+      module: 'Alumni Management',
+      details: `Batch deleted ${studentIds.length} alumni profile(s): [${studentIds.slice(0, 10).join(', ')}${studentIds.length > 10 ? '...' : ''}]`
+    };
+
+    await pool.query(
+      'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [newLog.id, newLog.timestamp, newLog.userId, newLog.userEmail, newLog.userName, newLog.userRole, newLog.action, newLog.module, newLog.details]
+    );
+
+    // Kuhanin ang pinakabagong record sets at ibalik sa frontend
+    const [updatedAlumniRows] = await pool.query(`
+      SELECT ap.*, u.is_initial_password_needed, u.avatar as avatar 
+      FROM alumni_profiles ap 
+      LEFT JOIN users u ON ap.student_id = u.id 
+      ORDER BY ap.last_updated DESC
+    `);
+    const [usersRows] = await pool.query('SELECT * FROM users');
+
+    res.json({
+      success: true,
+      alumni: updatedAlumniRows.map(mapAlumniFromDB),
+      users: usersRows.map(mapUserFromDB)
+    });
+  } catch (err) {
+    console.error('Delete multiple alumni error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 //POST /api/import-alumni
 //Endpoint para sa bulk importing ng alumni records mula sa CSV o Excel upload file ng admin.
 router.post('/import-alumni', authenticateToken, async (req, res) => {

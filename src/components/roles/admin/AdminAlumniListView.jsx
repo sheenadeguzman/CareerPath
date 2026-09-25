@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet, AlertTriangle, CheckSquare } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
 import { exportToPDF } from '../../../utils/pdfExport';
 
@@ -17,12 +17,21 @@ export default function AdminAlumniListView({
   setViewingAlumni, 
   setShowImportModal, 
   setIsAddingAlumnus,
-  onDeleteAlumni
+  onDeleteAlumni,
+  onDeleteMultipleAlumni
 }) {
   // Mga lokal na state para sa pagsala (filter) ng mga alumni records
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+
+  // State para sa multi-select at bulk delete
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+  // Karapatang magbura ng profile (Admin, Super Admin, o Department Chairperson)
+  const canDelete = Boolean(onDeleteAlumni && (activeUser.role === 'Administrator' || activeUser.role === 'Super Admin' || activeUser.role === 'Department Chairperson'));
 
   // State pointer para sa alumnus na kukumpirmahin ang pagbura sa modal
   const [deletingAlumni, setDeletingAlumni] = useState(null);
@@ -80,6 +89,31 @@ export default function AdminAlumniListView({
 
     return matchesSearch && matchesProgram && matchesStatus && matchesChair;
   });
+
+  // Helper properties para sa multi-select selection state
+  const isAllSelected = filteredAlumni.length > 0 && filteredAlumni.every(al => selectedStudentIds.includes(al.studentId));
+  const isPartiallySelected = selectedStudentIds.length > 0 && !isAllSelected;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      const currentFilteredIds = new Set(filteredAlumni.map(a => a.studentId));
+      setSelectedStudentIds(prev => prev.filter(id => !currentFilteredIds.has(id)));
+    } else {
+      const combined = new Set([...selectedStudentIds, ...filteredAlumni.map(a => a.studentId)]);
+      setSelectedStudentIds(Array.from(combined));
+    }
+  };
+
+  const handleToggleSelect = (studentId) => {
+    setSelectedStudentIds(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId) 
+        : [...prev, studentId]
+    );
+  };
+
+  // Kumuha ng mga detalye ng alumni na kasalukuyang naka-select para sa modal preview
+  const selectedAlumniDetails = alumniList.filter(al => selectedStudentIds.includes(al.studentId));
 
   return (
     <div className="space-y-6 font-sans">
@@ -214,19 +248,67 @@ export default function AdminAlumniListView({
         </div>
       </div>
 
+      {/* Bar kapag may mga napiling Alumni para sa Bulk Actions */}
+      {canDelete && selectedStudentIds.length > 0 && (
+        <div className="bg-rose-50/90 border border-rose-200 p-3.5 px-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-fade-in no-print">
+          <div className="flex items-center gap-2.5">
+            <span className="bg-rose-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow-3xs">
+              {selectedStudentIds.length}
+            </span>
+            <span className="text-xs font-bold text-rose-950">
+              {selectedStudentIds.length === 1 ? 'alumnus selected' : 'alumni selected for bulk management'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedStudentIds([])}
+              className="text-xs text-rose-700 hover:text-rose-900 font-bold underline ml-2 cursor-pointer"
+            >
+              Deselect All
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteModal(true)}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Delete Selected ({selectedStudentIds.length})
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table para sa listahan ng mga Alumni (Roster Registry Table) */}
       <div className="bg-white rounded-xl shadow-xs border border-slate-100 overflow-hidden font-sans">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Showing {filteredAlumni.length} alumni
           </span>
+          {selectedStudentIds.length > 0 && (
+            <span className="text-xs font-extrabold text-rose-700">
+              {selectedStudentIds.length} selected
+            </span>
+          )}
         </div>
         
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 capitalize tracking-wider bg-slate-100/50">
-                <th className="p-3.5 pl-6">Student ID / Name</th>
+                {canDelete && (
+                  <th className="p-3.5 pl-6 w-10 text-center">
+                    <input 
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={el => { if (el) el.indeterminate = isPartiallySelected; }}
+                      onChange={handleSelectAll}
+                      title={isAllSelected ? "Deselect all" : "Select all"}
+                      className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600"
+                    />
+                  </th>
+                )}
+                <th className={`p-3.5 ${!canDelete ? 'pl-6' : ''}`}>Student ID / Name</th>
                 <th className="p-3.5">Degree Program</th>
                 <th className="p-3.5">Grad Year</th>
                 <th className="p-3.5">Status</th>
@@ -235,9 +317,25 @@ export default function AdminAlumniListView({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-              {filteredAlumni.map((al) => (
-                <tr key={al.studentId} className="hover:bg-slate-50/50 transition">
-                  <td className="p-3.5 pl-6">
+              {filteredAlumni.map((al) => {
+                const isSelected = selectedStudentIds.includes(al.studentId);
+                return (
+                  <tr 
+                    key={al.studentId} 
+                    className={`transition ${isSelected ? 'bg-rose-50/40' : 'hover:bg-slate-50/50'}`}
+                  >
+                    {canDelete && (
+                      <td className="p-3.5 pl-6 w-10 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input 
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelect(al.studentId)}
+                          title={`Select ${al.name}`}
+                          className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600"
+                        />
+                      </td>
+                    )}
+                    <td className={`p-3.5 ${!canDelete ? 'pl-6' : ''}`}>
                     <div className="flex items-center gap-3">
                       {al.avatar ? (
                         <img 
@@ -318,7 +416,8 @@ export default function AdminAlumniListView({
                     )}
                   </td>
                 </tr>
-              ))}
+              );
+            })}
             </tbody>
           </table>
 
@@ -330,7 +429,7 @@ export default function AdminAlumniListView({
         </div>
       </div>
 
-      {/* Modal dialog para sa kumpirmasyon ng pagbura (Deletion Confirmation Modal) */}
+      {/* Modal dialog para sa kumpirmasyon ng pagbura ng ISANG alumnus */}
       {deletingAlumni && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform scale-100 transition-all duration-300">
@@ -379,6 +478,97 @@ export default function AdminAlumniListView({
                 className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-lg uppercase tracking-wide transition cursor-pointer"
               >
                 Permanently Delete
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Modal dialog para sa kumpirmasyon ng MARAMIHANG pagbura (Bulk Deletion Modal) */}
+      {showBulkDeleteModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-sans animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden transform scale-100 transition-all duration-300">
+            
+            {/* Header ng Modal */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-rose-50/60">
+              <div className="flex items-center gap-2.5 text-rose-700">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <h3 className="text-xs font-black uppercase tracking-wider">Confirm Bulk Deletion</h3>
+              </div>
+              <button 
+                onClick={() => !isBulkDeleting && setShowBulkDeleteModal(false)}
+                disabled={isBulkDeleting}
+                className="text-slate-400 hover:text-slate-650 transition cursor-pointer disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Katawan ng Modal (Modal Body) */}
+            <div className="p-5 space-y-4">
+              <div className="text-xs font-medium text-slate-650 leading-relaxed space-y-3">
+                <p>
+                  You are about to permanently delete <span className="font-extrabold text-rose-700 text-sm">{selectedStudentIds.length}</span> selected alumni profiles simultaneously.
+                </p>
+
+                {/* Listahan ng mga buburahing alumni */}
+                <div className="max-h-40 overflow-y-auto bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-1.5 divide-y divide-slate-100">
+                  {selectedAlumniDetails.map(al => (
+                    <div key={al.studentId} className="pt-1.5 first:pt-0 flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-slate-800 truncate mr-2">{al.name}</span>
+                      <span className="font-mono text-[10px] bg-slate-200/70 text-slate-600 px-1.5 py-0.5 rounded font-bold shrink-0">{al.studentId}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="text-[11px] text-rose-800 font-bold bg-rose-50 p-3 rounded-xl border border-rose-200/70 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>
+                    CRITICAL WARNING: This action is irreversible. All login accounts, profiles, and associated records for these {selectedStudentIds.length} alumni will be permanently removed.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer para sa mga Aksyon ng Modal */}
+            <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isBulkDeleting}
+                onClick={() => setShowBulkDeleteModal(false)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-705 font-extrabold text-xs rounded-lg uppercase tracking-wide transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isBulkDeleting}
+                onClick={async () => {
+                  setIsBulkDeleting(true);
+                  try {
+                    let success = false;
+                    if (onDeleteMultipleAlumni) {
+                      success = await onDeleteMultipleAlumni(selectedStudentIds);
+                    } else if (onDeleteAlumni) {
+                      for (const id of selectedStudentIds) {
+                        await onDeleteAlumni(id);
+                      }
+                      success = true;
+                    }
+                    if (success !== false) {
+                      setSelectedStudentIds([]);
+                      setShowBulkDeleteModal(false);
+                    }
+                  } catch (e) {
+                    console.error('Bulk deletion failed:', e);
+                  } finally {
+                    setIsBulkDeleting(false);
+                  }
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-lg uppercase tracking-wide transition cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+              >
+                {isBulkDeleting ? 'Deleting...' : `Delete All (${selectedStudentIds.length})`}
               </button>
             </div>
 

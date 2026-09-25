@@ -132,6 +132,18 @@ export async function deleteAlumni(studentId, activeUserId, headers) {
 }
 
 /**
+ * Burahin ang maramihang profiles at user accounts ng mga alumni (Bulk Deletion).
+ */
+export async function deleteMultipleAlumni(studentIds, activeUserId, headers) {
+  const response = await fetch('/api/delete-multiple-alumni', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ studentIds, activeUserId })
+  });
+  return handleResponse(response);
+}
+
+/**
  * Magpadala ng batch email reminders (nudge alerts) sa mga alumni.
  */
 export async function sendBatchReminders(targetAlumniIds, activeUserId, customSubject, customBody, headers) {

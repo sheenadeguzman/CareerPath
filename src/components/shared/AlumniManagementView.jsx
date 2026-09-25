@@ -18,6 +18,7 @@ export default function AlumniManagementView({
   activeUser,
   onSaveAlumni,
   onDeleteAlumni,
+  onDeleteMultipleAlumni,
   onTriggerEmail,
   onImportAlumni
 }) {
@@ -105,6 +106,7 @@ export default function AlumniManagementView({
           setShowImportModal={setShowImportModal}
           setIsAddingAlumnus={setIsAddingAlumnus}
           onDeleteAlumni={onDeleteAlumni}
+          onDeleteMultipleAlumni={onDeleteMultipleAlumni}
         />
       )}
 

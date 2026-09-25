@@ -193,6 +193,7 @@ export default function App() {
     handleLogout,
     handleSaveAlumni,
     handleDeleteAlumni,
+    handleDeleteMultipleAlumni,
     handleSaveEmployer,
     handleSaveJob,
     handleSaveSurvey,
@@ -338,6 +339,7 @@ export default function App() {
                 activeUser={activeUser}
                 onSaveAlumni={handleSaveAlumni}
                 onDeleteAlumni={handleDeleteAlumni}
+                onDeleteMultipleAlumni={handleDeleteMultipleAlumni}
                 onTriggerEmail={handleTriggerSingleEmailNudge}
                 onImportAlumni={handleBulkImport}
               />

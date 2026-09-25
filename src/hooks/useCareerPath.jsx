@@ -21,6 +21,7 @@ import {
   submitFeedback,
   bulkImportAlumni,
   deleteAlumni,
+  deleteMultipleAlumni,
   sendBatchReminders,
   inviteUserByEmail,
   toggleNotificationRead,
@@ -752,6 +753,20 @@ export function useCareerPath() {
     }
   };
 
+  const handleDeleteMultipleAlumni = async (studentIds) => {
+    try {
+      const db = await deleteMultipleAlumni(studentIds, activeUser?.id, getAuthHeaders());
+      setAlumniList(db.alumni || []);
+      setUsers(db.users || []);
+      showSuccessToast(`Successfully deleted ${studentIds.length} alumni profiles.`);
+      return true;
+    } catch (err) {
+      console.error('Failed to delete multiple alumni:', err);
+      alert(err.message || 'Failed to delete alumni profiles.');
+      return false;
+    }
+  };
+
   const handleSendBatchReminders = async (targetIds, customSubject, customBody) => {
     try {
       const res = await sendBatchReminders(targetIds, activeUser?.id, customSubject, customBody, getAuthHeaders());
@@ -1035,6 +1050,7 @@ export function useCareerPath() {
     handleLogout,
     handleSaveAlumni,
     handleDeleteAlumni,
+    handleDeleteMultipleAlumni,
     handleSaveEmployer,
     handleSaveJob,
     handleSaveSurvey,

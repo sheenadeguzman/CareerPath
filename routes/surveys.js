@@ -55,7 +55,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
           // 1. Gumawa ng notification record sa database para sa alumni
           const notifyId = `notify-survey-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
           const notifyTitle = `New Tracer Survey Deployed`;
-          const notifyText = `Hi ${u.name}, a new CHED Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
+          const notifyText = `Hi ${u.name}, a new Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
 
           await pool.query(
             `INSERT INTO notifications (id, title, text, date, \`read\`) 
@@ -67,10 +67,10 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
           if (transporter && u.email) {
             try {
               await transporter.sendMail({
-                from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
+                from: process.env.SMTP_FROM || `"BSC Graduate Tracer" <${process.env.SMTP_USER}>`,
                 to: u.email,
                 subject: `New Tracer Survey: ${survey.title}`,
-                text: `Hello ${u.name},\n\nA new graduate tracer survey "${survey.title}" has been deployed on the Batanes State College CareerPath portal.\n\nDescription: ${survey.description}\nDeadline: ${endDate}\n\nPlease log in to your account at http://localhost:3000/ to fill out the questionnaire.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`
+                text: `Hello ${u.name},\n\nA new graduate tracer survey "${survey.title}" has been deployed on the Batanes State College CareerPath portal.\n\nDescription: ${survey.description}\nDeadline: ${endDate}\n\nPlease log in to your account at https://careerpath-1ed8.onrender.com to fill out the questionnaire.\n\nRespectfully,\nBatanes State College`
               });
               console.log(`[Survey Email Alert] Dispatched notification email to ${u.email}`);
             } catch (mailErr) {
