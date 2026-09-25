@@ -589,6 +589,28 @@ export default function TracerForm({
               </select>
             </div>
 
+            {/* Conditional Rendering: Ipakita ang Primary Reason for Unemployment katabi ng Primary Employment Status */}
+            {selfEditForm.employmentStatus === 'Unemployed' && (
+              <div>
+                <label className="block text-slate-400 mb-1">Primary Reason for Unemployment</label>
+                <select
+                  value={selfEditForm.reasonsUnemployment || ''}
+                  onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsUnemployment: e.target.value })}
+                  className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.reasonsUnemployment ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
+                    }`}
+                >
+                  <option value="" className="text-slate-400 bg-white">Select Reason--</option>
+                  <option value="Family Concerns / Duties" className="text-slate-700 bg-white">Family Concerns / Duties</option>
+                  <option value="Health reasons" className="text-slate-700 bg-white">Health reasons</option>
+                  <option value="Pursuing Further Studies" className="text-slate-700 bg-white">Pursuing Further Studies</option>
+                  <option value="Lack of job opportunities in region" className="text-slate-700 bg-white">Lack of job opportunities in region</option>
+                  <option value="Lack of relevant work experience" className="text-slate-700 bg-white">Lack of relevant work experience</option>
+                  <option value="Choosing not to work yet" className="text-slate-700 bg-white">Choosing not to work yet</option>
+                  <option value="Others" className="text-slate-700 bg-white">Others</option>
+                </select>
+              </div>
+            )}
+
             {/* Conditional Rendering: Ipakita lamang ang mga field ng trabaho kung HINDI unemployed ang user */}
             {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && (
               <>
@@ -781,30 +803,6 @@ export default function TracerForm({
               </>
             )}
           </div>
-
-          {/* Conditional Rendering: Ipakita lamang ang dahilan ng Unemployment kung piliin ng user ang 'Unemployed' status */}
-          {selfEditForm.employmentStatus === 'Unemployed' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-slate-400 mb-1">Primary Reason for Unemployment</label>
-                <select
-                  value={selfEditForm.reasonsUnemployment || ''}
-                  onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsUnemployment: e.target.value })}
-                  className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.reasonsUnemployment ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-                    }`}
-                >
-                  <option value="" className="text-slate-400 bg-white">Select Reason--</option>
-                  <option value="Family Concerns / Duties" className="text-slate-700 bg-white">Family Concerns / Duties</option>
-                  <option value="Health reasons" className="text-slate-700 bg-white">Health reasons</option>
-                  <option value="Pursuing Further Studies" className="text-slate-700 bg-white">Pursuing Further Studies</option>
-                  <option value="Lack of job opportunities in region" className="text-slate-700 bg-white">Lack of job opportunities in region</option>
-                  <option value="Lack of relevant work experience" className="text-slate-700 bg-white">Lack of relevant work experience</option>
-                  <option value="Choosing not to work yet" className="text-slate-700 bg-white">Choosing not to work yet</option>
-                  <option value="Others" className="text-slate-700 bg-white">Others</option>
-                </select>
-              </div>
-            </div>
-          )}
 
           {/* Description ng Trabaho */}
           {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && (
