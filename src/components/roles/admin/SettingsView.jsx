@@ -1087,13 +1087,12 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
           </div>
 
           <div className="p-8 space-y-5 text-slate-600 font-semibold text-xs">
-            <div className="w-16 h-16 rounded-3xl bg-slate-900 flex items-center justify-center font-bold text-white text-xl mx-auto shadow-md dark:bg-slate-800">
-              BSC
+            <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto shadow-md border border-slate-200/80 p-2.5 dark:bg-slate-800 dark:border-slate-700">
+              <img src="/assets/careerpath.png?v=2" alt="CareerPath Logo" className="w-full h-full object-contain" />
             </div>
 
             <div className="space-y-1">
               <h4 className="font-extrabold text-slate-800 text-sm dark:text-white">BSC CareerPath Tracer Portal</h4>
-              <p className="text-[10px] text-slate-400 font-bold font-mono">Version 2.4.0 (Stable Release)</p>
             </div>
 
             <p className="max-w-xs mx-auto leading-relaxed text-slate-500 font-medium">
