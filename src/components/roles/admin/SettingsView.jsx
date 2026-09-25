@@ -1100,6 +1100,20 @@ export default function SettingsView({ activeUser, setActiveUser, onUpdateSessio
             </p>
 
             <div 
+              className="py-3.5 px-5 rounded-2xl border bg-slate-50/60 dark:bg-slate-800/40 max-w-xs mx-auto space-y-1.5 transition-colors"
+              style={{ borderColor: isSystemDark ? '#334155' : '#e2e8f0' }}
+            >
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#7c191e] dark:text-rose-400">
+                Developers
+              </p>
+              <div className="space-y-1 font-bold text-slate-700 text-xs dark:text-slate-200">
+                <p>Sheena Rose M. De Guzman</p>
+                <p>Teresa Jane Sotto</p>
+                <p>Stephen D. Evina</p>
+              </div>
+            </div>
+
+            <div 
               className="pt-4 border-t text-[10px] text-slate-400 font-bold space-y-0.5"
               style={{ borderColor: isSystemDark ? '#334155' : '#f1f5f9' }}
             >
