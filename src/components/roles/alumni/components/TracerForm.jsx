@@ -137,9 +137,6 @@ export default function TracerForm({
           </div>
           <div className="space-y-1.5 text-center sm:text-left flex-1">
             <span className="block text-xs font-bold text-slate-800">Profile Photo</span>
-            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
-              Upload a formal photo (PNG or JPG, max 500KB) to display as your portal avatar and Resume photo. (Mag-upload ng maayos at pormal na larawan na magsisilbing avatar at gagamitin sa iyong Resume.)
-            </span>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               {/* File Input: Nililimitahan sa images at may check na 500KB size limit */}
               <label className="inline-flex items-center justify-center px-3 py-1.5 bg-[#7c191e] hover:bg-[#5b1216] text-white text-[10px] font-extrabold uppercase rounded-lg cursor-pointer transition select-none shadow-3xs">
