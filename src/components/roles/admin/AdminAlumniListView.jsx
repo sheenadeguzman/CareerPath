@@ -256,7 +256,7 @@ export default function AdminAlumniListView({
               {selectedStudentIds.length}
             </span>
             <span className="text-xs font-bold text-rose-950">
-              {selectedStudentIds.length === 1 ? 'alumnus selected' : 'alumni selected for bulk management'}
+              {selectedStudentIds.length === 1 ? 'alumnus selected' : 'Alumni selected'}
             </span>
             <button
               type="button"
