@@ -95,7 +95,9 @@ export default function TracerForm({
       <div className="p-6 pb-4 border-b border-slate-100 flex justify-between items-center shrink-0 bg-white rounded-t-xl">
         <div>
           <h2 className="text-sm font-extrabold text-[#7c191e] uppercase tracking-wider">Graduate Tracer Intake Sheet</h2>
-          <span className="block text-[10px] text-slate-455 mt-0.5">Fill out demographic details for quality audits</span>
+          <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+            Fill out your personal, academic, and employment information for official institutional records. (Punan ang iyong mga personal, akademiko, at propesyonal na impormasyon para sa opisyal na talaan ng kolehiyo.)
+          </span>
         </div>
         <div className="text-right">
           <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Profile Completeness</span>
@@ -135,9 +137,9 @@ export default function TracerForm({
           </div>
           <div className="space-y-1.5 text-center sm:text-left flex-1">
             <span className="block text-xs font-bold text-slate-800">Profile Photo</span>
-            <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
-              Upload an image file (PNG, JPG, max 500KB) to display as your portal avatar. It will be converted and stored securely.
-            </p>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Upload a formal photo (PNG or JPG, max 500KB) to display as your portal avatar and Resume photo. (Mag-upload ng maayos at pormal na larawan na magsisilbing avatar at gagamitin sa iyong Resume.)
+            </span>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               {/* File Input: Nililimitahan sa images at may check na 500KB size limit */}
               <label className="inline-flex items-center justify-center px-3 py-1.5 bg-[#7c191e] hover:bg-[#5b1216] text-white text-[10px] font-extrabold uppercase rounded-lg cursor-pointer transition select-none shadow-3xs">
@@ -190,9 +192,14 @@ export default function TracerForm({
 
         {/* Seksyon 1: Mga Impormasyong Personal at Pang-akademiko (Demographic & Academic) */}
         <div className="space-y-4">
-          <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <GraduationCap className="w-4 h-4 text-[#7c191e]" /> 1. Demographic &amp; Academic Variables
-          </h3>
+          <div>
+            <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
+              <GraduationCap className="w-4 h-4 text-[#7c191e]" /> 1. Demographic &amp; Academic Variables
+            </h3>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Provide your personal details, current address, academic background at BSC, and professional exams passed. (Punan ang iyong personal na impormasyon, kasalukuyang tirahan, mga detalye sa pag-aaral sa BSC, at mga naipasang lisensya o board exam.)
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {/* Student ID - Protektado at hindi maaaring baguhin ng user (Read-only) */}
@@ -450,7 +457,7 @@ export default function TracerForm({
           <div>
             <span className="block text-[11px] font-extrabold text-[#7c191e] uppercase tracking-wider">Educational History (Elementary, High School, etc.)</span>
             <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
-              Idagdag ang iyong iba pang natapos na paaralan tulad ng Elementary, High School, o Senior High School para lumabas sa Resume.
+              Add your previously completed schools such as Elementary, High School, or Senior High School to display on your Resume. (Idagdag ang iyong iba pang natapos na paaralan tulad ng Elementary, High School, o Senior High School para lumabas sa Resume.)
             </span>
           </div>
 
@@ -551,9 +558,14 @@ export default function TracerForm({
 
         {/* Seksyon 2: Employment Metrics */}
         <div className="space-y-4">
-          <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <Briefcase className="w-4 h-4 text-[#7c191e]" /> 2. Employment Tracer
-          </h3>
+          <div>
+            <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
+              <Briefcase className="w-4 h-4 text-[#7c191e]" /> 2. Employment Tracer
+            </h3>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Specify your current employment status, employer details, and alignment with your completed degree program at BSC. (Ibigay ang mga detalye ng iyong kasalukuyang estado sa pagtatrabaho, kumpanya, at kaugnayan nito sa iyong natapos na kurso sa BSC.)
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
@@ -813,7 +825,7 @@ export default function TracerForm({
             <div>
               <span className="block text-[11px] font-extrabold text-[#7c191e] uppercase tracking-wider">Career Path Timeline History</span>
               <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
-                Isulat ang buong kasaysayan ng iyong trabaho (mula sa pinakaunang trabaho pagkapagtapos ng kolehiyo hanggang sa kasalukuyan).
+                Record your complete career history from your first post-graduate job to the present. (Isulat ang buong kasaysayan ng iyong trabaho mula sa pinakaunang trabaho pagkapagtapos ng kolehiyo hanggang sa kasalukuyan.)
               </span>
             </div>
 
@@ -932,9 +944,14 @@ export default function TracerForm({
 
         {/* Seksyon 3: Core Competencies at Technical Skills */}
         <div className="space-y-4">
-          <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <Building className="w-4 h-4 text-[#7c191e]" /> 3. Core Competencies &amp; Technical Skills
-          </h3>
+          <div>
+            <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
+              <Building className="w-4 h-4 text-[#7c191e]" /> 3. Core Competencies &amp; Technical Skills
+            </h3>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Enter your technical competencies, programming skills, or workplace certificates (click Add Skill Tag after typing). (Maglagay ng mga teknikal na kasanayan, sertipikasyon, o kakayahan sa trabaho; pindutin ang Add Skill Tag pagkatapos mag-type.)
+            </span>
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <input
@@ -982,10 +999,14 @@ export default function TracerForm({
 
         {/* Seksyon 4: Mga Kasanayang Nakuha sa BSC (Batanes State College) na kapaki-pakinabang sa Trabaho */}
         <div className="space-y-4">
-          <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <Check className="w-4 h-4 text-[#7c191e]" /> 4. Acquired Skills at BSC Found Most Useful in Employment
-          </h3>
-          <p className="text-[10px] text-slate-400 font-bold block">Select the skills acquired at BSC that you find most useful in your employment (Click to toggle):</p>
+          <div>
+            <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
+              <Check className="w-4 h-4 text-[#7c191e]" /> 4. Acquired Skills at BSC Found Most Useful in Employment
+            </h3>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Select the skills acquired at Batanes State College that you find most useful in your employment (click to toggle). (Piliin ang mga kasanayang natutunan mo sa Batanes State College na napatunayang pinakapaki-pakinabang sa iyong trabaho; i-click para i-toggle.)
+            </span>
+          </div>
 
           {/* Listahan ng default CHED/BSC variables */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -1091,12 +1112,14 @@ export default function TracerForm({
 
         {/* Seksyon 5: Resume Personalization (About Me & Languages) */}
         <div className="space-y-4">
-          <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
-            <Check className="w-4 h-4 text-[#7c191e]" /> 5. Resume Personalization (About Me &amp; Languages)
-          </h3>
-          <p className="text-[10px] text-slate-400 font-bold block">
-            Add a personal summary and your spoken languages to display on your generated Resume.
-          </p>
+          <div>
+            <h3 className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider flex items-center gap-1">
+              <Check className="w-4 h-4 text-[#7c191e]" /> 5. Resume Personalization (About Me &amp; Languages)
+            </h3>
+            <span className="block text-[10px] text-slate-400 mt-0.5 font-bold leading-normal">
+              Add a personal summary and your spoken languages to display on your generated Resume. (Maglagay ng maikling pagpapakilala sa sarili o About Me at mga wikang iyong sinasalita na awtomatikong isasama sa bubuuing Resume.)
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 gap-4">
             <div>
