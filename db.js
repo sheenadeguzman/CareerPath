@@ -277,6 +277,10 @@ export async function initializeDatabase() {
       await pool.query("ALTER TABLE alumni_profiles ADD COLUMN first_job_related_to_course ENUM('Yes', 'No', 'Partially') DEFAULT 'No'");
       console.log('Database Migration: Added first_job_related_to_course column to alumni_profiles.');
     } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN permanent_address VARCHAR(255) DEFAULT NULL");
+      console.log('Database Migration: Added permanent_address column to alumni_profiles.');
+    } catch (e) { }
 
     // MIGRATION: Siguraduhing may tamang assigned academic program/department ang bawat Department Chairperson account at Alumni profiles.
     try {

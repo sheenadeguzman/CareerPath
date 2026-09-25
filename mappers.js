@@ -97,6 +97,8 @@ export function mapAlumniFromDB(row) {
     civilStatus: row.civil_status,
     dateOfBirth: row.date_of_birth ? new Date(row.date_of_birth).toISOString().split('T')[0] : '',
     address: row.address || '',
+    currentAddress: row.address || '',
+    permanentAddress: row.permanent_address || row.address || '',
     program: row.program,
     yearEnrolled: row.year_enrolled || null,
     yearGraduated: row.year_graduated,

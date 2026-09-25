@@ -154,7 +154,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       await pool.query(
         `UPDATE alumni_profiles SET 
           first_name = ?, middle_name = ?, last_name = ?, suffix = ?, email = ?, phone = ?, gender = ?, civil_status = ?, 
-          date_of_birth = ?, address = ?, program = ?, year_enrolled = ?, year_graduated = ?, honors = ?, 
+          date_of_birth = ?, address = ?, permanent_address = ?, program = ?, year_enrolled = ?, year_graduated = ?, honors = ?, 
           professional_exam_passed = ?, is_board_passer = ?, licensure_exam_date = ?, license_no = ?,
           alumni_association_status = ?, employment_status = ?, job_title = ?, job_description = ?, 
           employer_name = ?, employment_type = ?, sector = ?, monthly_income = ?, job_industry = ?,
@@ -167,7 +167,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
          WHERE student_id = ?`,
         [
           encrypt(profile.firstName), encrypt(profile.middleName || null), encrypt(profile.lastName), profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
-          dob, profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
+          dob, profile.currentAddress || profile.address || null, profile.permanentAddress || profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
           profile.professionalExamPassed || 'None', profile.isBoardPasser || 'N/A', profile.licensureExamDate || null, profile.licenseNo || null,
           profile.alumniAssociationStatus || 'Non-Member', profile.employmentStatus, profile.jobTitle || '', profile.jobDescription || null,
           profile.employerName || '', profile.employmentType || '', profile.sector || 'N/A', profile.monthlyIncome || '', profile.jobIndustry || null,
@@ -228,7 +228,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
       await pool.query(
         `INSERT INTO alumni_profiles (
           student_id, first_name, middle_name, last_name, suffix, email, phone, gender, civil_status, 
-          date_of_birth, address, program, year_enrolled, year_graduated, honors, 
+          date_of_birth, address, permanent_address, program, year_enrolled, year_graduated, honors, 
           professional_exam_passed, is_board_passer, licensure_exam_date, license_no,
           alumni_association_status, employment_status, job_title, job_description, 
           employer_name, employment_type, sector, monthly_income, job_industry,
@@ -237,10 +237,10 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           reasons_pursuing_program, find_first_job, reasons_accepting_job,
           useful_skills, reasons_unemployment, job_start_year, education_history,
           about_me, languages
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           profile.studentId, encrypt(profile.firstName), encrypt(profile.middleName || null), encrypt(profile.lastName), profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
-          dob, profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
+          dob, profile.currentAddress || profile.address || null, profile.permanentAddress || profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
           profile.professionalExamPassed || 'None', profile.isBoardPasser || 'N/A', profile.licensureExamDate || null, profile.licenseNo || null,
           profile.alumniAssociationStatus || 'Non-Member', profile.employmentStatus, profile.jobTitle || '', profile.jobDescription || null,
           profile.employerName || '', profile.employmentType || '', profile.sector || 'N/A', profile.monthlyIncome || '', profile.jobIndustry || null,

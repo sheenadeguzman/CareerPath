@@ -354,11 +354,15 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     // Listahan ng mga pangkalahatang field na titingnan kung may laman
     const fieldsToTrack = [
       'phone', 'gender', 'civilStatus', 'dateOfBirth', 'address', 'professionalExamPassed',
-      'middleName', 'suffix', 'yearEnrolled', 'alumniAssociationStatus', 'isBoardPasser'
+      'middleName', 'suffix', 'yearEnrolled', 'isBoardPasser'
     ];
     fieldsToTrack.forEach(field => {
       if (selfEditForm[field]) filledFields++;
     });
+
+    if (selfEditForm.permanentAddress) {
+      filledFields++;
+    }
 
     // Dagdagan ang count kung may nakalistang kahit isang useful skill
     if (selfEditForm.usefulSkills && selfEditForm.usefulSkills.length > 0) {
@@ -370,8 +374,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       if (selfEditForm.reasonsUnemployment) filledFields++;
     }
 
-    // Kung may trabaho naman, tingnan ang mga field na may kinalaman sa trabaho
-    if (selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response') {
+    // Tanging ang may mga trabaho (Employed, Self-Employed, Freelance) ang susuriin sa mga job fields
+    const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(selfEditForm.employmentStatus);
+    if (isEmployed) {
       const empFields = [
         'jobTitle', 'jobDescription', 'employerName', 'employmentType', 'sector',
         'monthlyIncome', 'findFirstJob', 'reasonsAcceptingJob', 'jobIndustry', 'firstJobRelatedToCourse'
@@ -382,7 +387,7 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
     }
 
     // Tukuyin ang kabuuang bilang ng posibleng field depende sa employment status
-    const totalPossibleFields = selfEditForm.employmentStatus === 'Unemployed' ? 13 : 22;
+    const totalPossibleFields = isEmployed ? 23 : 13;
 
     // Formula para sa profile completeness percentage:
     // Nagsisimula sa base na 40% (dahil may pangunahing impormasyon na tulad ng pangalan at kurso mula sa pag-register).
@@ -397,6 +402,9 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       ...selfEditForm,
       // Pagsamahin ang first, middle, last name, at suffix na nilinis ang mga blankong espasyo
       name: [selfEditForm.firstName, selfEditForm.middleName, selfEditForm.lastName, selfEditForm.suffix].filter(Boolean).join(' '),
+      address: selfEditForm.currentAddress || selfEditForm.address || '',
+      currentAddress: selfEditForm.currentAddress || selfEditForm.address || '',
+      permanentAddress: selfEditForm.permanentAddress || selfEditForm.address || '',
       profileCompleteness: calculatedCompleteness,
       lastUpdated: new Date().toISOString()
     };

@@ -42,6 +42,7 @@ export default function TracerForm({
     selfEditForm?.dataPrivacyConsent !== undefined ? Boolean(selfEditForm.dataPrivacyConsent) : false
   );
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(selfEditForm?.employmentStatus);
 
   // Close agreement modal on Escape key
   useEffect(() => {
@@ -288,8 +289,9 @@ export default function TracerForm({
               <label className="block text-slate-400 mb-1">Year Graduated</label>
               <input
                 type="number"
-                value={selfEditForm.yearGraduated}
-                onChange={(e) => setSelfEditForm({ ...selfEditForm, yearGraduated: parseInt(e.target.value) || 2026 })}
+                placeholder="e.g. 2026"
+                value={selfEditForm.yearGraduated || ''}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, yearGraduated: parseInt(e.target.value) || '' })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
@@ -382,8 +384,8 @@ export default function TracerForm({
               <input
                 type="text"
                 placeholder="Street, Barangay, Municipality, Province"
-                value={selfEditForm.address}
-                onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
+                value={selfEditForm.currentAddress !== undefined ? selfEditForm.currentAddress : (selfEditForm.address || '')}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, currentAddress: e.target.value, address: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
@@ -393,8 +395,8 @@ export default function TracerForm({
               <input
                 type="text"
                 placeholder="Street, Barangay, Municipality, Province"
-                value={selfEditForm.address}
-                onChange={(e) => setSelfEditForm({ ...selfEditForm, address: e.target.value })}
+                value={selfEditForm.permanentAddress !== undefined ? selfEditForm.permanentAddress : (selfEditForm.address || '')}
+                onChange={(e) => setSelfEditForm({ ...selfEditForm, permanentAddress: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:border-[#7c191e]"
               />
             </div>
@@ -608,8 +610,29 @@ export default function TracerForm({
               </div>
             )}
 
-            {/* Conditional Rendering: Ipakita lamang ang mga field ng trabaho kung HINDI unemployed ang user */}
-            {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && (
+            {/* Informational banners para sa mga hindi corporate employed */}
+            {selfEditForm.employmentStatus === 'Further Studies' && (
+              <div className="sm:col-span-2 bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-center gap-3">
+                <GraduationCap className="w-5 h-5 text-amber-700 shrink-0" />
+                <span className="text-xs text-amber-900 font-semibold leading-relaxed">
+                  Currently pursuing advanced graduate or postgraduate studies. Corporate employer and salary details are not required.
+                </span>
+              </div>
+            )}
+
+            {(selfEditForm.employmentStatus === 'Retired' || selfEditForm.employmentStatus === 'Disabled') && (
+              <div className="sm:col-span-2 bg-slate-100 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+                <Info className="w-5 h-5 text-slate-500 shrink-0" />
+                <span className="text-xs text-slate-600 font-semibold leading-relaxed">
+                  {selfEditForm.employmentStatus === 'Retired' 
+                    ? 'Status recorded as Retired. Corporate employer and salary details are not required.'
+                    : 'Status recorded as Unable to work / Disabled. Employment details are not required.'}
+                </span>
+              </div>
+            )}
+
+            {/* Conditional Rendering: Ipakita lamang ang mga field ng trabaho kung talagang may trabaho ang user */}
+            {isEmployed && (
               <>
                 <div>
                   <label className="block text-slate-400 mb-1">Geographic Location Region</label>
@@ -802,7 +825,7 @@ export default function TracerForm({
           </div>
 
           {/* Description ng Trabaho */}
-          {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && (
+          {isEmployed && (
             <div>
               <label className="block text-slate-400 mb-1">Detailed Job Description &amp; Core Tasks</label>
               <textarea
@@ -891,7 +914,7 @@ export default function TracerForm({
             {/* Listahan ng kasalukuyang naitalang Timeline Events */}
             <div className="space-y-2 font-sans">
               {/* Render current job as the first timeline item if employed */}
-              {selfEditForm.employmentStatus && selfEditForm.employmentStatus !== 'Unemployed' && selfEditForm.employmentStatus !== 'No Response' && selfEditForm.employerName && selfEditForm.jobTitle && (
+              {isEmployed && selfEditForm.employerName && selfEditForm.jobTitle && (
                 <div className="flex justify-between items-center bg-amber-50/50 p-3 rounded-lg border border-amber-200/60 shadow-3xs">
                   <div>
                     <span className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
