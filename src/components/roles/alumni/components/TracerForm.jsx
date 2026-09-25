@@ -443,42 +443,6 @@ export default function TracerForm({
               />
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Alumni Association membership at dahilan sa pagpili ng kurso */}
-            <div>
-              <label className="block text-slate-400 mb-1">Alumni Association Membership Status</label>
-              <select
-                value={selfEditForm.alumniAssociationStatus || 'Non-Member'}
-                onChange={(e) => setSelfEditForm({ ...selfEditForm, alumniAssociationStatus: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none"
-              >
-                <option value="" className="text-slate-400 bg-white">Select Status--</option>
-                <option value="Non-Member">Non-Member</option>
-                <option value="Active Member">Active Member</option>
-                <option value="Inactive Member">Inactive Member</option>
-                <option value="Officer">Association Officer / Coordinator</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-slate-400 mb-1">Reason for Pursuing this Degree Program</label>
-              <select
-                value={selfEditForm.reasonsPursuingProgram || ''}
-                onChange={(e) => setSelfEditForm({ ...selfEditForm, reasonsPursuingProgram: e.target.value })}
-                className={`w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 cursor-pointer focus:outline-none transition-colors ${!selfEditForm.reasonsPursuingProgram ? 'text-slate-400 font-normal' : 'text-slate-700 font-semibold'
-                  }`}
-              >
-                <option value="" className="text-slate-400 bg-white">Select Reason --</option>
-                <option value="Personal Interest" className="text-slate-700 bg-white">Personal Interest</option>
-                <option value="Influence of Parents / Relatives" className="text-slate-700 bg-white">Influence of Parents / Relatives</option>
-                <option value="Influence of Peers / Friends" className="text-slate-700 bg-white">Influence of Peers / Friends</option>
-                <option value="High Employment Prospects / Demand" className="text-slate-700 bg-white">High Employment Prospects / Demand</option>
-                <option value="No other choice" className="text-slate-700 bg-white">No other choice (course of least resistance)</option>
-                <option value="Others" className="text-slate-700 bg-white">Others</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         {/* Educational History Editor: Listahan ng iba pang natapos na paaralan */}

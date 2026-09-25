@@ -935,7 +935,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         {/* Tagasubaybay ng kaugnayan ng natapos na kurso sa kasalukuyang trabaho (Curricular Job Alignment) */}
         <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 pb-2">
-            <PieChart className="w-4.5 h-4.5 text-[#1e4620]" /> Curricular Course-to-Job Alignment (Tracer Key Metric)
+            <PieChart className="w-4.5 h-4.5 text-[#1e4620]" /> Degree Finished-to-Job Alignment
           </h3>
 
           <div className="space-y-4 py-1.5">
