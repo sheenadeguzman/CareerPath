@@ -73,12 +73,14 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
 
   // Salary brackets distributions
   const salaryBrackets = {
+    'Under - 10k': employedList.filter(a => a.monthlyIncome === 'Under 10,000').length,
     '10k - 20k': employedList.filter(a => a.monthlyIncome === '10,000 - 20,000').length,
     '20k - 30k': employedList.filter(a => a.monthlyIncome === '20,001 - 30,000').length,
     '30k - 40k': employedList.filter(a => a.monthlyIncome === '30,001 - 40,000').length,
     'Above 40k': employedList.filter(a => a.monthlyIncome === 'Above 40,000').length,
   };
   const salUnresponsiveCount = totalInScope - (
+    salaryBrackets['Under - 10k'] +
     salaryBrackets['10k - 20k'] +
     salaryBrackets['20k - 30k'] +
     salaryBrackets['30k - 40k'] +
