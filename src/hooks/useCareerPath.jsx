@@ -344,9 +344,6 @@ export function useCareerPath() {
       setToken(loginToken);
       sessionStorage.setItem('careerpath_token', loginToken);
     }
-    if (user.role) {
-      localStorage.setItem(`careerpath_last_username_${user.role}`, user.userId);
-    }
     if (user.role === 'Alumni') {
       setCurrentTab('My Profile');
     } else {
@@ -846,9 +843,6 @@ export function useCareerPath() {
   const handleUpdateUserSession = (updatedUser, newToken) => {
     setActiveUser(updatedUser);
     sessionStorage.setItem('careerpath_user', JSON.stringify(updatedUser));
-    if (updatedUser.role) {
-      localStorage.setItem(`careerpath_last_username_${updatedUser.role}`, updatedUser.userId);
-    }
     if (newToken) {
       setToken(newToken);
       sessionStorage.setItem('careerpath_token', newToken);

@@ -49,35 +49,20 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     return () => clearTimeout(timer);
   }, [mfaCountdown]);
 
+  // Tiyakin na blangko palagi ang login fields at alisin ang anumang naunang na-save sa localStorage
+  useEffect(() => {
+    ['Administrator', 'Alumni', 'Department Chairperson', 'Employer', 'Super Admin'].forEach(r => {
+      try {
+        localStorage.removeItem(`careerpath_last_username_${r}`);
+      } catch (e) { }
+    });
+  }, []);
+
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
-    setErrorMessage('');
-
-    // Check if there is a remembered username for this role in localStorage
-    let rememberedUsername = localStorage.getItem(`careerpath_last_username_${role}`);
-    
-    // Migrate legacy remembered usernames to new department names
-    const legacyMap = {
-      'chair_it': 'ICT Department',
-      'chair_htm': 'HTM Department',
-      'chair_educ': 'Teacher Education Department',
-      'chair_agri': 'Agriculture Department',
-      'chair_tech': 'Industrial Technology Department',
-      'chair_industech': 'Industrial Technology Department'
-    };
-    if (rememberedUsername && legacyMap[rememberedUsername]) {
-      rememberedUsername = legacyMap[rememberedUsername];
-      localStorage.setItem(`careerpath_last_username_${role}`, rememberedUsername);
-    }
-
-    if (rememberedUsername) {
-      setUserIdInput(rememberedUsername);
-      setPasswordInput('');
-      return;
-    }
-
     setUserIdInput('');
     setPasswordInput('');
+    setErrorMessage('');
   };
 
   const handleBackToRoles = () => {
@@ -957,13 +942,14 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                 </div>
               )}
 
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <form onSubmit={handleLoginSubmit} className="space-y-4" autoComplete="off">
                 <div>
                   <label htmlFor="user-id-input" className="block text-xs font-semibold text-slate-600 mb-1">User ID / Username</label>
                   <input
                     id="user-id-input"
                     type="text"
                     required
+                    autoComplete="off"
                     value={userIdInput}
                     onChange={(e) => setUserIdInput(e.target.value)}
                     placeholder={
@@ -986,6 +972,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                       id="password-input"
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoComplete="new-password"
                       value={passwordInput}
                       onChange={(e) => setPasswordInput(e.target.value)}
                       placeholder="••••••••"
