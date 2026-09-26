@@ -106,7 +106,7 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
       {/* Block para sa mga tool sa Header */}
       <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-sans">
         <div>
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Livelihood Placement &amp; Employer Directory</h2>
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Employer Directory</h2>
           <p className="text-[11px] text-slate-405 mt-0.5">Maintain verified local stakeholders to drive structural job matching metrics.</p>
         </div>
         
