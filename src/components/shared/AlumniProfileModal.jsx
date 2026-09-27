@@ -21,7 +21,7 @@ const calculateAge = (dobString) => {
 };
 
 export default function AlumniProfileModal({ alumni, onClose }) {
-  
+
   /**
    * Helper function para mag-render ng custom styled badge na kumakatawan sa kasalukuyang employment status.
    * @param {string} status - Katayuan ng trabaho (Employment status).
@@ -46,10 +46,10 @@ export default function AlumniProfileModal({ alumni, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
-      
+
       {/* Container Panel ng Modal */}
       <div className="bg-white w-full max-w-3xl h-full max-h-[90vh] md:h-[650px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative">
-        
+
         {/* ========================================================== */}
         {/* FIXED HEADER: Nakapako sa itaas na may Title at Close button */}
         {/* ========================================================== */}
@@ -63,7 +63,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
               <p className="text-[10px] text-slate-400 font-mono mt-0.5">Tracer reference: {alumni.studentId}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 hover:bg-slate-100 text-slate-500 rounded-lg transition cursor-pointer"
             title="Dismiss detail pane"
@@ -76,15 +76,15 @@ export default function AlumniProfileModal({ alumni, onClose }) {
         {/* SCROLLABLE BODY: Mga detalye ng Profile (pwedeng i-scroll)  */}
         {/* ========================================================== */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          
+
           {/* Quick View Card sa Header ng Profile */}
           <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               {alumni.avatar ? (
-                <img 
-                  src={alumni.avatar} 
-                  alt="Alumnus Profile" 
-                  className="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-emerald-500/50 shrink-0" 
+                <img
+                  src={alumni.avatar}
+                  alt="Alumnus Profile"
+                  className="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-emerald-500/50 shrink-0"
                 />
               ) : (
                 <div className="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl font-bold font-sans uppercase">
@@ -114,7 +114,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
               <span className="text-emerald-700">{alumni.profileCompleteness}% Verified</span>
             </div>
             <div className="h-2.5 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50">
-              <div 
+              <div
                 className="h-full bg-emerald-600 rounded-full transition-all duration-500"
                 style={{ width: `${alumni.profileCompleteness}%` }}
               />
@@ -124,13 +124,13 @@ export default function AlumniProfileModal({ alumni, onClose }) {
 
           {/* Breakdown ng mga pangunahing demographic variables */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* Kaliwang Column: Pangkalahatan at Personal na Impormasyon */}
             <div className="space-y-4">
               <h3 className="text-xs font-extrabold text-[#1e4620] uppercase tracking-wider border-b border-light pb-1 flex items-center gap-1">
                 <UserIcon className="w-3.5 h-3.5" /> Personal Information
               </h3>
-              
+
               <div className="space-y-2.5 text-xs text-slate-600 font-medium">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-slate-400" />
@@ -179,7 +179,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
               <h3 className="text-xs font-extrabold text-[#1e4620] uppercase tracking-wider border-b border-light pb-1 flex items-center gap-1">
                 <GraduationCap className="w-3.5 h-3.5" /> Educational Background
               </h3>
-              
+
               <div className="space-y-2.5 text-xs text-slate-600 font-medium">
                 <div>
                   <span className="block text-[#1e4620] font-bold">College Program:</span>
@@ -232,12 +232,12 @@ export default function AlumniProfileModal({ alumni, onClose }) {
 
             {alumni.employmentStatus === 'Unemployed' ? (
               <div className="p-4 bg-slate-50 rounded-xl text-center text-xs text-slate-500 font-medium border border-slate-100">
-                This graduate is currently listed as <span className="font-bold text-rose-600">Unemployed</span>. 
+                This graduate is currently listed as <span className="font-bold text-rose-600">Unemployed</span>.
                 Keep updating profile details upon employment transitions.
               </div>
             ) : (
               <div className="space-y-4">
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium">
                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                     <span className="text-slate-400 font-bold block mb-1">Company / Institution</span>
@@ -256,7 +256,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                 <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg">
                   <span className="block font-bold text-slate-400 text-xs mb-1.5">Official Job Description</span>
                   <p className="text-slate-700 text-xs leading-relaxed font-semibold">
-                     {alumni.jobDescription || 'None provided. Ask graduate to submit update.'}
+                    {alumni.jobDescription || 'None provided. Ask graduate to submit update.'}
                   </p>
                 </div>
 
@@ -353,13 +353,13 @@ export default function AlumniProfileModal({ alumni, onClose }) {
             Last Updated Tracer Index: {new Date(alumni.lastUpdated).toLocaleString()}
           </span>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={onClose}
               className="px-4 py-2 bg-slate-200 hover:bg-slate-350 text-slate-700 font-bold text-xs rounded-lg transition cursor-pointer"
             >
               Close
             </button>
-            <button 
+            <button
               onClick={() => {
                 alert('Downloading BSC standard tracer analytics report...');
               }}
