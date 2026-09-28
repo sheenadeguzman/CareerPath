@@ -56,62 +56,143 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
   const registeredAlumniList = alumniList.filter(al => al.isRegistered);
 
   // Helper function para sa Department / Course Compatibility Score (Academic Program Alignment)
-  const calculateProgramAlignment = (alumniProgram, jobTitle, jobDescription) => {
+  const calculateProgramAlignment = (alumniProgram, jobTitle, jobDescription, jobRequirements = []) => {
+    const prog = (alumniProgram || '').toLowerCase();
     const title = (jobTitle || '').toLowerCase();
     const desc = (jobDescription || '').toLowerCase();
-    const prog = (alumniProgram || '').toLowerCase();
+    const reqs = Array.isArray(jobRequirements) ? jobRequirements.join(' ').toLowerCase() : '';
+    const combinedJobText = `${title} ${desc} ${reqs}`;
 
-    // Define department keywords
-    const ictKeywords = ["developer", "programmer", "software", "web", "it", "net", "system", "database", "tech", "programming", "coding", "ict", "computer", "network"];
-    const htmKeywords = ["hotel", "tourism", "food", "resort", "guide", "travel", "barista", "chef", "homestay", "restaurant", "hospitality", "cook", "dining", "tour"];
-    const educKeywords = ["teacher", "instructor", "educator", "lesson", "school", "secondary", "elementary", "education", "academic", "teaching"];
-    const agriKeywords = ["farm", "crop", "pest", "plant", "organic", "farming", "soil", "agriculture", "livestock", "agriculturist"];
-    const techKeywords = ["circuit", "electronic", "technician", "soldering", "machinery", "repair", "wiring", "industrial", "automotive", "mechanic", "maintenance"];
+    // Helper para sa whole-word boundary matching (iwas sa false match tulad ng 'it' sa loob ng 'visitors')
+    const hasWord = (text, term) => {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`\\b${escaped}\\b`, 'i').test(text);
+    };
 
-    // Check which department keywords are matched in the job title/description
-    const matchesICT = ictKeywords.some(kw => title.includes(kw) || desc.includes(kw));
-    const matchesHTM = htmKeywords.some(kw => title.includes(kw) || desc.includes(kw));
-    const matchesEduc = educKeywords.some(kw => title.includes(kw) || desc.includes(kw));
-    const matchesAgri = agriKeywords.some(kw => title.includes(kw) || desc.includes(kw));
-    const matchesTech = techKeywords.some(kw => title.includes(kw) || desc.includes(kw));
+    // 1. Tiyak na Degree / Program Targeting (Specific Program Acronyms & Program Names)
+    // Kapag tahasang binanggit ang kurso (tulad ng "BSTM Graduate", "BSIT", "BSHM", atbp.)
+    const isTargetingBSTM = hasWord(combinedJobText, 'bstm') || combinedJobText.includes('tourism management');
+    const isTargetingBSHM = hasWord(combinedJobText, 'bshm') || combinedJobText.includes('hospitality management');
+    const isTargetingBSIT = hasWord(combinedJobText, 'bsit') || combinedJobText.includes('information technology');
+    const isTargetingBSA = hasWord(combinedJobText, 'bsa') || combinedJobText.includes('bachelor of science in agriculture');
+    const isTargetingBEED = hasWord(combinedJobText, 'beed') || combinedJobText.includes('elementary education');
+    const isTargetingBSED = hasWord(combinedJobText, 'bsed') || combinedJobText.includes('secondary education');
+    const isTargetingBSInT = combinedJobText.includes('industrial technology');
 
-    // Determine the primary department required by the job
+    // Katangian ng kurso ng nagtapos (Alumnus Course Mapping)
+    const isGradTourism = prog.includes('tourism') || hasWord(prog, 'bstm');
+    const isGradHospitality = prog.includes('hospitality') || prog.includes('hotel') || hasWord(prog, 'bshm');
+    const isGradIT = prog.includes('information technology') || (hasWord(prog, 'ict') && !prog.includes('industrial')) || hasWord(prog, 'bsit');
+    const isGradAgri = prog.includes('agriculture') || hasWord(prog, 'bsa');
+    const isGradElemEduc = prog.includes('elementary education') || hasWord(prog, 'beed');
+    const isGradSecEduc = prog.includes('secondary education') || hasWord(prog, 'bsed');
+    const isGradEduc = isGradElemEduc || isGradSecEduc || prog.includes('education') || prog.includes('teacher');
+    const isGradTech = prog.includes('industrial technology');
+
+    // Kung may tiyak na kursong hinahanap sa job posting:
+    if (isTargetingBSTM) {
+      if (isGradTourism) return 100;
+      if (isGradHospitality) return 70; // Katabing kurso sa iisang departamento (HTM)
+      return 10;
+    }
+    if (isTargetingBSHM) {
+      if (isGradHospitality) return 100;
+      if (isGradTourism) return 70; // Katabing kurso sa iisang departamento (HTM)
+      return 10;
+    }
+    if (isTargetingBSIT) {
+      if (isGradIT) return 100;
+      if (isGradTech) return 40; // Kaugnay na technical field
+      return 10;
+    }
+    if (isTargetingBSA) {
+      if (isGradAgri) return 100;
+      return 10;
+    }
+    if (isTargetingBEED) {
+      if (isGradElemEduc) return 100;
+      if (isGradSecEduc) return 80; // Parehong Education
+      return 10;
+    }
+    if (isTargetingBSED) {
+      if (isGradSecEduc) return 100;
+      if (isGradElemEduc) return 80; // Parehong Education
+      return 10;
+    }
+    if (isTargetingBSInT) {
+      if (isGradTech) return 100;
+      if (isGradIT) return 40;
+      return 10;
+    }
+
+    // 2. Department-level Keyword Frequency Analysis (Weighted Keyword Scoring)
+    // Kapag walang tahasang acronym, sinusuri ang mga domain keywords gamit ang word boundary
+    const deptKeywords = {
+      htm: [
+        'tourism', 'tourist', 'tour', 'tours', 'hotel', 'resort', 'travel',
+        'hospitality', 'homestay', 'restaurant', 'dining', 'catering',
+        'culinary', 'chef', 'barista', 'front desk', 'guest', 'visitors', 'lodging'
+      ],
+      ict: [
+        'developer', 'programmer', 'software', 'web', 'database', 'coding',
+        'network', 'systems', 'frontend', 'backend', 'fullstack', 'computer',
+        'tech support', 'cybersecurity', 'cloud', 'application', 'hardware'
+      ],
+      educ: [
+        'teacher', 'instructor', 'educator', 'school', 'teaching', 'pedagogy',
+        'curriculum', 'classroom', 'lesson', 'academic'
+      ],
+      agri: [
+        'farm', 'farming', 'crop', 'crops', 'pest', 'plant', 'organic',
+        'soil', 'agriculture', 'livestock', 'agriculturist', 'harvest', 'agronomy'
+      ],
+      tech: [
+        'circuit', 'electronic', 'electronics', 'technician', 'soldering',
+        'machinery', 'repair', 'wiring', 'automotive', 'mechanic', 'maintenance', 'pneumatics'
+      ]
+    };
+
+    const deptScores = { htm: 0, ict: 0, educ: 0, agri: 0, tech: 0 };
+    Object.entries(deptKeywords).forEach(([dept, keywords]) => {
+      keywords.forEach(kw => {
+        if (hasWord(combinedJobText, kw)) {
+          deptScores[dept] += 1;
+        }
+      });
+    });
+
     let requiredDept = null;
-    if (matchesICT) requiredDept = 'ict';
-    else if (matchesEduc) requiredDept = 'educ';
-    else if (matchesHTM) requiredDept = 'htm';
-    else if (matchesAgri) requiredDept = 'agri';
-    else if (matchesTech) requiredDept = 'tech';
+    let maxScore = 0;
+    Object.entries(deptScores).forEach(([dept, score]) => {
+      if (score > maxScore) {
+        maxScore = score;
+        requiredDept = dept;
+      }
+    });
 
-    // If no specific department is matched, default to general compatibility (100%)
-    if (!requiredDept) return 100;
+    // Kung walang tiyak na departamento o pantay sa lahat (hal. general job posting)
+    if (!requiredDept || maxScore === 0) return 100;
 
-    // Check alumnus program
-    const isIT = prog.includes("information technology") || prog.includes("ict");
-    const isEduc = prog.includes("education") || prog.includes("teacher");
-    const isHTM = prog.includes("hospitality") || prog.includes("tourism") || prog.includes("htm");
-    const isAgri = prog.includes("agriculture");
-    const isTech = prog.includes("industrial technology") || prog.includes("technology");
+    const isGradHTM = isGradTourism || isGradHospitality;
 
-    if (requiredDept === 'ict' && isIT) return 100;
-    if (requiredDept === 'educ' && isEduc) return 100;
-    if (requiredDept === 'htm' && isHTM) return 100;
-    if (requiredDept === 'agri' && isAgri) return 100;
-    if (requiredDept === 'tech' && isTech) return 100;
+    if (requiredDept === 'ict' && isGradIT) return 100;
+    if (requiredDept === 'educ' && isGradEduc) return 100;
+    if (requiredDept === 'htm' && isGradHTM) return 100;
+    if (requiredDept === 'agri' && isGradAgri) return 100;
+    if (requiredDept === 'tech' && isGradTech) return 100;
 
-    // Closely related departments (e.g. BSIT and Industrial Tech)
-    if (requiredDept === 'ict' && isTech) return 40;
-    if (requiredDept === 'tech' && isIT) return 40;
-    if (requiredDept === 'htm' && isEduc) return 20;
+    // Closely related departments
+    if (requiredDept === 'ict' && isGradTech) return 40;
+    if (requiredDept === 'tech' && isGradIT) return 40;
+    if (requiredDept === 'htm' && isGradEduc) return 20;
 
-    return 10; // Baseline fit score
+    return 10; // Baseline fit score para sa magkaibang larangan
   };
 
   // Algoritmo sa Pagtutugma (Match Algorithm): tinitingnan kung gaano karaming kasanayan ng alumni ang tumutugma sa requirements ng activeJob
-  // Algoritmo sa Pagtutugma (Match Algorithm): tinitingnan kung gaano karaming kasanayan ng alumni ang tumutugma sa requirements ng activeJob
   const matchedAlumni = registeredAlumniList.map(al => {
     // Fina-filter ang mga overlapping skills gamit ang case-insensitive comparison
-    const overlappingSkills = al.skills.filter(skill => 
+    const overlappingSkills = (al.skills || []).filter(skill => 
       reqSkills.some(req => req.toLowerCase().includes(skill.toLowerCase()) || skill.toLowerCase().includes(req.toLowerCase()))
     );
 
@@ -122,7 +203,7 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
 
     // 2. Academic Program Alignment Score (40% weight)
     const programAlignment = activeJob 
-      ? calculateProgramAlignment(al.program, activeJob.jobTitle, activeJob.description) 
+      ? calculateProgramAlignment(al.program, activeJob.jobTitle, activeJob.description, activeJob.requirements) 
       : 100;
 
     // 3. Hybrid Fit Score
