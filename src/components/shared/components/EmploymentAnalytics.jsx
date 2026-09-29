@@ -77,14 +77,14 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     '10,000 - 20,000': employedList.filter(a => a.monthlyIncome === '10,000 - 20,000').length,
     '20,001 - 30,000': employedList.filter(a => a.monthlyIncome === '20,001 - 30,000').length,
     '30,001 - 40,000': employedList.filter(a => a.monthlyIncome === '30,001 - 40,000').length,
-    'Above 40k': employedList.filter(a => a.monthlyIncome === 'Above 40,000').length,
+    'Above 40,000': employedList.filter(a => a.monthlyIncome === 'Above 40,000').length,
   };
   const salUnresponsiveCount = totalInScope - (
     salaryBrackets['Under 10,000'] +
     salaryBrackets['10,000 - 20,000'] +
     salaryBrackets['20,001 - 30,000'] +
     salaryBrackets['30,001 - 40,000'] +
-    salaryBrackets['Above 40k']
+    salaryBrackets['Above 40,000']
   );
   const salUnregisteredPct = totalInScope > 0 ? Math.round((salUnresponsiveCount / totalInScope) * 100) : 0;
 
