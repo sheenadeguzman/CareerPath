@@ -21,20 +21,20 @@ Before accessing the system, ensure your device meets the following requirements
 
 ### 2.2. Administrator (Admin)
 *   **Role Overview**: Institutional managers who run day-to-day coordination, register graduates, broadcast reminders, and perform exports.
-*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Feedback, Reports, Import, Export, Settings, Activity Logs, and Message/Email tabs.
+*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Reports, Import, Export, Settings, Activity Logs, and Message/Email tabs.
 
 ### 2.3. Department Chairperson
 *   **Role Overview**: Scoped accounts for academic department leads (e.g. IT, HTM, Education, Agriculture, Tech) to audit curriculum alignment.
-*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Feedback, Reports, Import, Export, and Settings. All graduate lists and telemetry data are strictly filtered to their specific academic program.
+*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Reports, Import, Export, and Settings. All graduate lists and telemetry data are strictly filtered to their specific academic program.
 *   *Note*: Department Chairpersons do not have access to system-wide Activity Logs or the Message/Email broadcast tab.
 
 ### 2.4. Employer
 *   **Role Overview**: Partner enterprises looking to recruit graduates and review syllabus readiness.
-*   **Privileges**: Access to the Dashboard, Job Vacancies, Skills Matching, Curriculum Feedback, and Settings.
+*   **Privileges**: Access to the Dashboard, Job Vacancies, Skills Matching, and Settings.
 
 ### 2.5. Alumni (Graduate)
 *   **Role Overview**: Graduates tracking placement statistics, staying compliant with institutional tracer audits, and finding jobs.
-*   **Privileges**: Access to the Dashboard, My Profile, Job Vacancies, Skills Matching, Surveys, Curriculum Feedback, and Settings.
+*   **Privileges**: Access to the Dashboard, My Profile, Job Vacancies, Skills Matching, Surveys, and Settings.
 *   *Note*: Alumni accounts are restricted from accessing the placement density map and general graduate roster directories for privacy compliance.
 
 ---
@@ -111,13 +111,6 @@ Before accessing the system, ensure your device meets the following requirements
 2.  Select your posted job vacancy from the dropdown.
 3.  Review the matching graduates roster. The match engine computes a **Hybrid Fit Score** (60% based on skills keywords overlap, 40% on academic program compatibility).
 4.  Click **Contact Talented Grad** to initiate an administrative invitation.
-
-#### C. Submitting Curriculum evaluations
-1.  Go to the **Curriculum Feedback** tab and select the **"Curriculum"** category.
-2.  Enter the subject topic (e.g., *Competency of BSIT Graduates*).
-3.  Rate the graduate batches (1 to 5 stars) across five key dimensions: **Technical Skills, Communication, Problem Solving, Work Ethics, and Teamwork**.
-4.  Input specific graduate strengths and recommended syllabus changes.
-5.  Click **Submit Feedback**.
 
 ---
 

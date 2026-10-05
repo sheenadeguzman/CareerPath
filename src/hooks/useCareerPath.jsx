@@ -978,7 +978,6 @@ export function useCareerPath() {
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
-        { id: 'Curriculum Feedback', name: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'Reports', name: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
         { id: 'Activity Log', name: 'Activity Logs', icon: <Activity className="w-4 h-4" /> },
         { id: 'Message/Email', name: 'Message/Email', icon: <Mail className="w-4 h-4" /> },
@@ -993,7 +992,6 @@ export function useCareerPath() {
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
-        { id: 'Curriculum Feedback', name: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'Reports', name: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
@@ -1004,14 +1002,12 @@ export function useCareerPath() {
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
         { id: 'Surveys', name: 'Surveys', icon: <FileSpreadsheet className="w-4 h-4" /> },
-        { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ]
     : [
         { id: 'Dashboard', name: 'Dashboard', icon: <Layers className="w-4 h-4" /> },
         { id: 'Job Postings', name: 'Job Vacancies', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'Skills Match', name: 'Skills Matching', icon: <CheckSquare className="w-4 h-4" /> },
-        { id: 'Curriculum Feedback', name: 'Curriculum Feedback', icon: <MessageSquare className="w-4 h-4" /> },
         { id: 'Settings', name: 'Settings', icon: <Settings className="w-4 h-4" /> }
       ];
 

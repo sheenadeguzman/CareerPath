@@ -20,7 +20,6 @@ export default function AlumniDashboard({
   alumni = [],
   activeUser,
   jobPostings = [],
-  feedbacks = [],
   onNavigate
 }) {
 
@@ -64,10 +63,6 @@ export default function AlumniDashboard({
     return hasSkillMatch;
   });
 
-  // Bilang ng mga feedback submissions ng alumnus para sa kurikulum
-  const myStudentId = myAlumni?.studentId || '';
-  const myFeedbacksCount = feedbacks.filter(fb => fb.alumniStudentId === myStudentId).length;
-
   return (
     <div className="space-y-6 font-sans">
 
@@ -82,7 +77,7 @@ export default function AlumniDashboard({
       </div>
 
       {/* Row para sa mga pangunahing metric cards ng alumnus */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         {/* Card para sa kasalukuyang dineklarang Tracer Career Status */}
         <div className="bg-white p-5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs">
@@ -122,20 +117,6 @@ export default function AlumniDashboard({
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
             <Briefcase className="w-5.5 h-5.5" />
-          </div>
-        </div>
-
-        {/* Bilang ng Curriculum Feedback submissions */}
-        <div
-          onClick={() => onNavigate('Curriculum Feedback')}
-          className="bg-white p-5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs cursor-pointer hover:border-[#7c191e]/20 transition-all"
-        >
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">My Curriculum Reviews</span>
-            <div className="text-2xl font-bold text-slate-800">{myFeedbacksCount} Submitted</div>
-          </div>
-          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
-            <Award className="w-5.5 h-5.5" />
           </div>
         </div>
       </div>
@@ -195,23 +176,6 @@ export default function AlumniDashboard({
                   <div>
                     <span className="block font-bold">Compare Core Skills Match</span>
                     <span className="text-[10px] text-slate-400 font-medium">See direct alignments with corporate demand</span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-455 group-hover:translate-x-1 transition-all" />
-              </button>
-
-              {/* Shortcut papunta sa Curriculum Feedback page */}
-              <button
-                onClick={() => onNavigate('Curriculum Feedback')}
-                className="w-full text-left p-3 rounded-lg border border-slate-105 hover:border-[#7c191e]/25 hover:bg-[#7c191e]/5 bg-slate-50/50 flex items-center justify-between group transition-all text-xs font-semibold text-slate-700 cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-[#7c191e]/10 text-[#7c191e] rounded">
-                    <Award className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="block font-bold">Submit Curriculum Feedback</span>
-                    <span className="text-[10px] text-slate-400 font-medium">Evaluate curriculum relevance and suggest updates</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-455 group-hover:translate-x-1 transition-all" />

@@ -664,7 +664,7 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
 
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
-          <span className="text-[10px] text-slate-450 font-bold block mt-0.5">Outstanding Feedback Count</span>
+          <span className="text-[10px] text-slate-450 font-bold block mt-0.5">Audited Careers Count</span>
           <div className="text-xl font-extrabold text-[#1e4620] mt-1">
             {filteredAlumni.filter(a => a.employmentStatus !== 'Unemployed').length} Careers
           </div>

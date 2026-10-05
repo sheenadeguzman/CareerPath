@@ -98,7 +98,7 @@ import EmployerManagementView from './components/roles/employer/EmployerManageme
 import JobPostingsView from './components/shared/JobPostingsView';
 import SkillsMatchingView from './components/shared/SkillsMatchingView';
 import SurveysView from './components/shared/SurveysView';
-import FeedbackView from './components/shared/FeedbackView';
+// NOTE: Tinanggal natin ang import ng FeedbackView dahil inalis na ang feedback feature.
 // NOTE: Tinanggal natin ang import ng MessagingView dahil inalis na ang messaging feature.
 import EmploymentView from './components/shared/EmploymentView';
 import ReportsView from './components/shared/ReportsView';
@@ -328,7 +328,6 @@ export default function App() {
                 onNavigate={setCurrentTab}
                 userName={activeUser.name}
                 activeUser={activeUser}
-                feedbacks={scopedFeedbacks}
               />
             )}
 
@@ -398,17 +397,7 @@ export default function App() {
               />
             )}
 
-            {/* Curriculum Feedback: Pagsusuri ng mga employer sa relevancy ng curriculum ng BSC */}
-            {currentTab === 'Curriculum Feedback' && (
-              <FeedbackView
-                feedbacks={scopedFeedbacks}
-                alumniList={scopedAlumniList}
-                employers={employers}
-                activeUser={activeUser}
-                onSubmitFeedback={handleSaveFeedback}
-              />
-            )}
-
+            {/* NOTE: Tinanggal natin ang render block ng FeedbackView dahil inalis na ang feedback feature. */}
             {/* NOTE: Tinanggal natin ang render block ng MessagingView dahil inalis na ang messaging feature. */}
 
             {/* Reports View: Pag-compile at pag-print ng mga analytics reports para sa CHED audits */}

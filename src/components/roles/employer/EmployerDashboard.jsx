@@ -2,7 +2,7 @@
  * @file EmployerDashboard.jsx
  * @description Dashboard view na customized para sa mga Partner Employer. Nagpapakita ng recruitment stats,
  * kabilang ang bilang ng mga aktibong vacancy, hiring slots na kailangan, bilang ng mga natanggap na BSC alumni,
- * naisumiteng corporate appraisals, at listahan ng mga inilathalang career profiles.
+ * at listahan ng mga inilathalang career profiles.
  */
 
 import React from 'react';
@@ -21,7 +21,6 @@ export default function EmployerDashboard({
   activeUser, 
   jobPostings = [], 
   alumni = [], 
-  feedbacks = [], 
   onNavigate 
 }) {
   
@@ -40,13 +39,6 @@ export default function EmployerDashboard({
   const myEmployedAlumni = alumni.filter(
     a => a.employerName.trim().toLowerCase() === myCompanyName.trim().toLowerCase() && a.employmentStatus === 'Employed'
   );
-
-  // Fina-filter ang kabuuang feedback reviews na isinumite ng employer na ito
-  const myFeedbacksCount = feedbacks.filter(fb => {
-    const fbCompany = (fb.companyName || '').trim().toLowerCase();
-    const myComp = myCompanyName.toLowerCase().trim();
-    return (myComp && fbCompany === myComp) || fb.submittedBy?.toLowerCase().includes(activeUser.name.toLowerCase());
-  }).length;
 
   return (
     <div className="space-y-6 font-sans">

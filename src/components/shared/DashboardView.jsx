@@ -17,8 +17,7 @@ export default function DashboardView({
   logs = [], 
   onNavigate, 
   userName = '',
-  activeUser,
-  feedbacks = []
+  activeUser
 }) {
   // Kukuha ng role para malaman kung aling dashboard view ang dapat i-render
   const role = activeUser?.role || 'Administrator';
@@ -32,7 +31,6 @@ export default function DashboardView({
           alumni={alumni}
           activeUser={activeUser}
           jobPostings={jobPostings}
-          feedbacks={feedbacks}
           onNavigate={onNavigate}
         />
       )}
@@ -44,7 +42,6 @@ export default function DashboardView({
           activeUser={activeUser}
           jobPostings={jobPostings}
           alumni={alumni}
-          feedbacks={feedbacks}
           onNavigate={onNavigate}
         />
       )}
@@ -55,7 +52,6 @@ export default function DashboardView({
           alumni={alumni}
           activeUser={activeUser}
           jobPostings={jobPostings}
-          feedbacks={feedbacks}
           onNavigate={onNavigate}
         />
       )}

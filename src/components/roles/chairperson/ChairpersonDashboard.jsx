@@ -1,7 +1,7 @@
 /**
  * @file ChairpersonDashboard.jsx
  * @description Dashboard view na limitado para sa mga Department Chairperson. Nililimitahan nito ang lahat ng records
- * (alumni registries, employment percentages, feedback comments) sa academic program department ng chairperson.
+ * (alumni registries, employment percentages, skills alignment) sa academic program department ng chairperson.
  * Naglalaman din ito ng mga interactive SVG graphs, status legends, at logs.
  */
 
@@ -28,7 +28,6 @@ export default function ChairpersonDashboard({
   alumni = [], 
   activeUser, 
   jobPostings = [], 
-  feedbacks = [], 
   onNavigate 
 }) {
   // Nililimitahan ang criteria ng departamento base sa program profile ng aktibong chairperson.
@@ -100,15 +99,6 @@ export default function ChairpersonDashboard({
   const deptTotalEmployed = relevanceYes + relevancePartially + relevanceNo;
   const deptAlignmentRate = deptTotalEmployed > 0 ? (((relevanceYes + relevancePartially) / deptTotalEmployed) * 100).toFixed(1) : '0';
 
-  // Fina-filter ang feedback ng employer na tumutugma sa mga graduate ng program na ito
-  const deptFeedbacks = feedbacks.filter(fb => {
-    const matchAlum = filteredDeptAlumni.find(a => 
-      a.studentId === fb.alumniStudentId || 
-      a.name.toLowerCase() === fb.alumniName?.toLowerCase()
-    );
-    return !!matchAlum;
-  });
-
   // Helper function para sa pag-export ng department metrics patungong CSV
   const handleExportCSV = () => {
     let csvHeader = 'Metric,Value\n';
@@ -132,10 +122,6 @@ export default function ChairpersonDashboard({
     link.click();
     document.body.removeChild(link);
   };
-
-  const averageRatingVal = deptFeedbacks.length > 0
-    ? (deptFeedbacks.reduce((acc, curr) => acc + (curr.rating || 5), 0) / deptFeedbacks.length).toFixed(1)
-    : 'N/A';
 
   // Binibilang ang mga aktibong trabaho na tumutugma sa criteria ng program ng departamento
   const matchedJobs = jobPostings.filter(job => {
@@ -310,7 +296,7 @@ export default function ChairpersonDashboard({
       </div>
 
       {/* Row para sa mga Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Metric card para sa kabuuang rehistradong alumni ng departamento */}
         <div 
@@ -362,24 +348,6 @@ export default function ChairpersonDashboard({
             <Briefcase className="w-5.5 h-5.5" />
           </div>
         </div>
-
-        {/* Metric card para sa average ng curriculum feedback rating ng graduates */}
-        <div 
-          onClick={() => onNavigate('Curriculum Feedback')}
-          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all"
-        >
-          <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Curriculum Quality Rating</span>
-            <div className="flex items-center gap-1">
-              <div className="text-xl font-extrabold text-slate-800">{averageRatingVal} / 5.0</div>
-              {averageRatingVal !== 'N/A' && <span className="text-xs text-amber-500 font-bold">&#10038;</span>}
-            </div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{deptFeedbacks.length} Grad Reviews</span>
-          </div>
-          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
-            <Award className="w-5.5 h-5.5" />
-          </div>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -401,22 +369,6 @@ export default function ChairpersonDashboard({
                   <div>
                     <span className="block font-bold">Manage Program Students</span>
                     <span className="text-[10px] text-slate-400 font-medium">View, update, or nudge graduates of your program</span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-all" />
-              </button>
-
-              <button 
-                onClick={() => onNavigate('Curriculum Feedback')}
-                className="w-full text-left p-3 rounded-lg border border-slate-105 hover:border-[#7c191e]/25 hover:bg-[#7c191e]/5 bg-slate-50/50 flex items-center justify-between group transition-all text-xs font-semibold text-slate-755 cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-[#7c191e]/10 text-[#7c191e] rounded">
-                    <Award className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="block font-bold">View Curricular Audits</span>
-                    <span className="text-[10px] text-slate-400 font-medium">Check curriculum evaluation feedback from program graduates</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-all" />
@@ -463,7 +415,7 @@ export default function ChairpersonDashboard({
               <span className="text-xs font-extrabold text-[#7c191e] uppercase tracking-wider">Faculty Mandate Compliance</span>
             </div>
             <p className="text-xs text-slate-600 font-semibold leading-relaxed">
-              As a Department Chairperson, you are designated to audit core curriculum relevance to actual career paths. Use the "Feedback" and "Skills Matrix" panels to analyze adjustments for next physical terms.
+              As a Department Chairperson, you are designated to audit core curriculum relevance to actual career paths. Use the "Skills Matrix" and "Surveys" panels to analyze adjustments for next physical terms.
             </p>
           </div>
         </div>
