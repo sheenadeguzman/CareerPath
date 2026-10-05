@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet, AlertTriangle, CheckSquare } from 'lucide-react';
+import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet, AlertTriangle, CheckSquare, Mail } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS, BSC_DEPARTMENTS } from '../../../bscData';
 import { exportToPDF } from '../../../utils/pdfExport';
 
@@ -408,7 +408,7 @@ export default function AdminAlumniListView({
                 <th className={`p-3.5 ${!canDelete ? 'pl-6' : ''}`}>Student ID / Name</th>
                 <th className="p-3.5">Degree Program</th>
                 <th className="p-3.5">Grad Year</th>
-                <th className="p-3.5">Status</th>
+                <th className="p-3.5">Employment Status</th>
                 <th className="p-3.5">Progress</th>
                 <th className="p-3.5 pr-6 text-right">Actions</th>
               </tr>
@@ -473,7 +473,7 @@ export default function AdminAlumniListView({
                       <span className="font-bold text-[10px]">{al.profileCompleteness}%</span>
                       <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block shrink-0 border border-slate-200/50">
                         <div 
-                          className={`h-full rounded-full transition-all duration-500 ${al.profileCompleteness > 80 ? 'bg-emerald-600' : 'bg-amber-500'}`} 
+                          className={`h-full rounded-full transition-all duration-500 ${al.profileCompleteness >= 100 ? 'bg-emerald-600' : 'bg-amber-500'}`} 
                           style={{ width: `${al.profileCompleteness}%` }}
                         />
                       </div>
@@ -481,14 +481,14 @@ export default function AdminAlumniListView({
                   </td>
                   <td className="p-3.5 pr-6 text-right space-x-1">
                     
-                    {/* Nagpapadala ng mabilis na email notification kung mababa sa threshold ang profile completion */}
-                    {al.profileCompleteness < 80 && onTriggerEmail && (
+                    {/* Nagpapadala ng mabilis na email paalala kung hindi pa 100% ang profile completion */}
+                    {al.profileCompleteness < 100 && onTriggerEmail && (
                       <button
                         onClick={() => onTriggerEmail(al.studentId)}
-                        className="p-1 px-2.5 bg-amber-500/10 text-amber-700 rounded hover:bg-amber-500/20 text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
-                        title="Dispatch completeness nudge"
+                        className="p-1 px-2.5 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 rounded text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                        title="Send email reminder to complete profile"
                       >
-                        Nudge Email
+                        <Mail className="w-3 h-3" /> Send Reminder
                       </button>
                     )}
                     

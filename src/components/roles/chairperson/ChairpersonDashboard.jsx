@@ -368,7 +368,7 @@ export default function ChairpersonDashboard({
                   </div>
                   <div>
                     <span className="block font-bold">Manage Program Students</span>
-                    <span className="text-[10px] text-slate-400 font-medium">View, update, or nudge graduates of your program</span>
+                    <span className="text-[10px] text-slate-400 font-medium">View, update, or send reminders to graduates of your program</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-all" />
