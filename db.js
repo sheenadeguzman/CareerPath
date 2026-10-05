@@ -190,18 +190,10 @@ export async function initializeDatabase() {
     }
 
 
-    // MIGRATION 1: Siguraduhing may columns ang feedbacks table
+    // MIGRATION: Siguraduhing tuluyang na-drop ang feedbacks table sa database
     try {
-      await pool.query('ALTER TABLE feedbacks ADD COLUMN alumni_student_id VARCHAR(50) DEFAULT NULL');
-      console.log('Database Migration: Added alumni_student_id column to feedbacks table if not exists.');
-    } catch (e) { }
-    try {
-      await pool.query('ALTER TABLE feedbacks ADD COLUMN alumni_name VARCHAR(100) DEFAULT NULL');
-      console.log('Database Migration: Added alumni_name column to feedbacks table if not exists.');
-    } catch (e) { }
-    try {
-      await pool.query('ALTER TABLE feedbacks ADD COLUMN company_name VARCHAR(100) DEFAULT NULL');
-      console.log('Database Migration: Added company_name column to feedbacks table if not exists.');
+      await pool.query('DROP TABLE IF EXISTS feedbacks');
+      console.log('Database Migration: Successfully ensured feedbacks table is dropped.');
     } catch (e) { }
 
     // MIGRATION 2: Siguraduhing mabilis tumakbo ang database queries sa pamamagitan ng pag-index sa alumni_profiles
@@ -370,15 +362,7 @@ export async function initializeDatabase() {
       console.error('Database Migration Error: Failed to update admin is_initial_password_needed flag:', err);
     }
 
-    // MIGRATION 2.6: Linisin ang mga system activity logs na napunta sa feedbacks table
-    try {
-      const [result] = await pool.query("DELETE FROM feedbacks WHERE message LIKE '[LOG EVENT]%'");
-      if (result.affectedRows > 0) {
-        console.log(`Database Migration: Purged ${result.affectedRows} activity log records from feedbacks table.`);
-      }
-    } catch (err) {
-      console.error('Database Migration Error: Failed to purge activity logs from feedbacks table:', err);
-    }
+
     // MIGRATION: Make gender and civil_status columns nullable in alumni_profiles to allow blank values
     try {
       await pool.query("ALTER TABLE alumni_profiles MODIFY COLUMN gender ENUM('Male', 'Female', 'Other') NULL DEFAULT NULL");
@@ -458,7 +442,6 @@ export async function initializeDatabase() {
       { name: 'employers', addCreated: false, addUpdated: true },
       { name: 'job_postings', addCreated: false, addUpdated: true },
       { name: 'surveys', addCreated: false, addUpdated: true },
-      { name: 'feedbacks', addCreated: true, addUpdated: true },
       { name: 'activity_logs', addCreated: true, addUpdated: true },
       { name: 'survey_responses', addCreated: true, addUpdated: true },
       { name: 'notifications', addCreated: true, addUpdated: true }

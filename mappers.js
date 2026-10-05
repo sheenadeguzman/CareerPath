@@ -266,28 +266,6 @@ export function mapSurveyResponseFromDB(row) {
   };
 }
 
-/**
- * Mina-map ang database Quality Feedback rows papunta sa Frontend Feedback objects.
- * @param {Object} row - Ang hilaw na record ng feedback mula sa MySQL.
- * @returns {Object|null}
- */
-export function mapFeedbackFromDB(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    subject: row.subject,
-    category: row.category,
-    message: row.message,
-    rating: row.rating,
-    submittedBy: row.submitted_by,
-    alumniStudentId: row.alumni_student_id,
-    alumniName: row.alumni_name,
-    companyName: row.company_name,
-    submittedAt: row.submitted_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
 
 /**
  * Mina-map ang database System Log rows papunta sa Frontend ActivityLog objects.

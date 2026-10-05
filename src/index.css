@@ -312,7 +312,6 @@
   body.print-resume-only .no-print-resume,
   body.print-resume-only footer,
   body.print-resume-only #save-success-toast,
-  body.print-resume-only #feedback-success-toast,
   body.print-resume-only div.bg-\[\#1e4620\].h-1 {
     display: none !important;
   }

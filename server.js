@@ -20,7 +20,6 @@ import alumniRouter from './routes/alumni.js';
 import employersRouter from './routes/employers.js';
 import jobsRouter from './routes/jobs.js';
 import surveysRouter from './routes/surveys.js';
-import feedbackRouter from './routes/feedback.js';
 import notificationsRouter from './routes/notifications.js';
 
 /**
@@ -57,7 +56,6 @@ async function startServer() {
   app.use('/api', employersRouter);
   app.use('/api', jobsRouter);
   app.use('/api', surveysRouter);
-  app.use('/api', feedbackRouter);
   app.use('/api', notificationsRouter); // Idinagdag na ang notifications router dito
 
   // =========================================================================

@@ -95,17 +95,6 @@ export async function submitSurveyResponse(surveyId, alumniId, alumniName, answe
   return handleResponse(response);
 }
 
-/**
- * Isumite ang quality curriculum o system feedback mula sa stakeholders.
- */
-export async function submitFeedback(feedback, activeUserId, headers) {
-  const response = await fetch('/api/submit-feedback', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ feedback, activeUserId })
-  });
-  return handleResponse(response);
-}
 
 /**
  * Bulk import ng alumni records mula sa spreadsheet upload ng admin.

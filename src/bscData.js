@@ -462,33 +462,6 @@ export const INITIAL_SURVEYS = [
   }
 ];
 
-// Halimbawa ng mga feedback para sa curriculum review na isinumite ng mga katuwang na employer
-export const INITIAL_FEEDBACKS = [
-  {
-    id: 'fb-1',
-    subject: 'Excellent Technical Adaptability & React Performance',
-    category: 'Curriculum Review',
-    message: 'Maria Santos has shown remarkable performance in React, frontend engineering, and database queries. Her preparation aligns perfectly with our product timelines.',
-    rating: 5,
-    submittedBy: 'Mark Villanueva (hr@techbatanes.com)',
-    submittedAt: '2026-06-17T18:30:00Z',
-    alumniStudentId: 'BSC-2020-001',
-    alumniName: 'Maria Santos',
-    companyName: 'TechBatanes Inc.'
-  },
-  {
-    id: 'fb-2',
-    subject: 'Syllabus Alignment & Real-World Deployments',
-    category: 'Curriculum Review',
-    message: 'We appreciate the strong academic standard of education at Batanes State College. We recommend incorporating more cloud deployments in coursework.',
-    rating: 4,
-    submittedBy: 'Mark Villanueva (hr@techbatanes.com)',
-    submittedAt: '2026-06-18T05:15:00Z',
-    alumniStudentId: 'BSC-2020-001',
-    alumniName: 'Maria Santos',
-    companyName: 'TechBatanes Inc.'
-  }
-];
 
 // Halimbawa ng mga system activity logs para sa pag-audit ng mga naging aksyon sa system
 export const INITIAL_LOGS = [

@@ -15,7 +15,6 @@ import {
   mapEmployerFromDB,
   mapJobPostingFromDB,
   mapSurveyFromDB,
-  mapFeedbackFromDB,
   mapLogFromDB,
   mapNotificationFromDB,
   mapSurveyResponseFromDB
@@ -42,7 +41,6 @@ router.get('/data', async (req, res) => {
     const [employersRows] = await pool.query('SELECT * FROM employers');
     const [jobRows] = await pool.query('SELECT * FROM job_postings ORDER BY created_at DESC');
     const [surveyRows] = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
-    const [feedbackRows] = await pool.query('SELECT * FROM feedbacks ORDER BY submitted_at DESC');
     const [logRows] = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
     // Parse JWT to filter notifications per user
     let notificationRows = [];
@@ -80,7 +78,6 @@ router.get('/data', async (req, res) => {
       employers: employersRows.map(mapEmployerFromDB),
       jobPostings: jobRows.map(mapJobPostingFromDB),
       surveys: surveyRows.map(mapSurveyFromDB),
-      feedbacks: feedbackRows.map(mapFeedbackFromDB),
       logs: logRows.map(mapLogFromDB),
       notifications: notificationRows.map(mapNotificationFromDB),
       surveyResponses: responseRows.map(mapSurveyResponseFromDB)
