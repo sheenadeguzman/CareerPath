@@ -408,7 +408,7 @@ export default function AdminDashboard({
         >
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">Open Careers</span>
-            <div className="text-2xl font-bold text-slate-800">{openPositions} Slots</div>
+            <div className="text-2xl font-bold text-slate-800">{openPositions} Vacancies</div>
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
             <Briefcase className="w-5.5 h-5.5" />
