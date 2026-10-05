@@ -305,95 +305,102 @@ export default function AdminDashboard({
     <div className="space-y-6 font-sans">
       
       {/* Banner para sa pagsalubong sa Admin */}
-      <div className="bg-[#7c191e]/5 border border-[#7c191e]/15 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
-        <div>
+      <div className="bg-[#7c191e]/5 border border-[#7c191e]/15 rounded-xl p-5 sm:p-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shadow-xs">
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-slate-800">Welcome back, {userName.split(' ')[0]}</h1>
           <p className="text-xs text-slate-500 mt-1">
             Batanes State College &mdash; Graduate Tracer and Employability Analytics Program
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5 no-print">
-          {/* Print button */}
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs"
-          >
-            <Printer className="w-4 h-4 text-[#7c191e]" />
-            <span>Print</span>
-          </button>
 
-          {/* Export Dropdown */}
-          <div className="relative">
+        <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 shrink-0 no-print">
+          {/* Action buttons group */}
+          <div className="flex items-center gap-2">
+            {/* Print button */}
             <button
-              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-              className="flex items-center gap-1.5 text-xs font-bold text-white bg-[#7c191e] border border-[#7c191e]/10 px-3 py-1.5 rounded-lg hover:bg-[#7c191e]/90 transition-all cursor-pointer shadow-3xs select-none"
+              onClick={() => window.print()}
+              className="h-9 flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-3xs shrink-0"
             >
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              <Printer className="w-4 h-4 text-[#7c191e]" />
+              <span>Print</span>
             </button>
 
-            {exportDropdownOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setExportDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
-                  <button
-                    onClick={() => {
-                      setExportDropdownOpen(false);
-                      handleExportCSV();
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
-                  >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
-                  </button>
+            {/* Export Dropdown */}
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="h-9 flex items-center gap-1.5 text-xs font-bold text-white bg-[#7c191e] border border-[#7c191e]/10 px-3 rounded-lg hover:bg-[#7c191e]/90 transition-all cursor-pointer shadow-3xs select-none"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-                  <button
-                    onClick={() => {
-                      setExportDropdownOpen(false);
-                      const deptSlug = selectedDepartment === 'All' ? 'All_Depts' : selectedDepartment.replace(/[^a-zA-Z0-9]/g, '_');
-                      exportToPDF('main-content-stage', `BSC_Admin_Dashboard_Report_${deptSlug}_${selectedYear}.pdf`);
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
-                  >
-                    <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-          
-          {/* Selector para sa Departamento */}
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2 py-1.5 rounded-lg shadow-3xs">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400">Department:</span>
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="bg-transparent text-[#7c191e] font-extrabold focus:outline-none cursor-pointer max-w-[200px] truncate"
-              title={selectedDepartment}
-            >
-              <option value="All">All Departments</option>
-              {BSC_DEPARTMENTS.map(dept => (
-                <option key={dept} value={dept}>{dept}</option>
-              ))}
-            </select>
+              {exportDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setExportDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        handleExportCSV();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        const deptSlug = selectedDepartment === 'All' ? 'All_Depts' : selectedDepartment.replace(/[^a-zA-Z0-9]/g, '_');
+                        exportToPDF('main-content-stage', `BSC_Admin_Dashboard_Report_${deptSlug}_${selectedYear}.pdf`);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Selector para sa taon ng Pagtatapos */}
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2 py-1.5 rounded-lg shadow-3xs">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400">Class Year:</span>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-transparent text-[#7c191e] font-extrabold focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Years</option>
-              {graduationYears.map(yr => (
-                <option key={yr} value={yr}>Class of {yr}</option>
-              ))}
-            </select>
+          {/* Filter dropdowns group */}
+          <div className="flex items-center gap-2">
+            {/* Selector para sa Departamento */}
+            <div className="h-9 flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2.5 rounded-lg shadow-3xs shrink-0">
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold shrink-0">Department:</span>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="bg-transparent text-[#7c191e] font-extrabold focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[160px] truncate"
+                title={selectedDepartment}
+              >
+                <option value="All">All Departments</option>
+                {BSC_DEPARTMENTS.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Selector para sa taon ng Pagtatapos */}
+            <div className="h-9 flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2.5 rounded-lg shadow-3xs shrink-0">
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold shrink-0">Class Year:</span>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="bg-transparent text-[#7c191e] font-extrabold focus:outline-none cursor-pointer shrink-0"
+              >
+                <option value="All">All Years</option>
+                {graduationYears.map(yr => (
+                  <option key={yr} value={yr}>Class of {yr}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>

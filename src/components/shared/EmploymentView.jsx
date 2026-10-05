@@ -453,17 +453,21 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
       </div>
 
       {/* 2. Filter Bar with Dynamic Inputs */}
-      <div className="bg-slate-100/60 border border-slate-200/60 p-4 rounded-xl space-y-3 shadow-3xs no-print">
-        <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
+      <div className="bg-slate-100/60 border border-slate-200/60 p-4.5 rounded-xl space-y-3.5 shadow-3xs no-print">
+        {/* Uniform Grid of Filter Dropdowns */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${!isChairperson ? 'xl:grid-cols-5' : 'xl:grid-cols-3'} gap-2.5`}>
           
           {/* Interactive Department Filter (Hidden for Chairperson since their view is restricted) */}
           {!isChairperson && (
-            <div className="flex items-center gap-1.5 w-full sm:w-auto">
-              <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Department:</span>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                Department
+              </label>
               <select
                 value={selectedDepartment}
                 onChange={(e) => handleDepartmentChange(e.target.value)}
-                className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+                title={selectedDepartment}
               >
                 <option value="All">All Departments</option>
                 {BSC_DEPARTMENTS.map(dept => (
@@ -474,12 +478,14 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
           )}
 
           {/* Interactive Class Year Filter */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Class Year:</span>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Class Year
+            </label>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+              className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
             >
               <option value="All">All Years</option>
               {graduationYears.map(yr => (
@@ -490,12 +496,15 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
 
           {/* Interactive Program Filter (Hidden for Chairperson since their view is restricted) */}
           {!isChairperson && (
-            <div className="flex items-center gap-1.5 w-full sm:w-auto">
-              <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Program:</span>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                Program
+              </label>
               <select
                 value={selectedProgram}
                 onChange={(e) => setSelectedProgram(e.target.value)}
-                className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+                className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+                title={selectedProgram}
               >
                 <option value="All">All Course Programs</option>
                 {availablePrograms.map(prog => (
@@ -506,12 +515,14 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
           )}
 
           {/* Status Filter */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Employment Status:</span>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Employment Status
+            </label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+              className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
             >
               <option value="All">All Statuses</option>
               <option value="Employed">Employed (Active Placement)</option>
@@ -523,12 +534,14 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
           </div>
 
           {/* Relatedness Filter */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Relevancy:</span>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Course Alignment
+            </label>
             <select
               value={selectedRelatedness}
               onChange={(e) => setSelectedRelatedness(e.target.value)}
-              className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+              className="w-full h-9 bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
             >
               <option value="All">All Alignments</option>
               <option value="Yes">Course Related</option>
@@ -539,8 +552,8 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
         </div>
 
         {/* Search bar inside filter block */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <div className="relative pt-1 border-t border-slate-200/50">
+          <div className="absolute inset-y-0 left-0 pl-3 pt-1 flex items-center pointer-events-none">
             <Search className="w-4 h-4 text-slate-400" />
           </div>
           <input
@@ -548,7 +561,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
             placeholder="Search alumni names, job positions, corporate companies, or student IDs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/80 rounded-lg text-xs text-slate-800 font-bold focus:ring-1 focus:ring-[#7c191e] focus:bg-white placeholder-slate-400"
+            className="w-full h-9 pl-9 pr-4 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#7c191e] placeholder-slate-400 shadow-3xs transition-colors"
           />
         </div>
       </div>

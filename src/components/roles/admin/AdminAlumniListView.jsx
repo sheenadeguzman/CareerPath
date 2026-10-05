@@ -161,11 +161,11 @@ export default function AdminAlumniListView({
     <div className="space-y-6 font-sans">
       
       {/* Bar para sa mga Filter Controls sa Itaas */}
-      <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 font-sans no-print">
-        <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-2">
-          
+      <div className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 space-y-4 font-sans no-print">
+        {/* Top Row: Search bar and Action Buttons */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Input box para sa paghahanap (search) */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 max-w-lg">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
             <input
               id="search-alumni"
@@ -173,150 +173,175 @@ export default function AdminAlumniListView({
               placeholder="Search graduate's name, student ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-55 focus:bg-white border border-slate-200 rounded-lg pl-9 p-2 text-xs font-semibold focus:outline-none focus:border-[#1e4620]"
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg pl-9 pr-3 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#7c191e] transition-colors shadow-3xs"
             />
           </div>
 
-          {/* Dropdown menu para sa Department (Admin only) */}
-          {!isChairperson && (
-            <select
-              id="filter-department"
-              value={selectedDepartment}
-              onChange={(e) => handleDepartmentChange(e.target.value)}
-              className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
-            >
-              <option value="All">All Departments</option>
-              {BSC_DEPARTMENTS.map(d => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          )}
-
-          {/* Dropdown menu para sa Class Year */}
-          <select
-            id="filter-year"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
-          >
-            <option value="All">All Years</option>
-            {graduationYears.map(yr => (
-              <option key={yr} value={yr}>Class of {yr}</option>
-            ))}
-          </select>
-
-          {/* Dropdown menu para sa tinapos na program */}
-          <select
-            id="filter-program"
-            value={isChairperson ? (chairProg || 'BS Information Technology') : selectedProgram}
-            onChange={(e) => setSelectedProgram(e.target.value)}
-            disabled={isChairperson}
-            className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold disabled:bg-slate-100 disabled:text-slate-550 disabled:cursor-not-allowed cursor-pointer focus:outline-none"
-          >
-            {isChairperson ? (
-              <option value={chairProg}>{chairProg}</option>
-            ) : (
-              <>
-                <option value="All">All Programs</option>
-                {availablePrograms.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </>
-            )}
-          </select>
-
-          {/* Dropdown menu para sa tracer employment status */}
-          <select
-            id="filter-status"
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Registered">Registered</option>
-            <option value="Unregistered">Unregistered</option>
-            <option value="Employed">Employed</option>
-            <option value="Unemployed">Unemployed</option>
-            <option value="Freelance">Freelance</option>
-            <option value="Self-Employed">Self-Employed</option>
-            <option value="Further Studies">Further Studies</option>
-          </select>
-        </div>
-
-        {/* Quick action buttons block */}
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          {/* Print button accessible to all (Admin, Super Admin, Chairperson) */}
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs no-print"
-          >
-            <Printer className="w-4 h-4 text-[#7c191e]" /> Print
-          </button>
-
-          {/* Export Dropdown */}
-          <div className="relative no-print shrink-0">
+          {/* Quick action buttons block */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Print button accessible to all (Admin, Super Admin, Chairperson) */}
             <button
-              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-              className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+              onClick={() => window.print()}
+              className="h-9 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs"
             >
-              <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              <Printer className="w-4 h-4 text-[#7c191e]" /> Print
             </button>
 
-            {exportDropdownOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setExportDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
-                  <button
-                    onClick={() => {
-                      setExportDropdownOpen(false);
-                      handleExportCSV();
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
-                  >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
-                  </button>
+            {/* Export Dropdown */}
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="h-9 px-3.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-3xs cursor-pointer select-none"
+              >
+                <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-                  <button
-                    onClick={() => {
-                      setExportDropdownOpen(false);
-                      const activeDeptName = isChairperson ? chairProg : selectedDepartment;
-                      const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
-                      exportToPDF('main-content-stage', `BSC_Graduates_Directory_${deptSlug}_${selectedYear}.pdf`);
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
-                  >
-                    <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
-                  </button>
-                </div>
+              {exportDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setExportDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 animate-fade-in text-slate-750 text-xs font-extrabold font-sans">
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        handleExportCSV();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export as CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setExportDropdownOpen(false);
+                        const activeDeptName = isChairperson ? chairProg : selectedDepartment;
+                        const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+                        exportToPDF('main-content-stage', `BSC_Graduates_Directory_${deptSlug}_${selectedYear}.pdf`);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" /> Export as PDF
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
+              <>
+                {/* Pag-import ng listahan (roster) */}
+                <button
+                  id="btn-import-alumni-opener"
+                  onClick={() => setShowImportModal(true)}
+                  className="h-9 px-3.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs"
+                  title="Bulk register from CSV/Excel rosters"
+                >
+                  <Upload className="w-4 h-4" /> Import CSV
+                </button>
+                
+                {/* Manu-manong pagrehistro ng record */}
+                <button
+                  id="btn-add-alumnus"
+                  onClick={() => setIsAddingAlumnus(true)}
+                  className="h-9 px-3.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer shadow-3xs"
+                >
+                  <PlusCircle className="w-4 h-4" /> Register Graduate
+                </button>
               </>
             )}
           </div>
-          
-          {(activeUser.role === 'Administrator' || activeUser.role === 'Super Admin') && (
-            <>
-              {/* Pag-import ng listahan (roster) */}
-              <button
-                id="btn-import-alumni-opener"
-                onClick={() => setShowImportModal(true)}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
-                title="Bulk register from CSV/Excel rosters"
+        </div>
+
+        {/* Bottom Row: Uniform Grid of Filter Dropdowns */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${!isChairperson ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3 pt-3.5 border-t border-slate-100`}>
+          {/* Dropdown menu para sa Department (Admin only) */}
+          {!isChairperson && (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="filter-department" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                Department
+              </label>
+              <select
+                id="filter-department"
+                value={selectedDepartment}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
+                className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+                title={selectedDepartment}
               >
-                <Upload className="w-4 h-4" /> Import CSV
-              </button>
-              
-              {/* Manu-manong pagrehistro ng record */}
-              <button
-                id="btn-add-alumnus"
-                onClick={() => setIsAddingAlumnus(true)}
-                className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shrink-0 cursor-pointer"
-              >
-                <PlusCircle className="w-4 h-4" /> Register Graduate
-              </button>
-            </>
+                <option value="All">All Departments</option>
+                {BSC_DEPARTMENTS.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
           )}
+
+          {/* Dropdown menu para sa Class Year */}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="filter-year" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Class Year
+            </label>
+            <select
+              id="filter-year"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+            >
+              <option value="All">All Years</option>
+              {graduationYears.map(yr => (
+                <option key={yr} value={yr}>Class of {yr}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Dropdown menu para sa tinapos na program */}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="filter-program" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Program Specialization
+            </label>
+            <select
+              id="filter-program"
+              value={isChairperson ? (chairProg || 'BS Information Technology') : selectedProgram}
+              onChange={(e) => setSelectedProgram(e.target.value)}
+              disabled={isChairperson}
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+              title={selectedProgram}
+            >
+              {isChairperson ? (
+                <option value={chairProg}>{chairProg}</option>
+              ) : (
+                <>
+                  <option value="All">All Programs</option>
+                  {availablePrograms.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </>
+              )}
+            </select>
+          </div>
+
+          {/* Dropdown menu para sa tracer employment status */}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="filter-status" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Employment Status
+            </label>
+            <select
+              id="filter-status"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Registered">Registered</option>
+              <option value="Unregistered">Unregistered</option>
+              <option value="Employed">Employed</option>
+              <option value="Unemployed">Unemployed</option>
+              <option value="Freelance">Freelance</option>
+              <option value="Self-Employed">Self-Employed</option>
+              <option value="Further Studies">Further Studies</option>
+            </select>
+          </div>
         </div>
       </div>
 

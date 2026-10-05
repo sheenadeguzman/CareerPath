@@ -601,7 +601,7 @@ export default function ReportsView({ alumniList, activeUser }) {
           <div className="relative">
             <button
               onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-              className="px-4 py-2 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+              className="h-9 px-3.5 bg-[#7c191e] hover:bg-[#7c191e]/90 text-white font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-3xs cursor-pointer select-none"
             >
               <Download className="w-4 h-4" /> Export <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -642,7 +642,7 @@ export default function ReportsView({ alumniList, activeUser }) {
           {/* Print button */}
           <button
             onClick={() => window.print()}
-            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-xs cursor-pointer select-none"
+            className="h-9 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs rounded-lg transition inline-flex items-center gap-1.5 uppercase shadow-3xs cursor-pointer select-none"
           >
             <Printer className="w-4 h-4 text-[#7c191e]" /> Print
           </button>
@@ -650,21 +650,32 @@ export default function ReportsView({ alumniList, activeUser }) {
       </div>
 
       {/* Dynamic Filter bar para mag-query sa database kahit kailan base sa piniling criteria */}
-      <div className="bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-3xs font-sans no-print">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#1e4620]">
-          <Filter className="w-4 h-4" />
-          <span>Interactive Dataset Filters:</span>
+      <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-3xs font-sans no-print space-y-3">
+        {/* Header row: Title + live count indicator */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#7c191e]">
+            <Filter className="w-4 h-4 text-[#7c191e]" />
+            <span className="uppercase tracking-wider">Interactive Dataset Filters</span>
+          </div>
+          <span className="text-[11px] text-slate-500 font-semibold">
+            Showing metrics for <strong className="text-slate-800 font-extrabold">{filteredAlumni.length}</strong> {filteredAlumni.length <= 1 ? 'graduate' : 'graduates'}
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        {/* Uniform Grid of Filter Dropdowns: Equal widths and h-9 height */}
+        <div className={`grid grid-cols-1 ${!isChairperson ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
           {/* Selector ng Department (Admin only) */}
           {!isChairperson && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
-              <span className="shrink-0 text-[11px] uppercase tracking-wider font-bold">Department:</span>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="report-filter-department" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                Department
+              </label>
               <select
+                id="report-filter-department"
                 value={selectedDepartment}
                 onChange={(e) => handleDepartmentChange(e.target.value)}
-                className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+                className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+                title={selectedDepartment}
               >
                 <option value="All">All Departments</option>
                 {BSC_DEPARTMENTS.map(dept => (
@@ -675,12 +686,15 @@ export default function ReportsView({ alumniList, activeUser }) {
           )}
 
           {/* Selector para sa Taon ng Pagtatapos */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
-            <span className="shrink-0 text-[11px] uppercase tracking-wider font-bold">Class Year:</span>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="report-filter-year" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Class Year
+            </label>
             <select
+              id="report-filter-year"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
             >
               <option value="All">All Years</option>
               {graduationYears.map(yr => (
@@ -690,21 +704,23 @@ export default function ReportsView({ alumniList, activeUser }) {
           </div>
 
           {/* Selector ng Program */}
-          {!isChairperson && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
-              <span className="shrink-0 text-[11px] uppercase tracking-wider font-bold">Program:</span>
-              <select
-                value={selectedProgram}
-                onChange={(e) => setSelectedProgram(e.target.value)}
-                className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
-              >
-                <option value="All">All Specializations</option>
-                {availablePrograms.map(prog => (
-                  <option key={prog} value={prog}>{prog}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="report-filter-program" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Program Specialization
+            </label>
+            <select
+              id="report-filter-program"
+              value={selectedProgram}
+              onChange={(e) => setSelectedProgram(e.target.value)}
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+              title={selectedProgram}
+            >
+              <option value="All">All Specializations</option>
+              {availablePrograms.map(prog => (
+                <option key={prog} value={prog}>{prog}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
