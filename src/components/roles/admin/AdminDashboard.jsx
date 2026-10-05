@@ -21,6 +21,60 @@ import {
 } from 'lucide-react';
 
 import { exportToPDF } from '../../../utils/pdfExport';
+import { BSC_DEPARTMENTS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
+
+const getBaseProgram = (progName) => {
+  if (!progName) return 'Bachelor of Science in Information Technology';
+  const normalized = progName.toLowerCase();
+  
+  if (normalized.includes('information technology') || normalized.includes('bsit')) {
+    return 'Bachelor of Science in Information Technology';
+  }
+  if (normalized.includes('hospitality management') || normalized.includes('bshm')) {
+    return 'Bachelor of Science in Hospitality Management';
+  }
+  if (normalized.includes('tourism management') || normalized.includes('bstm')) {
+    return 'Bachelor of Science in Tourism Management';
+  }
+  if (normalized.includes('industrial technology')) {
+    return 'Bachelor of Science in Industrial Technology';
+  }
+  if (normalized.includes('agriculture') || normalized.includes('bsa')) {
+    return 'Bachelor of Science in Agriculture';
+  }
+  if (normalized.includes('elementary education') || normalized.includes('beed')) {
+    return 'Bachelor of Elementary Education';
+  }
+  if (normalized.includes('secondary education') || normalized.includes('bsed')) {
+    return 'Bachelor of Secondary Education';
+  }
+  return progName;
+};
+
+const isAlumnusInDepartment = (al, dept) => {
+  if (!al || dept === 'All') return true;
+  if (al.department) {
+    const normDept = dept.toLowerCase();
+    const normAlDept = al.department.toLowerCase();
+    if (normAlDept === normDept || normAlDept.includes(normDept) || normDept.includes(normAlDept)) {
+      return true;
+    }
+  }
+  if (!al.program) return false;
+  const baseProg = getBaseProgram(al.program);
+  const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+  if (allowed.includes(baseProg)) return true;
+
+  const normProg = al.program.toLowerCase();
+  const normTargetDept = dept.toLowerCase();
+  if (normProg === normTargetDept || normProg.includes(normTargetDept) || normTargetDept.includes(normProg)) {
+    return true;
+  }
+  return allowed.some(p => {
+    const normAllowed = p.toLowerCase();
+    return normProg.includes(normAllowed) || normAllowed.includes(normProg);
+  });
+};
 
 export default function AdminDashboard({ 
   alumni = [], 
@@ -33,16 +87,19 @@ export default function AdminDashboard({
   // Mga lokal na state para sa interactivity
   const [hoveredInstSegment, setHoveredInstSegment] = useState(null); // Aktibong segment sa donut chart kapag tinapatan ng cursor
   const [tooltip, setTooltip] = useState(null); // State para sa coordinates at data ng SVG hover tooltip
+  const [selectedDepartment, setSelectedDepartment] = useState('All'); // State para sa filter ng academic department
   const [selectedYear, setSelectedYear] = useState('All'); // State para sa filter ng graduation class year ng batch
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   // Dynamic na pagkuha ng mga unique graduation years mula sa listahan ng alumni
-  const graduationYears = Array.from(new Set(alumni.map(a => a.yearGraduated.toString()))).sort();
+  const graduationYears = Array.from(new Set(alumni.filter(a => a.yearGraduated).map(a => a.yearGraduated.toString()))).sort();
 
-  // Fina-filter ang dataset ng alumni base sa napiling taon ng pagtatapos
-  const filteredAlumni = selectedYear === 'All'
-    ? alumni
-    : alumni.filter(a => a.yearGraduated.toString() === selectedYear);
+  // Fina-filter ang dataset ng alumni base sa napiling taon ng pagtatapos at departamento
+  const filteredAlumni = alumni.filter(a => {
+    const matchesYear = selectedYear === 'All' || (a.yearGraduated && a.yearGraduated.toString() === selectedYear);
+    const matchesDepartment = isAlumnusInDepartment(a, selectedDepartment);
+    return matchesYear && matchesDepartment;
+  });
 
   // Mga kalkulasyon para sa metrics ng dashboard cards
   const totalAlumni = filteredAlumni.length;
@@ -125,6 +182,8 @@ export default function AdminDashboard({
   const handleExportCSV = () => {
     let csvHeader = 'Metric,Value\n';
     let csvContent = [
+      `Department Filter,${selectedDepartment === 'All' ? 'All Departments' : selectedDepartment}`,
+      `Graduation Year Filter,${selectedYear === 'All' ? 'All Years' : selectedYear}`,
       `Total Batch Graduates,${totalAlumni}`,
       `Registered Graduates,${totalRegistered}`,
       `Registration Rate,${registrationRate}%`,
@@ -136,42 +195,15 @@ export default function AdminDashboard({
       `Active Job Openings Slots,${openPositions}`
     ].join('\n');
 
+    const deptSlug = selectedDepartment === 'All' ? 'All_Depts' : selectedDepartment.replace(/[^a-zA-Z0-9]/g, '_');
     const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `BSC_Admin_Dashboard_Summary_${selectedYear}.csv`);
+    link.setAttribute('download', `BSC_Admin_Dashboard_${deptSlug}_${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const getBaseProgram = (progName) => {
-    if (!progName) return 'Bachelor of Science in Information Technology';
-    const normalized = progName.toLowerCase();
-    
-    if (normalized.includes('information technology') || normalized.includes('bsit')) {
-      return 'Bachelor of Science in Information Technology';
-    }
-    if (normalized.includes('hospitality management') || normalized.includes('bshm')) {
-      return 'Bachelor of Science in Hospitality Management';
-    }
-    if (normalized.includes('tourism management') || normalized.includes('bstm')) {
-      return 'Bachelor of Science in Tourism Management';
-    }
-    if (normalized.includes('industrial technology')) {
-      return 'Bachelor of Science in Industrial Technology';
-    }
-    if (normalized.includes('agriculture') || normalized.includes('bsa')) {
-      return 'Bachelor of Science in Agriculture';
-    }
-    if (normalized.includes('elementary education') || normalized.includes('beed')) {
-      return 'Bachelor of Elementary Education';
-    }
-    if (normalized.includes('secondary education') || normalized.includes('bsed')) {
-      return 'Bachelor of Secondary Education';
-    }
-    return progName;
   };
 
   // Pagpapangkat ng graduates count kada degree program
@@ -321,7 +353,8 @@ export default function AdminDashboard({
                   <button
                     onClick={() => {
                       setExportDropdownOpen(false);
-                      exportToPDF('main-content-stage', 'BSC_Admin_Dashboard_Report.pdf');
+                      const deptSlug = selectedDepartment === 'All' ? 'All_Depts' : selectedDepartment.replace(/[^a-zA-Z0-9]/g, '_');
+                      exportToPDF('main-content-stage', `BSC_Admin_Dashboard_Report_${deptSlug}_${selectedYear}.pdf`);
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
                   >
@@ -332,8 +365,24 @@ export default function AdminDashboard({
             )}
           </div>
           
+          {/* Selector para sa Departamento */}
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2 py-1.5 rounded-lg shadow-3xs">
+            <span className="text-[10px] uppercase tracking-wider text-slate-400">Department:</span>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="bg-transparent text-[#7c191e] font-extrabold focus:outline-none cursor-pointer max-w-[200px] truncate"
+              title={selectedDepartment}
+            >
+              <option value="All">All Departments</option>
+              {BSC_DEPARTMENTS.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Selector para sa taon ng Pagtatapos */}
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2 py-1.5 rounded-lg">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-650 bg-white border border-slate-200 px-2 py-1.5 rounded-lg shadow-3xs">
             <span className="text-[10px] uppercase tracking-wider text-slate-400">Class Year:</span>
             <select
               value={selectedYear}
@@ -667,7 +716,7 @@ export default function AdminDashboard({
           <h2 className="text-sm font-bold text-slate-800 pb-3 border-b border-slate-55 uppercase tracking-wider">Alumni by Program</h2>
           
           <div className="flex-1 py-4 space-y-3">
-            {Object.keys(programCounts).map((prog) => {
+            {(selectedDepartment === 'All' ? Object.keys(programCounts) : (DEPARTMENT_TO_PROGRAMS[selectedDepartment] || Object.keys(programCounts))).map((prog) => {
               const totalInProg = programCounts[prog] || 0;
               const registeredInProg = programRegisteredCounts[prog] || 0;
               const percentage = totalInProg > 0 ? Math.round((registeredInProg / totalInProg) * 100) : 0;
