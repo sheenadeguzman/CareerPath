@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, BookOpen, Users, Briefcase, Eye, EyeOff, Lock, RefreshCw, Key, Mail, ShieldAlert, Check } from 'lucide-react';
+import { Shield, Eye, EyeOff, Lock, RefreshCw, Key, Mail, Check } from 'lucide-react';
 import bcrypt from 'bcryptjs';
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
-  // Step 1: Role Selection panel (Administrator, Department Chairperson, Alumni, Employer)
-  // Step 2: Ilagay ang credentials para sa napiling role
-  // Step 3: Kung ang kandidato ay may `isInitialPasswordNeeded`, harangan muna para baguhin ang password!
-
-  const [selectedRole, setSelectedRole] = useState(null);
   const [userIdInput, setUserIdInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -58,20 +53,6 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
     });
   }, []);
 
-  const handleRoleSelect = (role) => {
-    setSelectedRole(role);
-    setUserIdInput('');
-    setPasswordInput('');
-    setErrorMessage('');
-  };
-
-  const handleBackToRoles = () => {
-    setSelectedRole(null);
-    setUserIdInput('');
-    setPasswordInput('');
-    setErrorMessage('');
-  };
-
   const tryOfflineLogin = () => {
     let localUsers = users || [];
     if (localUsers.length === 0) {
@@ -91,11 +72,6 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
 
     if (!matchedUser) {
       setErrorMessage('Offline Mode: User ID not found in local cache. You must log in online at least once.');
-      return false;
-    }
-
-    if (matchedUser.role !== selectedRole) {
-      setErrorMessage(`Account detected, but role is registered as '${matchedUser.role}' rather than requested '${selectedRole}'.`);
       return false;
     }
 
@@ -184,11 +160,6 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       }
 
       const authenticatedUser = result.user;
-
-      // Tinitiyak na ang role ng user ay tumutugma sa napiling role
-      if (authenticatedUser.role !== selectedRole) {
-        throw new Error(`Account detected, but role is registered as '${authenticatedUser.role}' rather than requested '${selectedRole}'.`);
-      }
 
       // Security Protocol: Kung ang initial password flag ay totoo (kailangang palitan ang temporal password)
       if (authenticatedUser.isInitialPasswordNeeded) {
@@ -821,121 +792,17 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                 </div>
               </form>
             </div>
-          ) : !selectedRole ? (
+          ) : (
             /* ========================================== */
-            /* STEP 1: SIAS ROLE PICKER - Pagpili ng Role */
+            /* DIRECT LOGIN FORM                          */
             /* ========================================== */
-            <div className="space-y-4 animate-fade-in">
-              <div className="text-center mb-2 sm:mb-4">
+            <div className="space-y-4 animate-fade-in text-slate-800">
+              <div className="text-center mb-3 sm:mb-4">
                 <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#7c191e]">Tracer Authentication Portal</h2>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">Sign in with your credentials to access your dashboard</p>
                 <div className="h-0.5 w-12 bg-amber-500 mx-auto mt-2" />
               </div>
 
-              <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
-                <button
-                  id="role-btn-super-admin"
-                  onClick={() => handleRoleSelect('Super Admin')}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 sm:p-2.5 bg-[#7c191e]/10 text-[#7c191e] rounded-xl group-hover:bg-[#7c191e] group-hover:text-white transition-all duration-300 shrink-0">
-                      <ShieldAlert className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs sm:text-sm font-extrabold text-slate-800 tracking-wide">Super Administrator</span>
-                      <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium leading-tight mt-0.5">System-wide admin management and user credentials control</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#7c191e] opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 mr-1 sm:mr-2">&rarr;</span>
-                </button>
-                <button
-                  id="role-btn-admin"
-                  onClick={() => handleRoleSelect('Administrator')}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 sm:p-2.5 bg-[#7c191e]/10 text-[#7c191e] rounded-xl group-hover:bg-[#7c191e] group-hover:text-white transition-all duration-300 shrink-0">
-                      <Shield className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs sm:text-sm font-extrabold text-slate-800 tracking-wide">Administrator</span>
-                      <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium leading-tight mt-0.5">Tracer program controls and system configurations</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#7c191e] opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 mr-1 sm:mr-2">&rarr;</span>
-                </button>
-
-                <button
-                  id="role-btn-chair"
-                  onClick={() => handleRoleSelect('Department Chairperson')}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 sm:p-2.5 bg-[#7c191e]/10 text-[#7c191e] rounded-xl group-hover:bg-[#7c191e] group-hover:text-white transition-all duration-300 shrink-0">
-                      <BookOpen className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs sm:text-sm font-extrabold text-slate-800 tracking-wide">Department Chairperson</span>
-                      <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium leading-tight mt-0.5">BSC College program analytics and student tracking</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#7c191e] opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 mr-1 sm:mr-2">&rarr;</span>
-                </button>
-
-                <button
-                  id="role-btn-alumni"
-                  onClick={() => handleRoleSelect('Alumni')}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 sm:p-2.5 bg-[#7c191e]/10 text-[#7c191e] rounded-xl group-hover:bg-[#7c191e] group-hover:text-white transition-all duration-300 shrink-0">
-                      <Users className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs sm:text-sm font-extrabold text-slate-800 tracking-wide">College Graduate / Alumni</span>
-                      <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium leading-tight mt-0.5">Submit tracer logs, updates, and skill inventories</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#7c191e] opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 mr-1 sm:mr-2">&rarr;</span>
-                </button>
-
-                <button
-                  id="role-btn-employer"
-                  onClick={() => handleRoleSelect('Employer')}
-                  className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/70 hover:bg-[#7c191e]/5 hover:-translate-y-0.5 hover:shadow-md hover:border-[#7c191e]/30 border border-slate-200/80 rounded-xl transition-all duration-300 text-left group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 sm:p-2.5 bg-[#7c191e]/10 text-[#7c191e] rounded-xl group-hover:bg-[#7c191e] group-hover:text-white transition-all duration-300 shrink-0">
-                      <Briefcase className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs sm:text-sm font-extrabold text-slate-800 tracking-wide">Partner Employer / Company</span>
-                      <span className="block text-[9px] sm:text-[10px] text-slate-400 font-medium leading-tight mt-0.5">Post open vacancy bulletins and match skilled talent</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#7c191e] opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 mr-1 sm:mr-2">&rarr;</span>
-                </button>
-              </div>
-
-              <div className="pt-3 text-center border-t border-slate-100">
-                <span className="text-[9px] leading-relaxed text-slate-400 block font-medium">Batanes State College Graduate Tracer.</span>
-              </div>
-            </div>
-          ) : (
-            /* ========================================== */
-            /* STEP 2: FORM INPUT PARA SA CREDENTIALS     */
-            /* ========================================== */
-            <div className="space-y-4 animate-fade-in text-slate-800">
-              <div className="flex items-center gap-3 pb-2 mb-2 border-b border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleBackToRoles}
-                  className="px-2.5 py-1 text-xs border border-slate-200 hover:bg-slate-150 rounded-lg transition font-bold text-slate-650 cursor-pointer"
-                >
-                  &larr; Switch Role
-                </button>
-                <span className="text-xs font-extrabold text-[#7c191e]">Role: {selectedRole}</span>
-              </div>
               {errorMessage && (
                 <div role="alert" className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium">
                   {errorMessage}
@@ -952,15 +819,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     autoComplete="off"
                     value={userIdInput}
                     onChange={(e) => setUserIdInput(e.target.value)}
-                    placeholder={
-                      selectedRole === 'Alumni'
-                        ? 'e.g., BSC-2020-001'
-                        : selectedRole === 'Administrator'
-                          ? 'e.g., admin'
-                          : selectedRole === 'Department Chairperson'
-                            ? 'e.g., ICT Department, HTM Department'
-                            : 'Enter User ID / Username'
-                    }
+                    placeholder="Enter Student ID, Username, or Email (e.g. BSC-2020-001, admin)"
                     className="w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium"
                   />
                 </div>
@@ -995,7 +854,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                         setRecoveryError('');
                         setRecoverySuccess('');
                       }}
-                      className="text-[11px] font-bold text-[#7c191e] hover:underline"
+                      className="text-[11px] font-bold text-[#7c191e] hover:underline cursor-pointer"
                     >
                       Forgot Password?
                     </button>
@@ -1016,9 +875,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     <>Login to Dashboard &rarr;</>
                   )}
                 </button>
-
-
               </form>
+
+              <div className="pt-3 text-center border-t border-slate-100">
+                <span className="text-[9px] leading-relaxed text-slate-400 block font-medium">Batanes State College Graduate Tracer Portal</span>
+              </div>
             </div>
           )}
 
