@@ -9,8 +9,30 @@
 import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText, ChevronDown } from 'lucide-react';
-import { BSC_PROGRAMS } from '../../bscData';
+import { BSC_PROGRAMS, BSC_DEPARTMENTS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
+
+const isAlumnusInDepartment = (al, dept) => {
+  if (!al || dept === 'All') return true;
+  if (al.department) {
+    const normDept = dept.toLowerCase();
+    const normAlDept = al.department.toLowerCase();
+    if (normAlDept === normDept || normAlDept.includes(normDept) || normDept.includes(normAlDept)) {
+      return true;
+    }
+  }
+  if (!al.program) return false;
+  const normProg = al.program.toLowerCase();
+  const normTargetDept = dept.toLowerCase();
+  if (normProg === normTargetDept || normProg.includes(normTargetDept) || normTargetDept.includes(normProg)) {
+    return true;
+  }
+  const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+  return allowed.some(p => {
+    const normAllowed = p.toLowerCase();
+    return normProg.includes(normAllowed) || normAllowed.includes(normProg);
+  });
+};
 
 /**
  * Calculates age dynamically based on a birth date string.
@@ -50,12 +72,33 @@ const getHeatGlowColor = (pct) => {
  * @param {Object} props.activeUser - Detalye ng kasalukuyang logged-in user para sa role-based page locks.
  */
 export default function ReportsView({ alumniList, activeUser }) {
+  // Flag para malaman kung ang kasalukuyang session ay naka-lock sa partikular na Department Chairperson
+  const isChairperson = activeUser?.role === 'Department Chairperson';
+  const chairDept = activeUser?.program || '';
+
   // Mga filter para ma-query ang database dynamic dataset on the fly
+  const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
 
   // State para sa custom export selection dropdown menu
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // Available programs based on department
+  const effectiveDepartment = isChairperson ? chairDept : selectedDepartment;
+  const availablePrograms = effectiveDepartment === 'All'
+    ? BSC_PROGRAMS
+    : (DEPARTMENT_TO_PROGRAMS[effectiveDepartment] || BSC_PROGRAMS);
+
+  const handleDepartmentChange = (dept) => {
+    setSelectedDepartment(dept);
+    if (dept !== 'All') {
+      const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+      if (selectedProgram !== 'All' && !allowed.includes(selectedProgram)) {
+        setSelectedProgram('All');
+      }
+    }
+  };
 
   // Helper function para sa pag-export ng dataset patungong CSV file format
   const handleExportCSV = () => {
@@ -77,12 +120,14 @@ export default function ReportsView({ alumniList, activeUser }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `BSC_CHED_Tracer_Report_${isChairperson ? (activeUser?.program || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`);
+    const activeDeptName = isChairperson ? chairDept : selectedDepartment;
+    const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+    link.setAttribute('download', `BSC_CHED_Tracer_Report_${deptSlug}_${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    alert(`COMPLETED! Prepared official tracer metrics spreadsheet for ${isChairperson ? (activeUser?.program || 'Department') : 'Batanes State College'} comprising ${filteredAlumni.length} graduates.`);
+    alert(`COMPLETED! Prepared official tracer metrics spreadsheet for ${activeDeptName === 'All' ? 'Batanes State College' : activeDeptName} comprising ${filteredAlumni.length} graduates.`);
   };
 
   // State para sa coordinates ng floating tooltip sa mga nodes ng trend line graph
@@ -106,11 +151,17 @@ export default function ReportsView({ alumniList, activeUser }) {
   }, []);
 
   // Kinukuha ang mga unique graduation years nang dynamic para sa selection filters
-  const graduationYears = Array.from(new Set(alumniList.map(a => a.yearGraduated.toString()))).sort();
+  const graduationYears = Array.from(new Set(alumniList.filter(a => a.yearGraduated).map(a => a.yearGraduated.toString()))).sort();
 
-  // Fina-filter ang mga alumni base sa piniling graduation year at program specialization
+  // Fina-filter ang mga alumni base sa piniling departamento, graduation year, at program specialization
   const filteredAlumni = alumniList.filter(a => {
-    const matchesYear = selectedYear === 'All' || a.yearGraduated.toString() === selectedYear;
+    if (isChairperson && chairDept && !isAlumnusInDepartment(a, chairDept)) {
+      return false;
+    }
+    if (!isChairperson && !isAlumnusInDepartment(a, selectedDepartment)) {
+      return false;
+    }
+    const matchesYear = selectedYear === 'All' || (a.yearGraduated && a.yearGraduated.toString() === selectedYear);
     const matchesProgram = selectedProgram === 'All' || (
       a.program && (
         a.program.toLowerCase() === selectedProgram.toLowerCase() ||
@@ -522,8 +573,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const boardPassers = filteredAlumni.filter(a => a.isBoardPasser === 'Yes').length;
   const boardPassingRate = batchWithBoardExam.length > 0 ? Math.round((boardPassers / batchWithBoardExam.length) * 100) : 'N/A';
 
-  // Flag para malaman kung ang kasalukuyang session ay naka-lock sa partikular na Department Chairperson
-  const isChairperson = activeUser?.role === 'Department Chairperson';
+
 
 
   return (
@@ -576,7 +626,9 @@ export default function ReportsView({ alumniList, activeUser }) {
                   <button
                     onClick={() => {
                       setExportDropdownOpen(false);
-                      exportToPDF('main-content-stage', 'BSC_Tracer_Reports_Analytics.pdf');
+                      const activeDeptName = isChairperson ? chairDept : selectedDepartment;
+                      const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+                      exportToPDF('main-content-stage', `BSC_Tracer_Reports_Analytics_${deptSlug}_${selectedYear}.pdf`);
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
                   >
@@ -605,6 +657,23 @@ export default function ReportsView({ alumniList, activeUser }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* Selector ng Department (Admin only) */}
+          {!isChairperson && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
+              <span className="shrink-0 text-[11px] uppercase tracking-wider font-bold">Department:</span>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
+                className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+              >
+                <option value="All">All Departments</option>
+                {BSC_DEPARTMENTS.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Selector para sa Taon ng Pagtatapos */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
             <span className="shrink-0 text-[11px] uppercase tracking-wider font-bold">Class Year:</span>
@@ -620,7 +689,7 @@ export default function ReportsView({ alumniList, activeUser }) {
             </select>
           </div>
 
-          {/* Selector ng Program (Naka-disable para sa Chairperson dahil program-locked na sila sa sariling department) */}
+          {/* Selector ng Program */}
           {!isChairperson && (
             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold w-full sm:w-auto">
               <span className="shrink-0 text-[11px] uppercase tracking-wider font-bold">Program:</span>
@@ -630,7 +699,7 @@ export default function ReportsView({ alumniList, activeUser }) {
                 className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
               >
                 <option value="All">All Specializations</option>
-                {BSC_PROGRAMS.map(prog => (
+                {availablePrograms.map(prog => (
                   <option key={prog} value={prog}>{prog}</option>
                 ))}
               </select>

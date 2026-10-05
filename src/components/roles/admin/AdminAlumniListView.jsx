@@ -7,8 +7,30 @@
 
 import React, { useState } from 'react';
 import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet, AlertTriangle, CheckSquare } from 'lucide-react';
-import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
+import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS, BSC_DEPARTMENTS } from '../../../bscData';
 import { exportToPDF } from '../../../utils/pdfExport';
+
+const isAlumnusInDepartment = (al, dept) => {
+  if (!al || dept === 'All') return true;
+  if (al.department) {
+    const normDept = dept.toLowerCase();
+    const normAlDept = al.department.toLowerCase();
+    if (normAlDept === normDept || normAlDept.includes(normDept) || normDept.includes(normAlDept)) {
+      return true;
+    }
+  }
+  if (!al.program) return false;
+  const normProg = al.program.toLowerCase();
+  const normTargetDept = dept.toLowerCase();
+  if (normProg === normTargetDept || normProg.includes(normTargetDept) || normTargetDept.includes(normProg)) {
+    return true;
+  }
+  const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+  return allowed.some(p => {
+    const normAllowed = p.toLowerCase();
+    return normProg.includes(normAllowed) || normAllowed.includes(normProg);
+  });
+};
 
 export default function AdminAlumniListView({ 
   alumniList, 
@@ -20,10 +42,32 @@ export default function AdminAlumniListView({
   onDeleteAlumni,
   onDeleteMultipleAlumni
 }) {
+  const isChairperson = activeUser.role === 'Department Chairperson';
+  const chairProg = activeUser.program || '';
+
   // Mga lokal na state para sa pagsala (filter) ng mga alumni records
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+
+  const graduationYears = Array.from(new Set(alumniList.filter(a => a.yearGraduated).map(a => a.yearGraduated.toString()))).sort();
+
+  const effectiveDepartment = isChairperson ? chairProg : selectedDepartment;
+  const availablePrograms = effectiveDepartment === 'All'
+    ? BSC_PROGRAMS
+    : (DEPARTMENT_TO_PROGRAMS[effectiveDepartment] || BSC_PROGRAMS);
+
+  const handleDepartmentChange = (dept) => {
+    setSelectedDepartment(dept);
+    if (dept !== 'All') {
+      const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+      if (selectedProgram !== 'All' && !allowed.includes(selectedProgram)) {
+        setSelectedProgram('All');
+      }
+    }
+  };
 
   // State para sa multi-select at bulk delete
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
@@ -50,7 +94,9 @@ export default function AdminAlumniListView({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `BSC_Graduates_Directory_Report_2026.csv`);
+    const activeDeptName = isChairperson ? chairProg : selectedDepartment;
+    const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+    link.setAttribute('download', `BSC_Graduates_Directory_${deptSlug}_${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -71,23 +117,19 @@ export default function AdminAlumniListView({
                           (al.isRegistered && al.employmentStatus === selectedStatus);
     
     // Pagsuri sa role ng Chairperson: limitahan ang pagtingin sa mga graduate lang ng kaniyang program/department
-    let matchesChair = true;
-    if (activeUser.role === 'Department Chairperson' && activeUser.program) {
-      const chairProg = activeUser.program;
-      const normalizedAl = al.program.toLowerCase();
-      const normalizedChair = chairProg.toLowerCase();
-      if (normalizedAl === normalizedChair || normalizedAl.includes(normalizedChair) || normalizedChair.includes(normalizedAl)) {
-        matchesChair = true;
-      } else {
-        const allowed = DEPARTMENT_TO_PROGRAMS[chairProg] || [];
-        matchesChair = allowed.some(allowedProg => {
-          const normalizedAllowed = allowedProg.toLowerCase();
-          return normalizedAl.includes(normalizedAllowed) || normalizedAllowed.includes(normalizedAl);
-        });
-      }
+    if (isChairperson && !isAlumnusInDepartment(al, chairProg)) {
+      return false;
     }
 
-    return matchesSearch && matchesProgram && matchesStatus && matchesChair;
+    // Department filter para sa Admin
+    if (!isChairperson && !isAlumnusInDepartment(al, selectedDepartment)) {
+      return false;
+    }
+
+    // Class Year filter
+    const matchesYear = selectedYear === 'All' || (al.yearGraduated && al.yearGraduated.toString() === selectedYear);
+
+    return matchesSearch && matchesProgram && matchesStatus && matchesYear;
   });
 
   // Helper properties para sa multi-select selection state
@@ -135,20 +177,48 @@ export default function AdminAlumniListView({
             />
           </div>
 
+          {/* Dropdown menu para sa Department (Admin only) */}
+          {!isChairperson && (
+            <select
+              id="filter-department"
+              value={selectedDepartment}
+              onChange={(e) => handleDepartmentChange(e.target.value)}
+              className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
+            >
+              <option value="All">All Departments</option>
+              {BSC_DEPARTMENTS.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Dropdown menu para sa Class Year */}
+          <select
+            id="filter-year"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold cursor-pointer focus:outline-none"
+          >
+            <option value="All">All Years</option>
+            {graduationYears.map(yr => (
+              <option key={yr} value={yr}>Class of {yr}</option>
+            ))}
+          </select>
+
           {/* Dropdown menu para sa tinapos na program */}
           <select
             id="filter-program"
-            value={activeUser.role === 'Department Chairperson' ? (activeUser.program || 'BS Information Technology') : selectedProgram}
+            value={isChairperson ? (chairProg || 'BS Information Technology') : selectedProgram}
             onChange={(e) => setSelectedProgram(e.target.value)}
-            disabled={activeUser.role === 'Department Chairperson'}
+            disabled={isChairperson}
             className="bg-slate-55 border border-slate-200 rounded-lg p-2 text-xs font-semibold disabled:bg-slate-100 disabled:text-slate-550 disabled:cursor-not-allowed cursor-pointer focus:outline-none"
           >
-            {activeUser.role === 'Department Chairperson' ? (
-              <option value={activeUser.program}>{activeUser.program}</option>
+            {isChairperson ? (
+              <option value={chairProg}>{chairProg}</option>
             ) : (
               <>
                 <option value="All">All Programs</option>
-                {BSC_PROGRAMS.map(p => (
+                {availablePrograms.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </>
@@ -212,7 +282,9 @@ export default function AdminAlumniListView({
                   <button
                     onClick={() => {
                       setExportDropdownOpen(false);
-                      exportToPDF('main-content-stage', 'BSC_Graduates_Directory_Report.pdf');
+                      const activeDeptName = isChairperson ? chairProg : selectedDepartment;
+                      const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+                      exportToPDF('main-content-stage', `BSC_Graduates_Directory_${deptSlug}_${selectedYear}.pdf`);
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
                   >

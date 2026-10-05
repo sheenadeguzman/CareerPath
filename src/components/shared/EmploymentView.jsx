@@ -15,13 +15,41 @@ import {
   ChevronDown,
   FileSpreadsheet
 } from 'lucide-react';
-import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
+import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS, BSC_DEPARTMENTS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
 import EmploymentAnalytics from './components/EmploymentAnalytics';
 import EmploymentDirectory from './components/EmploymentDirectory';
 
+const isAlumnusInDepartment = (al, dept) => {
+  if (!al || dept === 'All') return true;
+  if (al.department) {
+    const normDept = dept.toLowerCase();
+    const normAlDept = al.department.toLowerCase();
+    if (normAlDept === normDept || normAlDept.includes(normDept) || normDept.includes(normAlDept)) {
+      return true;
+    }
+  }
+  if (!al.program) return false;
+  const normProg = al.program.toLowerCase();
+  const normTargetDept = dept.toLowerCase();
+  if (normProg === normTargetDept || normProg.includes(normTargetDept) || normTargetDept.includes(normProg)) {
+    return true;
+  }
+  const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+  return allowed.some(p => {
+    const normAllowed = p.toLowerCase();
+    return normProg.includes(normAllowed) || normAllowed.includes(normProg);
+  });
+};
+
 export default function EmploymentView({ alumniList = [], activeUser }) {
+  // Tinitiyak kung ang logged-in user ay Department Chairperson para i-restrict ang scope sa program nila
+  const isChairperson = activeUser?.role === 'Department Chairperson';
+  const chairProgram = activeUser?.program || '';
+  const isAdminOrChair = activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin' || activeUser?.role === 'Department Chairperson';
+
   // --- MGA FILTERS AT SEARCH STATES ---
+  const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -29,22 +57,32 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
+  // Available programs based on department
+  const effectiveDepartment = isChairperson ? chairProgram : selectedDepartment;
+  const availablePrograms = effectiveDepartment === 'All'
+    ? BSC_PROGRAMS
+    : (DEPARTMENT_TO_PROGRAMS[effectiveDepartment] || BSC_PROGRAMS);
+
+  const handleDepartmentChange = (dept) => {
+    setSelectedDepartment(dept);
+    if (dept !== 'All') {
+      const allowed = DEPARTMENT_TO_PROGRAMS[dept] || [];
+      if (selectedProgram !== 'All' && !allowed.includes(selectedProgram)) {
+        setSelectedProgram('All');
+      }
+    }
+  };
+
   // Ref hooks para sa pagpapakita ng Leaflet Map
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapLayersRef = useRef([]);
 
-  // Tinitiyak kung ang logged-in user ay Department Chairperson para i-restrict ang scope sa program nila
-  const isChairperson = activeUser?.role === 'Department Chairperson';
-  const chairProgram = activeUser?.program || '';
-  const isAdminOrChair = activeUser?.role === 'Administrator' || activeUser?.role === 'Super Admin' || activeUser?.role === 'Department Chairperson';
-
-
   // Awtomatikong nililimitahan ang program kung chairperson ang naka-login
   const effectiveProgram = isChairperson ? chairProgram : selectedProgram;
 
   // Kunin ang mga natatanging taon ng pagtatapos (Class Year) mula sa alumni list para sa dropdown options
-  const graduationYears = Array.from(new Set(alumniList.map(a => a.yearGraduated.toString()))).sort();
+  const graduationYears = Array.from(new Set(alumniList.filter(a => a.yearGraduated).map(a => a.yearGraduated.toString()))).sort();
 
    // Inject Leaflet CSS dynamically
   useEffect(() => {
@@ -64,22 +102,17 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
     const normalizedAl = a.program.toLowerCase();
 
     // 1. Kung chairperson, ipakita lang ang graduates ng kanilang departamento
-    let matchesDept = true;
-    if (isChairperson) {
-      const normalizedChair = chairProgram.toLowerCase();
-      if (normalizedAl === normalizedChair || normalizedAl.includes(normalizedChair) || normalizedChair.includes(normalizedAl)) {
-        matchesDept = true;
-      } else {
-        const allowed = DEPARTMENT_TO_PROGRAMS[chairProgram] || [];
-        matchesDept = allowed.some(allowedProg => {
-          const normalizedAllowed = allowedProg.toLowerCase();
-          return normalizedAl.includes(normalizedAllowed) || normalizedAllowed.includes(normalizedAl);
-        });
-      }
+    if (isChairperson && !isAlumnusInDepartment(a, chairProgram)) {
+      return false;
     }
 
-    // 2. Iba pang interactive dashboard filters
-    const matchesYear = selectedYear === 'All' || a.yearGraduated.toString() === selectedYear;
+    // 2. Department filter para sa Admin
+    if (!isChairperson && !isAlumnusInDepartment(a, selectedDepartment)) {
+      return false;
+    }
+
+    // 3. Iba pang interactive dashboard filters
+    const matchesYear = selectedYear === 'All' || (a.yearGraduated && a.yearGraduated.toString() === selectedYear);
     const matchesProgram = isChairperson || effectiveProgram === 'All' || (
       normalizedAl === effectiveProgram.toLowerCase() ||
       normalizedAl.includes(effectiveProgram.toLowerCase()) ||
@@ -109,7 +142,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
       (a.employerName || '').toLowerCase().includes(searchLower) ||
       a.studentId.toLowerCase().includes(searchLower);
 
-    return matchesDept && matchesYear && matchesProgram && matchesStatus && matchesRelated && matchesSearch;
+    return matchesYear && matchesProgram && matchesStatus && matchesRelated && matchesSearch;
   });
 
   const totalInScope = filteredAlumni.length;
@@ -332,7 +365,9 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `BSC_Employment_Tracer_Report_${isChairperson ? (chairProgram || 'Department').replace(/\s+/g, '_') : 'BSC'}_2026.csv`);
+    const activeDeptName = isChairperson ? chairProgram : selectedDepartment;
+    const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+    link.setAttribute('download', `BSC_Employment_Tracer_Report_${deptSlug}_${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -393,7 +428,9 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
                     <button
                       onClick={() => {
                         setExportDropdownOpen(false);
-                        exportToPDF('main-content-stage', 'BSC_Employment_Analytics_Report.pdf');
+                        const activeDeptName = isChairperson ? chairProgram : selectedDepartment;
+                        const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+                        exportToPDF('main-content-stage', `BSC_Employment_Analytics_Report_${deptSlug}_${selectedYear}.pdf`);
                       }}
                       className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer text-slate-700 text-xs font-bold"
                     >
@@ -419,6 +456,23 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
       <div className="bg-slate-100/60 border border-slate-200/60 p-4 rounded-xl space-y-3 shadow-3xs no-print">
         <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
           
+          {/* Interactive Department Filter (Hidden for Chairperson since their view is restricted) */}
+          {!isChairperson && (
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Department:</span>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
+                className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
+              >
+                <option value="All">All Departments</option>
+                {BSC_DEPARTMENTS.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Interactive Class Year Filter */}
           <div className="flex items-center gap-1.5 w-full sm:w-auto">
             <span className="shrink-0 text-[10px] uppercase tracking-wider text-slate-400">Class Year:</span>
@@ -444,7 +498,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
                 className="bg-white border border-slate-200 text-xs font-bold p-1.5 rounded-lg text-slate-800 cursor-pointer w-full sm:w-auto"
               >
                 <option value="All">All Course Programs</option>
-                {BSC_PROGRAMS.map(prog => (
+                {availablePrograms.map(prog => (
                   <option key={prog} value={prog}>{prog}</option>
                 ))}
               </select>
