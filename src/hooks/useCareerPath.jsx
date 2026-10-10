@@ -382,8 +382,35 @@ export function useCareerPath() {
       if (cached) {
         try {
           const db = JSON.parse(cached);
+          const sanitized = (db.alumni || []).map(al => {
+            const comp = calculateProfileCompleteness(al);
+            if (comp === 0) {
+              return {
+                ...al,
+                hasLoggedIn: false,
+                employmentStatus: 'No Response',
+                profileCompleteness: 0,
+                phone: '',
+                gender: '',
+                civilStatus: '',
+                dateOfBirth: '',
+                address: '',
+                currentAddress: '',
+                permanentAddress: '',
+                jobTitle: '',
+                jobDescription: '',
+                employerName: '',
+                employmentType: '',
+                sector: 'N/A',
+                monthlyIncome: '',
+                jobIndustry: '',
+                skills: []
+              };
+            }
+            return { ...al, hasLoggedIn: true, profileCompleteness: comp };
+          });
           setUsers(db.users || []);
-          setAlumniList(db.alumni || []);
+          setAlumniList(sanitized);
           setEmployers(db.employers || []);
           setJobPostings(db.jobPostings || []);
           setSurveys(db.surveys || []);
