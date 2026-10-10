@@ -65,9 +65,9 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const fullTimeCount = employedList.filter(a => a.employmentStatus === 'Employed').length;
   const freelanceCount = employedList.filter(a => a.employmentStatus === 'Freelance').length;
   const selfCount = employedList.filter(a => a.employmentStatus === 'Self-Employed').length;
-  const studyCount = registeredInScope.filter(a => a.employmentStatus === 'Further Studies').length;
-  const unemployedCount = registeredInScope.filter(a => a.employmentStatus === 'Unemployed').length;
-  const noResponseStatusCount = registeredInScope.filter(a =>
+  const studyCount = respondingInScope.filter(a => a.employmentStatus === 'Further Studies').length;
+  const unemployedCount = respondingInScope.filter(a => a.employmentStatus === 'Unemployed').length;
+  const noResponseStatusCount = filteredAlumni.filter(a =>
     !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
   ).length;
 

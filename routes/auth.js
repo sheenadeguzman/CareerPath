@@ -150,7 +150,7 @@ router.post('/login', async (req, res) => {
       // I-update ang has_logged_in at last_login sa database
       try {
         await pool.query('UPDATE users SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
-        await pool.query('UPDATE alumni_profiles SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE student_id = ?', [user.id]);
+        await pool.query('UPDATE alumni_profiles SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE student_id = ? OR student_id = ?', [user.id, user.userId]);
       } catch (e) { }
 
       // I-return ang token at mga kailangang user details sa frontend client
@@ -242,7 +242,7 @@ router.post('/verify-mfa', async (req, res) => {
         ]
       );
       await pool.query('UPDATE users SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
-      await pool.query('UPDATE alumni_profiles SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE student_id = ?', [user.id]);
+      await pool.query('UPDATE alumni_profiles SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE student_id = ? OR student_id = ?', [user.id, user.userId]);
     } catch (e) { }
 
     return res.json({
@@ -505,7 +505,7 @@ router.post('/change-password', async (req, res) => {
     // I-hash at palitan ang password sa database, at i-set ang is_initial_password_needed sa 0 (ibig sabihin pinalitan na ang default)
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await pool.query('UPDATE users SET password = ?, is_initial_password_needed = 0, has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE id = ?', [hashedPassword, user.id]);
-    await pool.query('UPDATE alumni_profiles SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE student_id = ?', [user.id]);
+    await pool.query('UPDATE alumni_profiles SET has_logged_in = 1, last_login = CURRENT_TIMESTAMP WHERE student_id = ? OR student_id = ?', [user.id, user.userId]);
 
     // I-log ang security event na ito
     const newLog = {
