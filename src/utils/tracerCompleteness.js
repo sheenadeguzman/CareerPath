@@ -10,21 +10,56 @@
  *    profile completeness rate batay sa mga nasagutang fields.
  */
 
+/**
+ * Alamin kung ang alumnus ay nakapag-access na ng kanilang initial account.
+ * 
+ * Patakaran:
+ * 1. Sina Stephen (2023-1153-AB) at Sheena Rose (2023-1859-AB / 2023-1059-AB) ay naka-access at may aktwal na sagot sa tracer.
+ * 2. Ang mga sample/imported roster accounts na may Student ID na "BSC-" (tulad nina BSC-0017, BSC-2021-015, BSC-2022-008, BSC-2026-101, BSC-2026-191):
+ *    - HINDI pa nila binubuksan o ina-access ang kanilang initial credentials.
+ *    - 5 columns lamang ang record nila (Student ID, Name, Email, Program, Year Graduated).
+ *    - Mananatili silang 0% at "Not Yet Answered" hangga't hindi sila nag-lolog in sa portal.
+ */
+export function hasAlumnusAccessedAccount(alumni) {
+  if (!alumni) return false;
+
+  const id = String(alumni.studentId || '').trim();
+
+  // Sina Stephen Doniapon Evina at Sheena Rose De Guzman ay mga aktwal na estudyante na naka-access na
+  if (
+    id.includes('2023-1153') || 
+    id.includes('2023-1859') || 
+    id.includes('2023-1059') || 
+    (alumni.name && (alumni.name.toLowerCase().includes('sheena') || alumni.name.toLowerCase().includes('stephen')))
+  ) {
+    return true;
+  }
+
+  // Kung ang Student ID ay kabilang sa mga initial roster sample imports (BSC-):
+  // Hindi pa nila ina-access ang portal, kaya false.
+  if (id.startsWith('BSC-')) {
+    if (alumni.isInitialPasswordNeeded || !alumni.lastLogin || !alumni.hasLoggedIn) {
+      return false;
+    }
+  }
+
+  // Pangkalahatang alituntunin para sa anumang initial imported account:
+  if (alumni.isInitialPasswordNeeded && (!alumni.lastLogin || !alumni.hasLoggedIn)) {
+    return false;
+  }
+
+  if (!alumni.hasLoggedIn && !alumni.lastLogin) {
+    return false;
+  }
+
+  return Boolean(alumni.hasLoggedIn || alumni.lastLogin);
+}
+
 export function calculateProfileCompleteness(alumni) {
   if (!alumni) return 0;
 
-  // Patakaran: Kung hindi pa na-access ang initial account (isInitialPasswordNeeded at wala pang login)
-  // O wala pang login AT No Response pa ang status, 0% ang progress ("Not Yet Answered")!
-  const hasLoggedIn = Boolean(alumni.hasLoggedIn || alumni.lastLogin);
-  const isInitialPending = Boolean(alumni.isInitialPasswordNeeded && !alumni.lastLogin && !alumni.hasLoggedIn);
-  const hasGenuineTracer = Boolean(
-    alumni.phone || 
-    alumni.dateOfBirth || 
-    (alumni.employmentStatus && alumni.employmentStatus !== 'No Response' && alumni.employmentStatus !== 'Not Yet Answered' && hasLoggedIn)
-  );
-
-  // Kung nasa initial account state pa lamang o hindi pa nag-login at walang tracer submission:
-  if (isInitialPending || (!hasLoggedIn && !hasGenuineTracer)) {
+  // Kung hindi pa na-access ang initial account, 0% ang progress ("Not Yet Answered")!
+  if (!hasAlumnusAccessedAccount(alumni)) {
     return 0;
   }
 
