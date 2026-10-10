@@ -24,12 +24,17 @@ const calculateAge = (dobString) => {
 export default function AlumniProfileModal({ alumni, onClose }) {
   const completeness = calculateProfileCompleteness(alumni);
 
+  const isUnaccessed = !alumni.hasLoggedIn || completeness === 0 || alumni.employmentStatus === 'No Response' || alumni.employmentStatus === 'Not Yet Answered';
+
   /**
    * Helper function para mag-render ng custom styled badge na kumakatawan sa kasalukuyang employment status.
    * @param {string} status - Katayuan ng trabaho (Employment status).
    * @returns {JSX.Element}
    */
   const renderStatusBadge = (status) => {
+    if (isUnaccessed) {
+      return <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-slate-200">Not Yet Answered</span>;
+    }
     switch (status) {
       case 'Employed':
         return <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-200">Employed</span>;
@@ -42,7 +47,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
       case 'Unemployed':
         return <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-rose-200">Unemployed</span>;
       default:
-        return <span className="bg-slate-100 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">{status}</span>;
+        return <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-slate-200">Not Yet Answered</span>;
     }
   };
 
@@ -90,7 +95,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                 />
               ) : (
                 <div className="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl font-bold font-sans uppercase">
-                  {alumni.firstName.charAt(0)}{alumni.lastName.charAt(0)}
+                  {(alumni.firstName || alumni.name || 'A').charAt(0)}{(alumni.lastName || '').charAt(0)}
                 </div>
               )}
               <div className="space-y-1">
@@ -108,20 +113,26 @@ export default function AlumniProfileModal({ alumni, onClose }) {
           </div>
 
           {/* Tracker bar para sa Profile Completeness */}
-          <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100/50 space-y-2">
+          <div className={`${isUnaccessed ? 'bg-slate-50 border-slate-200' : 'bg-emerald-50/50 border-emerald-100/50'} rounded-xl p-4 border space-y-2`}>
             <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-[#1e4620] flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" />Profile Completeness
+              <span className={`${isUnaccessed ? 'text-slate-600' : 'text-[#1e4620]'} flex items-center gap-1.5`}>
+                <CheckCircle2 className={`w-4 h-4 ${isUnaccessed ? 'text-slate-400' : 'text-emerald-600'}`} />Profile Completeness
               </span>
-              <span className="text-emerald-700">{completeness}% Verified</span>
+              <span className={isUnaccessed ? 'text-slate-500 font-bold' : 'text-emerald-700 font-bold'}>
+                {completeness}% {isUnaccessed ? '(Not Yet Answered)' : 'Verified'}
+              </span>
             </div>
             <div className="h-2.5 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50">
               <div
-                className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                className={`h-full rounded-full transition-all duration-500 ${isUnaccessed ? 'bg-slate-300' : 'bg-emerald-600'}`}
                 style={{ width: `${completeness}%` }}
               />
             </div>
-            <p className="text-[10px] text-slate-400">Complete profiles help Batanes State College satisfy its tracer evaluation standards.</p>
+            <p className="text-[10px] text-slate-400">
+              {isUnaccessed 
+                ? 'Initial account from imported roster. Waiting for graduate to access portal and submit tracer study.'
+                : 'Complete profiles help Batanes State College satisfy its tracer evaluation standards.'}
+            </p>
           </div>
 
           {/* Breakdown ng mga pangunahing demographic variables */}
@@ -137,41 +148,41 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Email:</span>
-                  <span className="text-slate-800 truncate select-all">{alumni.email}</span>
+                  <span className="text-slate-800 truncate select-all">{alumni.email || '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Phone:</span>
-                  <span className="text-slate-800">{alumni.phone || 'N/A'}</span>
+                  <span className="text-slate-800">{alumni.phone || '— (Not Yet Provided)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Birth Date:</span>
-                  <span className="text-slate-800">{alumni.dateOfBirth || 'N/A'}</span>
+                  <span className="text-slate-800">{alumni.dateOfBirth || '— (Not Yet Provided)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Age:</span>
-                  <span className="text-slate-800">{calculateAge(alumni.dateOfBirth) || 'N/A'}</span>
+                  <span className="text-slate-800">{calculateAge(alumni.dateOfBirth) || '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Gender:</span>
-                  <span className="text-slate-800">{alumni.gender}</span>
+                  <span className="text-slate-800">{alumni.gender || '— (Not Yet Provided)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-400 w-20 shrink-0">Civil Status:</span>
-                  <span className="text-slate-800">{alumni.civilStatus}</span>
+                  <span className="text-slate-800">{alumni.civilStatus || '— (Not Yet Provided)'}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Home className="w-4 h-4 text-slate-400 mt-0.5" />
                   <span className="text-slate-400 w-20 shrink-0">Home Address:</span>
-                  <span className="text-slate-800">{alumni.address || 'Basco, Batanes'}</span>
+                  <span className="text-slate-800">{alumni.address || '— (Not Yet Provided)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 w-20 shrink-0">Location:</span>
-                  <span className="text-slate-800 font-bold">{alumni.locationRegion || 'Local (Batanes)'}</span>
+                  <span className="text-slate-800 font-bold">{alumni.locationRegion || '— (Not Yet Provided)'}</span>
                 </div>
               </div>
             </div>
@@ -194,7 +205,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                   </div>
                   <div className="text-right">
                     <span className="block text-[10px] text-slate-400 uppercase font-bold">Honors Distinction</span>
-                    <span className="block text-amber-600 font-bold">{alumni.honors || 'None'}</span>
+                    <span className="block text-amber-600 font-bold">{alumni.honors && alumni.honors !== 'None' ? alumni.honors : 'None Listed'}</span>
                   </div>
                 </div>
                 <div>
@@ -202,7 +213,7 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                     <Award className="w-3.5 h-3.5 text-amber-500" /> Professional Certification / Board Exams:
                   </span>
                   <span className="block text-slate-800 bg-amber-50 border border-amber-200/50 p-2 rounded-lg mt-1 font-semibold">
-                    {alumni.professionalExamPassed || 'None Listed'}
+                    {alumni.professionalExamPassed && alumni.professionalExamPassed !== 'None' ? alumni.professionalExamPassed : 'None Listed'}
                   </span>
                 </div>
 
@@ -232,7 +243,19 @@ export default function AlumniProfileModal({ alumni, onClose }) {
               <Briefcase className="w-3.5 h-3.5" /> Tracer Employment Parameters (Standard Aligned)
             </h3>
 
-            {alumni.employmentStatus === 'Unemployed' ? (
+            {isUnaccessed ? (
+              <div className="p-5 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center space-y-2">
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700">
+                  Initial Account Pending Access
+                </span>
+                <p className="text-xs font-bold text-slate-700">
+                  No Tracer Employment Responses Recorded Yet
+                </p>
+                <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                  This record only contains the 5 imported academic roster fields (Student ID, Name, Email, Program, and Year Graduated). Employment details will be recorded once the graduate accesses their portal and submits the tracer form.
+                </p>
+              </div>
+            ) : alumni.employmentStatus === 'Unemployed' ? (
               <div className="p-4 bg-slate-50 rounded-xl text-center text-xs text-slate-500 font-medium border border-slate-100">
                 This graduate is currently listed as <span className="font-bold text-rose-600">Unemployed</span>.
                 Keep updating profile details upon employment transitions.
@@ -244,13 +267,13 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                     <span className="text-slate-400 font-bold block mb-1">Company / Institution</span>
                     <span className="text-slate-800 font-bold flex items-center gap-1">
-                      <Briefcase className="w-3.5 h-3.5 text-slate-400" /> {alumni.employerName || 'N/A'}
+                      <Briefcase className="w-3.5 h-3.5 text-slate-400" /> {alumni.employerName || '—'}
                     </span>
                   </div>
                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                     <span className="text-slate-400 font-bold block mb-1">Official Job Title</span>
                     <span className="text-slate-800 font-bold flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-slate-400" /> {alumni.jobTitle || 'N/A'}
+                      <Award className="w-3.5 h-3.5 text-slate-400" /> {alumni.jobTitle || '—'}
                     </span>
                   </div>
                 </div>
@@ -258,30 +281,30 @@ export default function AlumniProfileModal({ alumni, onClose }) {
                 <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg">
                   <span className="block font-bold text-slate-400 text-xs mb-1.5">Official Job Description</span>
                   <p className="text-slate-700 text-xs leading-relaxed font-semibold">
-                    {alumni.jobDescription || 'None provided. Ask graduate to submit update.'}
+                    {alumni.jobDescription || 'None provided.'}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-xs">
                   <div className="p-2 border border-slate-100 rounded bg-white">
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Employment Type</span>
-                    <span className="font-semibold text-slate-800">{alumni.employmentType || 'Permanent'}</span>
+                    <span className="font-semibold text-slate-800">{alumni.employmentType || '—'}</span>
                   </div>
                   <div className="p-2 border border-slate-100 rounded bg-white">
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Sector Category</span>
-                    <span className="font-semibold text-slate-800">{alumni.sector || 'Private'}</span>
+                    <span className="font-semibold text-slate-800">{alumni.sector || '—'}</span>
                   </div>
                   <div className="p-2 border border-slate-100 rounded bg-white">
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Monthly Income</span>
-                    <span className="font-semibold text-[#1e4620]">{alumni.monthlyIncome || 'M 20,000-30,000'}</span>
+                    <span className="font-semibold text-[#1e4620]">{alumni.monthlyIncome || '—'}</span>
                   </div>
                   <div className="p-2 border border-slate-100 rounded bg-white">
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Industry / Field</span>
-                    <span className="font-semibold text-slate-800">{alumni.jobIndustry || 'N/A'}</span>
+                    <span className="font-semibold text-slate-800">{alumni.jobIndustry || '—'}</span>
                   </div>
                   <div className="p-2 border border-slate-100 rounded bg-white">
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Is related to Degree</span>
-                    <span className="font-semibold text-slate-800">{alumni.jobRelatedToCourse || 'Yes'}</span>
+                    <span className="font-semibold text-slate-800">{alumni.jobRelatedToCourse || '—'}</span>
                   </div>
                 </div>
               </div>

@@ -86,6 +86,24 @@ export function mapAlumniFromDB(row) {
   const decMiddle = decrypt(row.middle_name) || '';
   const decLast = decrypt(row.last_name);
 
+  // Alamin kung ang account ay nasa initial un-accessed status pa lamang:
+  // Kung kailangan pa palitan ang initial password (is_initial_password_needed) at wala pang login o genuine tracer submission,
+  // 5 columns lamang ang dapat nakatala sa kanila (Student ID, Name, Email, Program, Year Graduated).
+  const hasGenuineTracerSubmission = Boolean(
+    row.phone || 
+    row.date_of_birth || 
+    (row.employment_status === 'Employed' && (row.employer_name || row.job_title)) ||
+    (row.employment_status === 'Unemployed' && (row.reasons_unemployment || row.phone || row.date_of_birth))
+  );
+
+  const isInitialPending = Boolean(
+    (row.is_initial_password_needed && !row.last_login && !row.has_logged_in && !hasGenuineTracerSubmission) ||
+    (!row.has_logged_in && !row.last_login && !hasGenuineTracerSubmission)
+  );
+
+  const hasLoggedIn = !isInitialPending && Boolean(row.has_logged_in || row.last_login || hasGenuineTracerSubmission);
+  const employmentStatus = isInitialPending ? 'No Response' : (row.employment_status || 'No Response');
+
   return {
     studentId: row.student_id,
     name: [decFirst, decMiddle, decLast, row.suffix].filter(Boolean).join(' '),
@@ -94,53 +112,51 @@ export function mapAlumniFromDB(row) {
     lastName: decLast,
     suffix: row.suffix || '',
     email: row.email,
-    phone: row.phone || '',
-    gender: row.gender,
-    civilStatus: row.civil_status,
-    dateOfBirth: row.date_of_birth ? new Date(row.date_of_birth).toISOString().split('T')[0] : '',
-    address: row.address || '',
-    currentAddress: row.address || '',
-    permanentAddress: row.permanent_address || row.address || '',
+    phone: isInitialPending ? '' : (row.phone || ''),
+    gender: isInitialPending ? '' : (row.gender || ''),
+    civilStatus: isInitialPending ? '' : (row.civil_status || ''),
+    dateOfBirth: (isInitialPending || !row.date_of_birth) ? '' : new Date(row.date_of_birth).toISOString().split('T')[0],
+    address: isInitialPending ? '' : (row.address || ''),
+    currentAddress: isInitialPending ? '' : (row.address || ''),
+    permanentAddress: isInitialPending ? '' : (row.permanent_address || row.address || ''),
     program: row.program,
-    yearEnrolled: row.year_enrolled || null,
+    yearEnrolled: isInitialPending ? null : (row.year_enrolled || null),
     yearGraduated: row.year_graduated,
-    honors: row.honors || 'None',
-    professionalExamPassed: row.professional_exam_passed || 'None',
-    isBoardPasser: row.is_board_passer || 'N/A',
-    licensureExamDate: row.licensure_exam_date || '',
-    licenseNo: row.license_no || '',
-    alumniAssociationStatus: row.alumni_association_status || 'Non-Member',
-    employmentStatus: row.employment_status,
-    jobTitle: row.job_title || '',
-    jobDescription: row.job_description || '',
-    employerName: row.employer_name || '',
-    employmentType: row.employment_type || '',
-    sector: row.sector || 'N/A',
-    monthlyIncome: row.monthly_income || '',
-    jobIndustry: row.job_industry || '',
-    jobRelatedToCourse: row.job_related_to_course || 'No',
-    firstJobRelatedToCourse: row.first_job_related_to_course || 'No',
-    timeToFirstJob: row.time_to_first_job || '',
-    jobStartYear: row.job_start_year || '',
-    skills: skillsArr,
+    honors: isInitialPending ? 'None' : (row.honors || 'None'),
+    professionalExamPassed: isInitialPending ? 'None' : (row.professional_exam_passed || 'None'),
+    isBoardPasser: isInitialPending ? 'N/A' : (row.is_board_passer || 'N/A'),
+    licensureExamDate: isInitialPending ? '' : (row.licensure_exam_date || ''),
+    licenseNo: isInitialPending ? '' : (row.license_no || ''),
+    alumniAssociationStatus: isInitialPending ? 'Non-Member' : (row.alumni_association_status || 'Non-Member'),
+    employmentStatus: employmentStatus,
+    jobTitle: isInitialPending ? '' : (row.job_title || ''),
+    jobDescription: isInitialPending ? '' : (row.job_description || ''),
+    employerName: isInitialPending ? '' : (row.employer_name || ''),
+    employmentType: isInitialPending ? '' : (row.employment_type || ''),
+    sector: isInitialPending ? 'N/A' : (row.sector || 'N/A'),
+    monthlyIncome: isInitialPending ? '' : (row.monthly_income || ''),
+    jobIndustry: isInitialPending ? '' : (row.job_industry || ''),
+    jobRelatedToCourse: isInitialPending ? 'No' : (row.job_related_to_course || 'No'),
+    firstJobRelatedToCourse: isInitialPending ? 'No' : (row.first_job_related_to_course || 'No'),
+    timeToFirstJob: isInitialPending ? '' : (row.time_to_first_job || ''),
+    jobStartYear: isInitialPending ? '' : (row.job_start_year || ''),
+    skills: isInitialPending ? [] : skillsArr,
     isInitialPasswordNeeded: Boolean(row.is_initial_password_needed),
-    hasLoggedIn: Boolean(row.has_logged_in || row.last_login || (row.employment_status && row.employment_status !== 'No Response')),
-    lastLogin: row.last_login || null,
+    hasLoggedIn: hasLoggedIn,
+    lastLogin: isInitialPending ? null : (row.last_login || null),
     profileCompleteness: (() => {
+      if (isInitialPending) {
+        return 0;
+      }
       if (typeof row.profile_completeness === 'number' && row.profile_completeness > 0) {
         return row.profile_completeness;
       }
-      const hasAnswered = Boolean(row.employment_status && row.employment_status !== 'No Response' && row.employment_status !== 'Not Yet Answered');
-      const hasLoggedIn = Boolean(row.has_logged_in || row.last_login);
-      if (!hasLoggedIn && !hasAnswered) {
-        return 0;
-      }
-      const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(row.employment_status);
+      const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(employmentStatus);
       return isEmployed ? 85 : 72;
     })(),
     lastUpdated: row.last_updated,
-    isRegistered: (row.profile_completeness || 0) >= 100,
-    locationRegion: row.location_region || 'Local (Batanes)',
+    isRegistered: !isInitialPending && (row.profile_completeness || 0) >= 100,
+    locationRegion: isInitialPending ? '' : (row.location_region || 'Local (Batanes)'),
     avatar: row.avatar || null,
     careerHistory: historyArr,
     educationHistory: educationArr,

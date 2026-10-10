@@ -485,17 +485,15 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
           ? row.civilStatus 
           : null;
 
-        const validEmploymentStatus = ['Employed', 'Self-Employed', 'Unemployed'];
-        let employmentStatusVal = 'Unemployed';
-        if (row.employmentStatus && validEmploymentStatus.includes(row.employmentStatus)) {
+        // Sa initial account import, 5 columns lamang ang in-import ni Admin:
+        // (studentId, name, email, program, yearGraduated).
+        // Kaya ang default employmentStatus ay 'No Response', has_logged_in ay 0, at profile_completeness ay 0!
+        let employmentStatusVal = 'No Response';
+        if (row.employmentStatus && ['Employed', 'Self-Employed', 'Unemployed', 'Freelance', 'Further Studies'].includes(row.employmentStatus)) {
           employmentStatusVal = row.employmentStatus;
         }
 
-        // I-parse at i-serialize ang lists (tulad ng skills array)
-        const skillsArr = row.skills ? (typeof row.skills === 'string' ? row.skills.split(', ').filter(Boolean) : row.skills) : [];
-        const skillsStr = JSON.stringify(skillsArr);
-
-        // Idagdag ang detalye sa alumni_profiles table
+        // Idagdag ang detalye sa alumni_profiles table nang may malinis na 5 columns record
         await pool.query(
           `INSERT INTO alumni_profiles (
             student_id, first_name, last_name, email, phone, gender, civil_status, 
@@ -503,17 +501,17 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
             professional_exam_passed, employment_status, job_title, job_description, 
             employer_name, employment_type, sector, monthly_income, 
             job_related_to_course, time_to_first_job, skills, profile_completeness,
-            location_region, career_history
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            location_region, career_history, has_logged_in
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             studentId, encrypt(row.firstName || name.split(' ')[0]), encrypt(row.lastName || name.split(' ').slice(1).join(' ')),
-            email, row.phone || '', genderVal, civilStatusVal,
-            row.dateOfBirth ? row.dateOfBirth : null, row.address || '', program, yearGraduated,
-            row.honors || '', row.professionalExamPassed || '', employmentStatusVal,
-            row.jobTitle || '', row.jobDescription || '', row.employerName || '', row.employmentType || '',
-            row.sector || 'N/A', row.monthlyIncome || '', row.jobRelatedToCourse || 'No', row.timeToFirstJob || '',
-            skillsStr, 40,
-            row.locationRegion || '', JSON.stringify(row.careerHistory || [])
+            email, '', null, null,
+            null, '', program, yearGraduated,
+            '', '', employmentStatusVal,
+            '', '', '', '',
+            'N/A', '', 'No', '',
+            '[]', 0,
+            '', '[]', 0
           ]
         );
 

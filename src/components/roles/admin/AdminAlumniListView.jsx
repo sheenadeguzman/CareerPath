@@ -462,19 +462,29 @@ export default function AdminAlumniListView({
                   <td className="p-3.5 truncate max-w-[200px]" title={al.program}>{al.program}</td>
                   <td className="p-3.5 font-bold text-slate-600">{al.yearGraduated}</td>
                   <td className="p-3.5">
-                    {al.employmentStatus === 'Employed' ? (
-                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full font-bold text-[10px] uppercase">Employed</span>
-                    ) : al.employmentStatus === 'Self-Employed' ? (
-                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-full font-bold text-[10px] uppercase">Self-Employed</span>
-                    ) : al.employmentStatus === 'Freelance' ? (
-                      <span className="px-2 py-0.5 bg-violet-100 text-violet-800 border border-violet-200 rounded-full font-bold text-[10px] uppercase">Freelance</span>
-                    ) : al.employmentStatus === 'Further Studies' ? (
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 border border-blue-200 rounded-full font-bold text-[10px] uppercase">Further Studies</span>
-                    ) : al.employmentStatus === 'Unemployed' ? (
-                      <span className="px-2 py-0.5 bg-rose-100 text-rose-850 border border-rose-200 rounded-full font-bold text-[10px] uppercase">Unemployed</span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-full font-bold text-[10px] uppercase">Not Yet Answered</span>
-                    )}
+                    {(() => {
+                      const prog = calculateProfileCompleteness(al);
+                      const isUnanswered = prog === 0 || !al.hasLoggedIn || al.employmentStatus === 'No Response' || al.employmentStatus === 'Not Yet Answered';
+                      if (isUnanswered) {
+                        return <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-full font-bold text-[10px] uppercase">Not Yet Answered</span>;
+                      }
+                      if (al.employmentStatus === 'Employed') {
+                        return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full font-bold text-[10px] uppercase">Employed</span>;
+                      }
+                      if (al.employmentStatus === 'Self-Employed') {
+                        return <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-full font-bold text-[10px] uppercase">Self-Employed</span>;
+                      }
+                      if (al.employmentStatus === 'Freelance') {
+                        return <span className="px-2 py-0.5 bg-violet-100 text-violet-800 border border-violet-200 rounded-full font-bold text-[10px] uppercase">Freelance</span>;
+                      }
+                      if (al.employmentStatus === 'Further Studies') {
+                        return <span className="px-2 py-0.5 bg-blue-100 text-blue-800 border border-blue-200 rounded-full font-bold text-[10px] uppercase">Further Studies</span>;
+                      }
+                      if (al.employmentStatus === 'Unemployed') {
+                        return <span className="px-2 py-0.5 bg-rose-100 text-rose-850 border border-rose-200 rounded-full font-bold text-[10px] uppercase">Unemployed</span>;
+                      }
+                      return <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-full font-bold text-[10px] uppercase">Not Yet Answered</span>;
+                    })()}
                   </td>
                   <td className="p-3.5">
                     {(() => {

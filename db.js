@@ -132,19 +132,35 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added last_login column to alumni_profiles table.');
     } catch (e) { }
     try {
-      // Kung may sagot na sa tracer (tulad nina Sheena at Stephen), markahan bilang active/has_logged_in = 1
+      // Markahan ang mga totoong naka-access na o may aktwal na tracer submissions
       await pool.query(`
-        UPDATE alumni_profiles 
-        SET has_logged_in = 1 
-        WHERE employment_status IS NOT NULL 
-          AND employment_status NOT IN ('No Response', 'Not Yet Answered')
+        UPDATE alumni_profiles ap
+        LEFT JOIN users u ON ap.student_id = u.id OR ap.student_id = u.user_id
+        SET ap.has_logged_in = 1
+        WHERE (u.has_logged_in = 1 OR u.last_login IS NOT NULL OR u.is_initial_password_needed = 0)
+           OR (ap.phone IS NOT NULL AND ap.phone != '')
+           OR (ap.date_of_birth IS NOT NULL)
+           OR (ap.employment_status = 'Employed' AND ap.employer_name IS NOT NULL AND ap.employer_name != '');
       `);
-      // Tanging ang mga walang sagot at hindi pa nag-login ang mananatiling 0% ("Not Yet Answered")
+
+      // Para sa mga hindi pa nag-a-access ng initial account (is_initial_password_needed = 1 at wala pang login):
+      // 5 columns lang ang record nila, employment_status = 'No Response', has_logged_in = 0, at profile_completeness = 0!
       await pool.query(`
-        UPDATE alumni_profiles 
-        SET profile_completeness = 0, has_logged_in = 0 
-        WHERE (has_logged_in = 0 OR has_logged_in IS NULL) 
-          AND (employment_status IS NULL OR employment_status IN ('No Response', 'Not Yet Answered'))
+        UPDATE alumni_profiles ap
+        LEFT JOIN users u ON ap.student_id = u.id OR ap.student_id = u.user_id
+        SET ap.has_logged_in = 0,
+            ap.profile_completeness = 0,
+            ap.employment_status = 'No Response',
+            ap.job_title = NULL,
+            ap.employer_name = NULL,
+            ap.job_description = NULL,
+            ap.monthly_income = NULL,
+            ap.phone = NULL,
+            ap.address = NULL,
+            ap.permanent_address = NULL,
+            ap.date_of_birth = NULL
+        WHERE (u.is_initial_password_needed = 1 AND u.last_login IS NULL AND (u.has_logged_in = 0 OR u.has_logged_in IS NULL))
+           OR (ap.has_logged_in = 0 AND (ap.phone IS NULL OR ap.phone = '') AND (ap.date_of_birth IS NULL));
       `);
     } catch (e) { }
 

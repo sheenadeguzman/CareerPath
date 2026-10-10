@@ -13,18 +13,18 @@
 export function calculateProfileCompleteness(alumni) {
   if (!alumni) return 0;
 
-  // Patakaran: Kung hindi pa na-access ang initial account (hindi pa nag-login)
-  // AT wala pang sagot sa tracer (employmentStatus ay 'No Response' o blangko),
-  // dapat ay 0% parin ang progress ("Not Yet Answered")!
+  // Patakaran: Kung hindi pa na-access ang initial account (isInitialPasswordNeeded at wala pang login)
+  // O wala pang login AT No Response pa ang status, 0% ang progress ("Not Yet Answered")!
   const hasLoggedIn = Boolean(alumni.hasLoggedIn || alumni.lastLogin);
-  const hasAnsweredTracer = Boolean(
-    alumni.employmentStatus && 
-    alumni.employmentStatus !== 'No Response' && 
-    alumni.employmentStatus !== 'Not Yet Answered'
+  const isInitialPending = Boolean(alumni.isInitialPasswordNeeded && !alumni.lastLogin && !alumni.hasLoggedIn);
+  const hasGenuineTracer = Boolean(
+    alumni.phone || 
+    alumni.dateOfBirth || 
+    (alumni.employmentStatus && alumni.employmentStatus !== 'No Response' && alumni.employmentStatus !== 'Not Yet Answered' && hasLoggedIn)
   );
 
-  // Kung hindi pa nag-login at wala pang naisusumiteng sagot sa tracer, 0% ang progress!
-  if (!hasLoggedIn && !hasAnsweredTracer) {
+  // Kung nasa initial account state pa lamang o hindi pa nag-login at walang tracer submission:
+  if (isInitialPending || (!hasLoggedIn && !hasGenuineTracer)) {
     return 0;
   }
 

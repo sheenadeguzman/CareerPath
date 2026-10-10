@@ -196,9 +196,32 @@ export function useCareerPath() {
       if (parsed.alumni && Array.isArray(parsed.alumni)) {
         parsed.alumni = parsed.alumni.map(al => {
           const comp = calculateProfileCompleteness(al);
+          if (comp === 0) {
+            return {
+              ...al,
+              hasLoggedIn: false,
+              employmentStatus: 'No Response',
+              profileCompleteness: 0,
+              phone: '',
+              gender: '',
+              civilStatus: '',
+              dateOfBirth: '',
+              address: '',
+              currentAddress: '',
+              permanentAddress: '',
+              jobTitle: '',
+              jobDescription: '',
+              employerName: '',
+              employmentType: '',
+              sector: 'N/A',
+              monthlyIncome: '',
+              jobIndustry: '',
+              skills: []
+            };
+          }
           return {
             ...al,
-            hasLoggedIn: Boolean(comp > 0),
+            hasLoggedIn: true,
             profileCompleteness: comp
           };
         });
@@ -270,7 +293,30 @@ export function useCareerPath() {
           const db = JSON.parse(cached);
           const sanitized = (db.alumni || []).map(al => {
             const comp = calculateProfileCompleteness(al);
-            return { ...al, hasLoggedIn: Boolean(comp > 0), profileCompleteness: comp };
+            if (comp === 0) {
+              return {
+                ...al,
+                hasLoggedIn: false,
+                employmentStatus: 'No Response',
+                profileCompleteness: 0,
+                phone: '',
+                gender: '',
+                civilStatus: '',
+                dateOfBirth: '',
+                address: '',
+                currentAddress: '',
+                permanentAddress: '',
+                jobTitle: '',
+                jobDescription: '',
+                employerName: '',
+                employmentType: '',
+                sector: 'N/A',
+                monthlyIncome: '',
+                jobIndustry: '',
+                skills: []
+              };
+            }
+            return { ...al, hasLoggedIn: true, profileCompleteness: comp };
           });
           setUsers(db.users || []);
           setAlumniList(sanitized);
@@ -293,7 +339,30 @@ export function useCareerPath() {
       const db = await fetchDashboardData(getAuthHeaders());
       const sanitizedAlumni = (db.alumni || []).map(al => {
         const comp = calculateProfileCompleteness(al);
-        return { ...al, hasLoggedIn: Boolean(comp > 0), profileCompleteness: comp };
+        if (comp === 0) {
+          return {
+            ...al,
+            hasLoggedIn: false,
+            employmentStatus: 'No Response',
+            profileCompleteness: 0,
+            phone: '',
+            gender: '',
+            civilStatus: '',
+            dateOfBirth: '',
+            address: '',
+            currentAddress: '',
+            permanentAddress: '',
+            jobTitle: '',
+            jobDescription: '',
+            employerName: '',
+            employmentType: '',
+            sector: 'N/A',
+            monthlyIncome: '',
+            jobIndustry: '',
+            skills: []
+          };
+        }
+        return { ...al, hasLoggedIn: true, profileCompleteness: comp };
       });
       setUsers(db.users || []);
       setAlumniList(sanitizedAlumni);
