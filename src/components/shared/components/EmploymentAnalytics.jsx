@@ -14,7 +14,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const [selectedMajorFilter, setSelectedMajorFilter] = useState('All');
   const [viewMode, setViewMode] = useState('byMajor');
   const totalInScope = filteredAlumni.length;
-  const respondingInScope = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  const respondingInScope = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
   const totalRegisteredCount = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100).length;
 
   // Employed base sets
@@ -127,7 +127,7 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     return uniqueMajors.map(majorName => {
       const batch = filteredAlumni.filter(a => ((a.program || '').trim() || 'Unspecified Program') === majorName);
       const total = batch.length;
-      const responding = batch.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+      const responding = batch.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
       const employed = responding.filter(a =>
         ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
       );

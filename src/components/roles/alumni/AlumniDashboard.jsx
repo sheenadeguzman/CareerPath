@@ -29,7 +29,10 @@ export default function AlumniDashboard({
       a.name.toLowerCase() === activeUser.name.toLowerCase()
   );
 
-  const profileCompleteness = myAlumni?.profileCompleteness || 25;
+  // Patakaran: Kung hindi pa nag-login, 0% ang progress. Kapag nag-login na, ipakita ang kaukulang progress.
+  const profileCompleteness = myAlumni?.hasLoggedIn 
+    ? (myAlumni?.profileCompleteness ?? 25) 
+    : 0;
   const currentStatus = myAlumni?.employmentStatus || 'Not Declared yet';
 
   /**

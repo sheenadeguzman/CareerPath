@@ -114,6 +114,29 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added mfa_enabled column to users table.');
     } catch (e) { }
 
+    // MIGRATION: Add has_logged_in at last_login columns sa users at alumni_profiles
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN has_logged_in TINYINT(1) DEFAULT 0');
+      console.log('Database Migration: Added has_logged_in column to users table.');
+    } catch (e) { }
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN last_login TIMESTAMP NULL DEFAULT NULL');
+      console.log('Database Migration: Added last_login column to users table.');
+    } catch (e) { }
+    try {
+      await pool.query('ALTER TABLE alumni_profiles ADD COLUMN has_logged_in TINYINT(1) DEFAULT 0');
+      console.log('Database Migration: Added has_logged_in column to alumni_profiles table.');
+    } catch (e) { }
+    try {
+      await pool.query('ALTER TABLE alumni_profiles ADD COLUMN last_login TIMESTAMP NULL DEFAULT NULL');
+      console.log('Database Migration: Added last_login column to alumni_profiles table.');
+    } catch (e) { }
+    try {
+      // Kung hindi pa nag-login ang alumni, panatilihing 0% ang progress alinsunod sa bagong patakaran
+      await pool.query('UPDATE alumni_profiles SET profile_completeness = 0 WHERE has_logged_in = 0 OR has_logged_in IS NULL');
+      console.log('Database Migration: Ensured 0% progress for alumni who have not logged in yet.');
+    } catch (e) { }
+
     // MIGRATION: Seed default Super Admin user if not exists
     try {
       const [superCheck] = await pool.query("SELECT id FROM users WHERE id = 'bsc-super-admin'");

@@ -32,7 +32,11 @@ router.get('/data', async (req, res) => {
     
     // I-query ang alumni profiles na may kasamang is_initial_password_needed at avatar galing sa users table
     const [alumniRows] = await pool.query(`
-      SELECT ap.*, u.is_initial_password_needed, u.avatar as avatar 
+      SELECT ap.*, 
+             COALESCE(ap.has_logged_in, u.has_logged_in, 0) as has_logged_in,
+             COALESCE(ap.last_login, u.last_login) as last_login,
+             u.is_initial_password_needed, 
+             u.avatar as avatar 
       FROM alumni_profiles ap 
       LEFT JOIN users u ON ap.student_id = u.id 
       ORDER BY ap.last_updated DESC

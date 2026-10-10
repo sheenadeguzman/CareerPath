@@ -190,7 +190,17 @@ export function useCareerPath() {
   const getInitialDashboardCache = () => {
     try {
       const cached = localStorage.getItem('careerpath_dashboard_cache');
-      return cached ? JSON.parse(cached) : null;
+      if (!cached) return null;
+      const parsed = JSON.parse(cached);
+      if (parsed.alumni && Array.isArray(parsed.alumni)) {
+        parsed.alumni = parsed.alumni.map(al => {
+          if (!al.hasLoggedIn) {
+            return { ...al, profileCompleteness: 0, hasLoggedIn: false, lastLogin: null };
+          }
+          return al;
+        });
+      }
+      return parsed;
     } catch (e) {
       console.error('Failed to parse initial dashboard cache:', e);
       return null;
@@ -255,8 +265,14 @@ export function useCareerPath() {
       if (cached) {
         try {
           const db = JSON.parse(cached);
+          const sanitized = (db.alumni || []).map(al => {
+            if (!al.hasLoggedIn) {
+              return { ...al, profileCompleteness: 0, hasLoggedIn: false };
+            }
+            return al;
+          });
           setUsers(db.users || []);
-          setAlumniList(db.alumni || []);
+          setAlumniList(sanitized);
           setEmployers(db.employers || []);
           setJobPostings(db.jobPostings || []);
           setSurveys(db.surveys || []);
@@ -274,8 +290,14 @@ export function useCareerPath() {
     // 2. Kung online, mag-sync sa backend (revalidate) nang hindi bina-block ang UI kung may data na
     try {
       const db = await fetchDashboardData(getAuthHeaders());
+      const sanitizedAlumni = (db.alumni || []).map(al => {
+        if (!al.hasLoggedIn) {
+          return { ...al, profileCompleteness: 0, hasLoggedIn: false };
+        }
+        return al;
+      });
       setUsers(db.users || []);
-      setAlumniList(db.alumni || []);
+      setAlumniList(sanitizedAlumni);
       setEmployers(db.employers || []);
       setJobPostings(db.jobPostings || []);
       setSurveys(db.surveys || []);
@@ -284,7 +306,7 @@ export function useCareerPath() {
       setSurveyResponses(db.surveyResponses || []);
       
       // I-save ang sariwang cache sa localStorage
-      localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
+      localStorage.setItem('careerpath_dashboard_cache', JSON.stringify({ ...db, alumni: sanitizedAlumni }));
     } catch (err) {
       console.warn('Backend sync deferred (cold start / network issue), using local cache:', err.message);
       // Fallback to cache if available
@@ -330,12 +352,54 @@ export function useCareerPath() {
   // =========================================================================
 
   const handleLoginSuccess = (user, loginToken) => {
-    setActiveUser(user);
+    const userWithLogin = { ...user, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+    setActiveUser(userWithLogin);
     if (loginToken) {
       setToken(loginToken);
       sessionStorage.setItem('careerpath_token', loginToken);
     }
+
     if (user.role === 'Alumni') {
+      setAlumniList(prev => prev.map(al => {
+        const isMatch = (al.studentId && user.id && al.studentId.toLowerCase() === user.id.toLowerCase()) ||
+                        (al.studentId && user.userId && al.studentId.toLowerCase() === user.userId.toLowerCase()) ||
+                        (al.email && user.email && al.email.toLowerCase() === user.email.toLowerCase());
+        if (isMatch) {
+          // Patakaran: Once na naglogin sila, saka lang pwedeng mag-change ang progress mula sa 0%
+          const currentProg = al.profileCompleteness || 0;
+          const newProg = currentProg > 0 ? currentProg : 25; // Base progress kapag nag-login
+          return {
+            ...al,
+            hasLoggedIn: true,
+            lastLogin: new Date().toISOString(),
+            profileCompleteness: newProg
+          };
+        }
+        return al;
+      }));
+
+      // I-update din ang cache para mapanatili ang progreso
+      try {
+        const cached = localStorage.getItem('careerpath_dashboard_cache');
+        if (cached) {
+          const db = JSON.parse(cached);
+          if (db.alumni) {
+            db.alumni = db.alumni.map(al => {
+              const isMatch = (al.studentId && user.id && al.studentId.toLowerCase() === user.id.toLowerCase()) ||
+                              (al.studentId && user.userId && al.studentId.toLowerCase() === user.userId.toLowerCase()) ||
+                              (al.email && user.email && al.email.toLowerCase() === user.email.toLowerCase());
+              if (isMatch) {
+                const currentProg = al.profileCompleteness || 0;
+                const newProg = currentProg > 0 ? currentProg : 25;
+                return { ...al, hasLoggedIn: true, lastLogin: new Date().toISOString(), profileCompleteness: newProg };
+              }
+              return al;
+            });
+            localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
+          }
+        }
+      } catch (e) { }
+
       setCurrentTab('My Profile');
     } else {
       setCurrentTab('Dashboard');
@@ -419,11 +483,17 @@ export function useCareerPath() {
   };
 
   const handleSaveAlumni = async (profile) => {
+    const isAlumniSelf = activeUser?.role === 'Alumni';
+    const profileToSave = {
+      ...profile,
+      ...(isAlumniSelf ? { hasLoggedIn: true } : {})
+    };
+
     if (!isOnline) {
-      queueOfflineAction('saveAlumni', { profile, activeUserId: activeUser?.id }, () => {
+      queueOfflineAction('saveAlumni', { profile: profileToSave, activeUserId: activeUser?.id }, () => {
         setAlumniList(prev => {
-          const idx = prev.findIndex(a => a.studentId === profile.studentId);
-          const updatedProfile = { ...profile, lastUpdated: new Date().toISOString() };
+          const idx = prev.findIndex(a => a.studentId === profileToSave.studentId);
+          const updatedProfile = { ...profileToSave, lastUpdated: new Date().toISOString() };
           if (idx !== -1) {
             const copy = [...prev];
             copy[idx] = { ...copy[idx], ...updatedProfile };
@@ -433,9 +503,9 @@ export function useCareerPath() {
           }
         });
         setUsers(prev => {
-          const idx = prev.findIndex(u => u.id === profile.studentId);
-          const fullName = [profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ');
-          const updatedUser = { id: profile.studentId, name: fullName, email: profile.email, avatar: profile.avatar || null };
+          const idx = prev.findIndex(u => u.id === profileToSave.studentId);
+          const fullName = [profileToSave.firstName, profileToSave.middleName, profileToSave.lastName, profileToSave.suffix].filter(Boolean).join(' ');
+          const updatedUser = { id: profileToSave.studentId, name: fullName, email: profileToSave.email, avatar: profileToSave.avatar || null, hasLoggedIn: true };
           if (idx !== -1) {
             const copy = [...prev];
             copy[idx] = { ...copy[idx], ...updatedUser };
@@ -448,7 +518,7 @@ export function useCareerPath() {
       return;
     }
     try {
-      await saveAlumni(profile, activeUser?.id, getAuthHeaders());
+      await saveAlumni(profileToSave, activeUser?.id, getAuthHeaders());
       await fetchData();
       showSuccessToast('Record saved successfully!');
     } catch (err) {
@@ -615,7 +685,9 @@ export function useCareerPath() {
           jobRelatedToCourse: row.jobRelatedToCourse || '',
           timeToFirstJob: row.timeToFirstJob || '',
           skills: row.skills || [],
-          profileCompleteness: 40,
+          hasLoggedIn: false,
+          lastLogin: null,
+          profileCompleteness: 0,
           isRegistered: false,
           lastUpdated: new Date().toISOString()
         };
@@ -645,6 +717,8 @@ export function useCareerPath() {
             email: na.email,
             role: 'Alumni',
             isInitialPasswordNeeded: true,
+            hasLoggedIn: false,
+            lastLogin: null,
             avatar: null
           };
           if (existingIdx !== -1) {

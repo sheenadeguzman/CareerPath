@@ -120,8 +120,8 @@ export default function AdminDashboard({
   const totalNotAnswered = notAnsweredAlumni.length;
   const notAnsweredRate = totalAlumni > 0 ? ((totalNotAnswered / totalAlumni) * 100).toFixed(1) : '0';
   
-  // Responding alumni (lahat ng may progress sa tracer o may recorded employment status)
-  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  // Responding alumni (lahat ng may progress sa tracer o may recorded employment status matapos mag-login)
+  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
   const employedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Employed').length;
   const freelanceAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Freelance').length;
   const selfEmployedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;

@@ -175,8 +175,8 @@ export default function ReportsView({ alumniList, activeUser }) {
   const validAges = filteredAlumni.map(a => calculateAge(a.dateOfBirth)).filter(age => age !== null);
   const averageAge = validAges.length > 0 ? Math.round(validAges.reduce((acc, age) => acc + age, 0) / validAges.length) : 'N/A';
 
-  // Responding alumni (may progress sa tracer o may recorded employment status)
-  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  // Responding alumni (may progress sa tracer o may recorded employment status matapos mag-login)
+  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
 
   // Geographical Location Region aggregates (Only for employed graduates)
   const employedAlumni = respondingAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));

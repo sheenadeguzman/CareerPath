@@ -110,6 +110,8 @@ export const INITIAL_USERS = [
     email: 'maria.santos@example.com',
     role: 'Alumni',
     isInitialPasswordNeeded: true,
+    hasLoggedIn: false,
+    lastLogin: null,
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -119,6 +121,8 @@ export const INITIAL_USERS = [
     email: 'juan.delacruz@example.com',
     role: 'Alumni',
     isInitialPasswordNeeded: true,
+    hasLoggedIn: false,
+    lastLogin: null,
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -128,6 +132,8 @@ export const INITIAL_USERS = [
     email: 'ana.reyes@example.com',
     role: 'Alumni',
     isInitialPasswordNeeded: true,
+    hasLoggedIn: false,
+    lastLogin: null,
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -137,6 +143,8 @@ export const INITIAL_USERS = [
     email: 'pedro.abad@example.com',
     role: 'Alumni',
     isInitialPasswordNeeded: true,
+    hasLoggedIn: false,
+    lastLogin: null,
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -146,6 +154,8 @@ export const INITIAL_USERS = [
     email: 'grace.tan@example.com',
     role: 'Alumni',
     isInitialPasswordNeeded: true,
+    hasLoggedIn: false,
+    lastLogin: null,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -155,6 +165,8 @@ export const INITIAL_USERS = [
     email: 'ricardo.gonzales@example.com',
     role: 'Alumni',
     isInitialPasswordNeeded: true,
+    hasLoggedIn: false,
+    lastLogin: null,
     avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -186,7 +198,7 @@ export const INITIAL_ALUMNI = [
     yearGraduated: 2020,
     honors: 'Cum Laude',
     professionalExamPassed: 'None',
-    employmentStatus: 'Employed',
+    employmentStatus: 'No Response',
     jobTitle: 'Software Developer',
     jobDescription: 'Develops and maintains web applications for a tech startup.',
     employerName: 'TechBatanes Inc.',
@@ -196,7 +208,9 @@ export const INITIAL_ALUMNI = [
     jobRelatedToCourse: 'Yes',
     timeToFirstJob: '1 to 6 months',
     skills: ['JavaScript', 'React', 'Node.js', 'SQL', 'Python'],
-    profileCompleteness: 95,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: '2026-01-15T18:00:00Z'
   },
   {
@@ -214,7 +228,7 @@ export const INITIAL_ALUMNI = [
     yearGraduated: 2021,
     honors: 'None',
     professionalExamPassed: 'TESDA NC II',
-    employmentStatus: 'Self-Employed',
+    employmentStatus: 'No Response',
     jobTitle: 'Homestay Owner',
     jobDescription: 'Manages family homestay lodging catering to provincial tourists.',
     employerName: 'Dela Cruz Homestay',
@@ -224,7 +238,9 @@ export const INITIAL_ALUMNI = [
     jobRelatedToCourse: 'Yes',
     timeToFirstJob: 'Immediate',
     skills: ['Customer Service', 'Cooking', 'Bookkeeping', 'Tourism Operations'],
-    profileCompleteness: 85,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: '2026-02-01T09:30:00Z'
   },
   {
@@ -242,7 +258,7 @@ export const INITIAL_ALUMNI = [
     yearGraduated: 2022,
     honors: 'None',
     professionalExamPassed: 'LET (Licensure Exam for Teachers)',
-    employmentStatus: 'Employed',
+    employmentStatus: 'No Response',
     jobTitle: 'Elementary Instructor',
     jobDescription: 'Teaches Grade 3 elementary school pupils general academic topics.',
     employerName: 'Basco Elementary School',
@@ -252,7 +268,9 @@ export const INITIAL_ALUMNI = [
     jobRelatedToCourse: 'Yes',
     timeToFirstJob: '1 to 6 months',
     skills: ['Classroom Management', 'Lesson Planning', 'English Communication'],
-    profileCompleteness: 90,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: '2026-01-20T11:45:00Z'
   },
   {
@@ -270,7 +288,7 @@ export const INITIAL_ALUMNI = [
     yearGraduated: 2019,
     honors: 'None',
     professionalExamPassed: 'None',
-    employmentStatus: 'Employed',
+    employmentStatus: 'No Response',
     jobTitle: 'Agricultural Inspector',
     jobDescription: 'Inspects regional crops, validates organic guidelines and coaches local farmers.',
     employerName: 'Department of Agriculture - Region II',
@@ -280,7 +298,9 @@ export const INITIAL_ALUMNI = [
     jobRelatedToCourse: 'Yes',
     timeToFirstJob: '7 to 11 months',
     skills: ['Crop Research', 'Pest Control Management', 'Organic Farming Strategy'],
-    profileCompleteness: 92,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: '2025-12-10T14:30:00Z'
   },
   {
@@ -298,7 +318,7 @@ export const INITIAL_ALUMNI = [
     yearGraduated: 2023,
     honors: 'None',
     professionalExamPassed: 'None',
-    employmentStatus: 'Unemployed',
+    employmentStatus: 'No Response',
     jobTitle: '',
     jobDescription: '',
     employerName: '',
@@ -308,7 +328,9 @@ export const INITIAL_ALUMNI = [
     jobRelatedToCourse: 'No',
     timeToFirstJob: '',
     skills: ['Itinerary Planning', 'Ticketing Coordination', 'Customer Hospitality'],
-    profileCompleteness: 65,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: '2026-03-02T16:20:00Z'
   },
   {
@@ -326,7 +348,7 @@ export const INITIAL_ALUMNI = [
     yearGraduated: 2021,
     honors: 'None',
     professionalExamPassed: 'TESDA National Certificate',
-    employmentStatus: 'Employed',
+    employmentStatus: 'No Response',
     jobTitle: 'Field Electronics Technician',
     jobDescription: 'Configures, services, and troubleshoots electronic equipment on site.',
     employerName: 'Basco Electronics Corp',
@@ -336,7 +358,9 @@ export const INITIAL_ALUMNI = [
     jobRelatedToCourse: 'Yes',
     timeToFirstJob: '1 to 6 months',
     skills: ['Circuit Diagnosis', 'Soldering', 'Pneumatics Troubleshooting'],
-    profileCompleteness: 88,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: '2026-01-05T10:15:00Z'
   }
 ];

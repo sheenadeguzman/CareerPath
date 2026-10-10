@@ -405,6 +405,8 @@ export default function AlumniSelfProfileForm({ currentAlAlumnus, onSaveAlumni, 
       address: selfEditForm.currentAddress || selfEditForm.address || '',
       currentAddress: selfEditForm.currentAddress || selfEditForm.address || '',
       permanentAddress: selfEditForm.permanentAddress || selfEditForm.address || '',
+      hasLoggedIn: true,
+      lastLogin: new Date().toISOString(),
       profileCompleteness: calculatedCompleteness,
       lastUpdated: new Date().toISOString()
     };

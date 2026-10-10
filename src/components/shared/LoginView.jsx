@@ -89,15 +89,16 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       }
 
       const mockToken = `offline_token_${matchedUser.id}_${Date.now()}`;
+      const loggedUser = { ...matchedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
       
       onAddActivity(
         'Offline Portal Entrance',
         'Authentication',
         `Logged in successfully (Offline) as ${matchedUser.name} (${matchedUser.role})`,
-        matchedUser,
+        loggedUser,
         mockToken
       );
-      onLoginSuccess(matchedUser, mockToken);
+      onLoginSuccess(loggedUser, mockToken);
       return true;
     } else {
       setErrorMessage('Offline Mode: Incorrect Password.');
@@ -168,15 +169,17 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
         return;
       }
 
+      const authUserWithLogin = { ...authenticatedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+
       // Magpatuloy nang normal kung okay ang lahat
       onAddActivity(
         'User Secured Portal Entrance',
         'Authentication',
-        `Logged in successfully as ${authenticatedUser.name} (${authenticatedUser.role})`,
-        authenticatedUser,
+        `Logged in successfully as ${authUserWithLogin.name} (${authUserWithLogin.role})`,
+        authUserWithLogin,
         result.token
       );
-      onLoginSuccess(authenticatedUser, result.token);
+      onLoginSuccess(authUserWithLogin, result.token);
 
     } catch (err) {
       if (!fetchSuccessful) {
@@ -298,7 +301,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       }
 
       const result = await response.json();
-      const updatedUser = result.user;
+      const updatedUser = { ...result.user, hasLoggedIn: true, lastLogin: new Date().toISOString() };
 
       setSuccessToast('Credentials updated! Welcome to CareerPath under private password!');
 

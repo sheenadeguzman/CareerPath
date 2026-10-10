@@ -84,8 +84,8 @@ export default function ChairpersonDashboard({
   const totalNotAnsweredDept = notAnsweredDeptAlumni.length;
   const deptNotAnsweredRate = totalDeptAlumni > 0 ? ((totalNotAnsweredDept / totalDeptAlumni) * 100).toFixed(1) : '0';
   
-  // Responding alumni para sa departamento
-  const respondingDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  // Responding alumni para sa departamento (may progress o may tugon matapos mag-login)
+  const respondingDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
   const employedAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Employed').length;
   const freelanceAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Freelance').length;
   const selfEmployedAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;

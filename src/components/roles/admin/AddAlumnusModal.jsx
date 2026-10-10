@@ -38,7 +38,9 @@ export default function AddAlumnusModal({ activeUser, onSaveAlumni, setIsAddingA
     employerEmail: '',
     yearHired: '',
     competencies: [],
-    profileCompleteness: 40,
+    hasLoggedIn: false,
+    lastLogin: null,
+    profileCompleteness: 0,
     lastUpdated: new Date().toISOString(),
     locationRegion: '',
     careerHistory: []
