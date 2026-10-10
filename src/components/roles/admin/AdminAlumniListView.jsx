@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { Search, Eye, Upload, Download, PlusCircle, GraduationCap, Trash2, X, Printer, FileText, ChevronDown, FileSpreadsheet, AlertTriangle, CheckSquare, Mail } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS, BSC_DEPARTMENTS } from '../../../bscData';
 import { exportToPDF } from '../../../utils/pdfExport';
+import { calculateProfileCompleteness } from '../../../utils/tracerCompleteness';
 
 const isAlumnusInDepartment = (al, dept) => {
   if (!al || dept === 'All') return true;
@@ -111,7 +112,7 @@ export default function AdminAlumniListView({
                            al.program.toLowerCase() === selectedProgram.toLowerCase() ||
                            al.program.toLowerCase().includes(selectedProgram.toLowerCase()) ||
                            selectedProgram.toLowerCase().includes(al.program.toLowerCase());
-    const progress = al.profileCompleteness || 0;
+    const progress = calculateProfileCompleteness(al);
     const isCompleted = progress >= 100;
     const isAnswered = progress > 0 && progress < 100;
     const isNotAnswered = progress === 0;
@@ -476,43 +477,48 @@ export default function AdminAlumniListView({
                     )}
                   </td>
                   <td className="p-3.5">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[10px]">{al.profileCompleteness || 0}%</span>
-                        <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block shrink-0 border border-slate-200/50">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              (al.profileCompleteness || 0) >= 100 
-                                ? 'bg-emerald-600' 
-                                : (al.profileCompleteness || 0) > 0 
-                                  ? 'bg-amber-500' 
-                                  : 'bg-slate-300'
-                            }`} 
-                            style={{ width: `${al.profileCompleteness || 0}%` }}
-                          />
+                    {(() => {
+                      const prog = calculateProfileCompleteness(al);
+                      return (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[10px]">{prog}%</span>
+                            <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block shrink-0 border border-slate-200/50">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  prog >= 100 
+                                    ? 'bg-emerald-600' 
+                                    : prog > 0 
+                                      ? 'bg-amber-500' 
+                                      : 'bg-slate-300'
+                                }`} 
+                                style={{ width: `${prog}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            {prog >= 100 ? (
+                              <span className="inline-block text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 uppercase">
+                                Completed
+                              </span>
+                            ) : prog > 0 ? (
+                              <span className="inline-block text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 uppercase">
+                                Answered
+                              </span>
+                            ) : (
+                              <span className="inline-block text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200 uppercase">
+                                Not Yet Answered
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        {(al.profileCompleteness || 0) >= 100 ? (
-                          <span className="inline-block text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 uppercase">
-                            Completed
-                          </span>
-                        ) : (al.profileCompleteness || 0) > 0 ? (
-                          <span className="inline-block text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 uppercase">
-                            Answered
-                          </span>
-                        ) : (
-                          <span className="inline-block text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200 uppercase">
-                            Not Yet Answered
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </td>
                   <td className="p-3.5 pr-6 text-right space-x-1">
                     
                     {/* Nagpapadala ng mabilis na email paalala kung hindi pa 100% ang profile completion */}
-                    {al.profileCompleteness < 100 && onTriggerEmail && (
+                    {calculateProfileCompleteness(al) < 100 && onTriggerEmail && (
                       <button
                         onClick={() => onTriggerEmail(al.studentId)}
                         className="p-1 px-2.5 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 rounded text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"

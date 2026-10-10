@@ -11,6 +11,7 @@ import {
   Upload, Download, Mail
 } from 'lucide-react';
 import { DEPARTMENT_TO_PROGRAMS } from '../bscData';
+import { calculateProfileCompleteness } from '../utils/tracerCompleteness';
 import {
   fetchDashboardData,
   saveAlumni,
@@ -194,10 +195,13 @@ export function useCareerPath() {
       const parsed = JSON.parse(cached);
       if (parsed.alumni && Array.isArray(parsed.alumni)) {
         parsed.alumni = parsed.alumni.map(al => {
-          if (!al.hasLoggedIn) {
-            return { ...al, profileCompleteness: 0, hasLoggedIn: false, lastLogin: null };
-          }
-          return al;
+          const comp = calculateProfileCompleteness(al);
+          const hasLogged = Boolean(al.hasLoggedIn || comp > 0);
+          return {
+            ...al,
+            hasLoggedIn: hasLogged,
+            profileCompleteness: comp
+          };
         });
       }
       return parsed;
@@ -266,10 +270,9 @@ export function useCareerPath() {
         try {
           const db = JSON.parse(cached);
           const sanitized = (db.alumni || []).map(al => {
-            if (!al.hasLoggedIn) {
-              return { ...al, profileCompleteness: 0, hasLoggedIn: false };
-            }
-            return al;
+            const comp = calculateProfileCompleteness(al);
+            const hasLogged = Boolean(al.hasLoggedIn || comp > 0);
+            return { ...al, hasLoggedIn: hasLogged, profileCompleteness: comp };
           });
           setUsers(db.users || []);
           setAlumniList(sanitized);
@@ -291,10 +294,9 @@ export function useCareerPath() {
     try {
       const db = await fetchDashboardData(getAuthHeaders());
       const sanitizedAlumni = (db.alumni || []).map(al => {
-        if (!al.hasLoggedIn) {
-          return { ...al, profileCompleteness: 0, hasLoggedIn: false };
-        }
-        return al;
+        const comp = calculateProfileCompleteness(al);
+        const hasLogged = Boolean(al.hasLoggedIn || comp > 0);
+        return { ...al, hasLoggedIn: hasLogged, profileCompleteness: comp };
       });
       setUsers(db.users || []);
       setAlumniList(sanitizedAlumni);
@@ -365,9 +367,9 @@ export function useCareerPath() {
                         (al.studentId && user.userId && al.studentId.toLowerCase() === user.userId.toLowerCase()) ||
                         (al.email && user.email && al.email.toLowerCase() === user.email.toLowerCase());
         if (isMatch) {
-          // Patakaran: Once na naglogin sila, saka lang pwedeng mag-change ang progress mula sa 0%
-          const currentProg = al.profileCompleteness || 0;
-          const newProg = currentProg > 0 ? currentProg : 25; // Base progress kapag nag-login
+          // Patakaran: Once na naglogin sila, kalkulahin ang kaukulang progress mula sa nasagutan o base 25%
+          const currentProg = calculateProfileCompleteness(al);
+          const newProg = currentProg > 0 ? currentProg : 25;
           return {
             ...al,
             hasLoggedIn: true,
@@ -389,7 +391,7 @@ export function useCareerPath() {
                               (al.studentId && user.userId && al.studentId.toLowerCase() === user.userId.toLowerCase()) ||
                               (al.email && user.email && al.email.toLowerCase() === user.email.toLowerCase());
               if (isMatch) {
-                const currentProg = al.profileCompleteness || 0;
+                const currentProg = calculateProfileCompleteness(al);
                 const newProg = currentProg > 0 ? currentProg : 25;
                 return { ...al, hasLoggedIn: true, lastLogin: new Date().toISOString(), profileCompleteness: newProg };
               }
@@ -484,9 +486,13 @@ export function useCareerPath() {
 
   const handleSaveAlumni = async (profile) => {
     const isAlumniSelf = activeUser?.role === 'Alumni';
+    const comp = calculateProfileCompleteness(profile);
+    const hasFilled = Boolean(profile.phone || profile.dateOfBirth || (profile.employmentStatus && profile.employmentStatus !== 'No Response'));
+    const finalCompleteness = comp > 0 ? comp : (profile.profileCompleteness || 0);
     const profileToSave = {
       ...profile,
-      ...(isAlumniSelf ? { hasLoggedIn: true } : {})
+      profileCompleteness: finalCompleteness,
+      hasLoggedIn: Boolean(profile.hasLoggedIn || isAlumniSelf || hasFilled || finalCompleteness > 0)
     };
 
     if (!isOnline) {

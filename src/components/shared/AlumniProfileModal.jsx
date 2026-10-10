@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { X, User as UserIcon, Calendar, Mail, Phone, Home, GraduationCap, Briefcase, Award, FileText, CheckCircle2 } from 'lucide-react';
+import { calculateProfileCompleteness } from '../../utils/tracerCompleteness';
 
 const calculateAge = (dobString) => {
   if (!dobString) return null;
@@ -21,6 +22,7 @@ const calculateAge = (dobString) => {
 };
 
 export default function AlumniProfileModal({ alumni, onClose }) {
+  const completeness = calculateProfileCompleteness(alumni);
 
   /**
    * Helper function para mag-render ng custom styled badge na kumakatawan sa kasalukuyang employment status.
@@ -111,12 +113,12 @@ export default function AlumniProfileModal({ alumni, onClose }) {
               <span className="text-[#1e4620] flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />Profile Completeness
               </span>
-              <span className="text-emerald-700">{alumni.profileCompleteness}% Verified</span>
+              <span className="text-emerald-700">{completeness}% Verified</span>
             </div>
             <div className="h-2.5 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50">
               <div
                 className="h-full bg-emerald-600 rounded-full transition-all duration-500"
-                style={{ width: `${alumni.profileCompleteness}%` }}
+                style={{ width: `${completeness}%` }}
               />
             </div>
             <p className="text-[10px] text-slate-400">Complete profiles help Batanes State College satisfy its tracer evaluation standards.</p>

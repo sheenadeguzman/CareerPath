@@ -15,6 +15,7 @@ import {
   Building,
   MapPin
 } from 'lucide-react';
+import { calculateProfileCompleteness } from '../../../utils/tracerCompleteness';
 
 export default function AlumniDashboard({
   alumni = [],
@@ -29,10 +30,8 @@ export default function AlumniDashboard({
       a.name.toLowerCase() === activeUser.name.toLowerCase()
   );
 
-  // Patakaran: Kung hindi pa nag-login, 0% ang progress. Kapag nag-login na, ipakita ang kaukulang progress.
-  const profileCompleteness = myAlumni?.hasLoggedIn 
-    ? (myAlumni?.profileCompleteness ?? 25) 
-    : 0;
+  // Kalkulahin ang profile completeness batay sa nasagutan ng alumni
+  const profileCompleteness = calculateProfileCompleteness(myAlumni);
   const currentStatus = myAlumni?.employmentStatus || 'Not Declared yet';
 
   /**

@@ -24,6 +24,7 @@ import {
 
 import { exportToPDF } from '../../../utils/pdfExport';
 import { BSC_DEPARTMENTS, DEPARTMENT_TO_PROGRAMS } from '../../../bscData';
+import { calculateProfileCompleteness } from '../../../utils/tracerCompleteness';
 
 const getBaseProgram = (progName) => {
   if (!progName) return 'Bachelor of Science in Information Technology';
@@ -108,20 +109,23 @@ export default function AdminDashboard({
   // 2. Answered: Sumagot na at may progress pero hindi pa 100% (profileCompleteness > 0 && < 100)
   // 3. Not Yet Answered: Hindi pa sumasagot sa tracer form (profileCompleteness === 0 o walang record)
   const totalAlumni = filteredAlumni.length;
-  const completedAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100);
+  const completedAlumni = filteredAlumni.filter(a => calculateProfileCompleteness(a) >= 100);
   const totalCompleted = completedAlumni.length;
   const completionRate = totalAlumni > 0 ? ((totalCompleted / totalAlumni) * 100).toFixed(1) : '0';
 
-  const answeredAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const answeredAlumni = filteredAlumni.filter(a => {
+    const prog = calculateProfileCompleteness(a);
+    return prog > 0 && prog < 100;
+  });
   const totalAnswered = answeredAlumni.length;
   const answeredRate = totalAlumni > 0 ? ((totalAnswered / totalAlumni) * 100).toFixed(1) : '0';
 
-  const notAnsweredAlumni = filteredAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
+  const notAnsweredAlumni = filteredAlumni.filter(a => calculateProfileCompleteness(a) === 0);
   const totalNotAnswered = notAnsweredAlumni.length;
   const notAnsweredRate = totalAlumni > 0 ? ((totalNotAnswered / totalAlumni) * 100).toFixed(1) : '0';
   
   // Responding alumni (lahat ng may progress sa tracer o may recorded employment status matapos mag-login)
-  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
+  const respondingAlumni = filteredAlumni.filter(a => calculateProfileCompleteness(a) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
   const employedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Employed').length;
   const freelanceAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Freelance').length;
   const selfEmployedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;

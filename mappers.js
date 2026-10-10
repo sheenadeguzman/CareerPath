@@ -123,11 +123,29 @@ export function mapAlumniFromDB(row) {
     timeToFirstJob: row.time_to_first_job || '',
     jobStartYear: row.job_start_year || '',
     skills: skillsArr,
-    hasLoggedIn: !!row.has_logged_in,
+    hasLoggedIn: Boolean(row.has_logged_in || (row.profile_completeness && row.profile_completeness > 0) || row.phone || row.date_of_birth || (row.employment_status && row.employment_status !== 'No Response')),
     lastLogin: row.last_login || null,
-    profileCompleteness: !!row.has_logged_in ? (row.profile_completeness || 0) : 0,
+    profileCompleteness: (() => {
+      if (typeof row.profile_completeness === 'number' && row.profile_completeness > 0) {
+        return row.profile_completeness;
+      }
+      // Kung may na-fill up na mga fields tulad ng contact, birthday, employment status
+      const hasContent = Boolean(row.phone || row.date_of_birth || row.address || (row.employment_status && row.employment_status !== 'No Response') || skillsArr.length > 0);
+      if (!hasContent && !row.has_logged_in) return 0;
+      let filled = 0;
+      if (row.phone) filled++;
+      if (row.gender) filled++;
+      if (row.civil_status) filled++;
+      if (row.date_of_birth) filled++;
+      if (row.address || row.permanent_address) filled++;
+      if (row.employment_status && row.employment_status !== 'No Response') filled++;
+      if (skillsArr.length > 0) filled++;
+      const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(row.employment_status);
+      const denom = isEmployed ? 23 : 13;
+      return Math.min(40 + Math.round((filled / denom) * 60), 100);
+    })(),
     lastUpdated: row.last_updated,
-    isRegistered: !!row.has_logged_in && (row.profile_completeness || 0) >= 100,
+    isRegistered: (row.profile_completeness || 0) >= 100,
     locationRegion: row.location_region || 'Local (Batanes)',
     avatar: row.avatar || null,
     careerHistory: historyArr,

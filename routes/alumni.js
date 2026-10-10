@@ -150,6 +150,22 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
     const usefulSkillsStr = JSON.stringify(profile.usefulSkills || []);
     const educationStr = JSON.stringify(profile.educationHistory || []);
 
+    let completenessToSave = typeof profile.profileCompleteness === 'number' ? profile.profileCompleteness : 0;
+    const hasFilledData = Boolean(
+      profile.phone || 
+      profile.dateOfBirth || 
+      profile.address || 
+      profile.permanentAddress || 
+      (profile.employmentStatus && profile.employmentStatus !== 'No Response' && profile.employmentStatus !== 'Not Yet Answered')
+    );
+
+    if (completenessToSave === 0 && hasFilledData) {
+      const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(profile.employmentStatus);
+      completenessToSave = isEmployed ? 85 : 72;
+    }
+
+    const hasLoggedInFlag = Boolean(profile.hasLoggedIn || hasFilledData || completenessToSave > 0);
+
     if (existing.length > 0) {
       // Mag-execute ng UPDATE query kung may profile na
       await pool.query(
@@ -164,6 +180,7 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           reasons_pursuing_program = ?, find_first_job = ?, reasons_accepting_job = ?,
           useful_skills = ?, reasons_unemployment = ?, job_start_year = ?, education_history = ?,
           about_me = ?, languages = ?,
+          has_logged_in = ?,
           last_updated = CURRENT_TIMESTAMP
          WHERE student_id = ?`,
         [
@@ -172,22 +189,24 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           profile.professionalExamPassed || 'None', profile.isBoardPasser || 'N/A', profile.licensureExamDate || null, profile.licenseNo || null,
           profile.alumniAssociationStatus || 'Non-Member', profile.employmentStatus, profile.jobTitle || '', profile.jobDescription || null,
           profile.employerName || '', profile.employmentType || '', profile.sector || 'N/A', profile.monthlyIncome || '', profile.jobIndustry || null,
-          profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, profile.profileCompleteness || 0,
+          profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, completenessToSave,
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
           usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null, educationStr,
           profile.aboutMe || null, profile.languages || null,
+          hasLoggedInFlag ? 1 : 0,
           profile.studentId
         ]
       );
       
       // I-sync din ang pangalan, email, at avatar ng alumni sa user credentials (users table)
       await pool.query(
-        'UPDATE users SET name = ?, email = ?, avatar = ? WHERE id = ?',
+        'UPDATE users SET name = ?, email = ?, avatar = ?, has_logged_in = ? WHERE id = ?',
         [
           encrypt([profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ')),
           profile.email,
           profile.avatar || null,
+          hasLoggedInFlag ? 1 : 0,
           profile.studentId
         ]
       );
@@ -199,8 +218,8 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
         // Ang password by default ay ang kanilang student_id (na naka-encrypt gamit ang bcrypt)
         const hashedPassword = await bcrypt.hash(profile.studentId, 10);
         await pool.query(
-          `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, user_id, password, name, email, role, is_initial_password_needed, avatar, has_logged_in) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             profile.studentId, 
             profile.studentId, 
@@ -209,17 +228,19 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
             profile.email, 
             'Alumni', 
             1, 
-            profile.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'
+            profile.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120',
+            hasLoggedInFlag ? 1 : 0
           ]
         );
       } else {
         // Kung may user na pero walang profile, i-sync lang natin ang name, email, at avatar
         await pool.query(
-          'UPDATE users SET name = ?, email = ?, avatar = ? WHERE id = ?',
+          'UPDATE users SET name = ?, email = ?, avatar = ?, has_logged_in = ? WHERE id = ?',
           [
             encrypt([profile.firstName, profile.middleName, profile.lastName, profile.suffix].filter(Boolean).join(' ')),
             profile.email,
             profile.avatar || null,
+            hasLoggedInFlag ? 1 : 0,
             profile.studentId
           ]
         );
@@ -237,19 +258,20 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
           location_region, career_history,
           reasons_pursuing_program, find_first_job, reasons_accepting_job,
           useful_skills, reasons_unemployment, job_start_year, education_history,
-          about_me, languages
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          about_me, languages, has_logged_in
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           profile.studentId, encrypt(profile.firstName), encrypt(profile.middleName || null), encrypt(profile.lastName), profile.suffix || null, profile.email, profile.phone || null, profile.gender, profile.civilStatus,
           dob, profile.currentAddress || profile.address || null, profile.permanentAddress || profile.address || null, profile.program, profile.yearEnrolled || null, profile.yearGraduated, profile.honors || 'None',
           profile.professionalExamPassed || 'None', profile.isBoardPasser || 'N/A', profile.licensureExamDate || null, profile.licenseNo || null,
           profile.alumniAssociationStatus || 'Non-Member', profile.employmentStatus, profile.jobTitle || '', profile.jobDescription || null,
           profile.employerName || '', profile.employmentType || '', profile.sector || 'N/A', profile.monthlyIncome || '', profile.jobIndustry || null,
-          profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, profile.profileCompleteness || 0,
+          profile.jobRelatedToCourse || 'No', profile.firstJobRelatedToCourse || 'No', profile.timeToFirstJob || '', skillsStr, completenessToSave,
           profile.locationRegion || 'Local (Batanes)', historyStr,
           profile.reasonsPursuingProgram || null, profile.findFirstJob || null, profile.reasonsAcceptingJob || null,
           usefulSkillsStr, profile.reasonsUnemployment || null, profile.jobStartYear || null, educationStr,
-          profile.aboutMe || null, profile.languages || null
+          profile.aboutMe || null, profile.languages || null,
+          hasLoggedInFlag ? 1 : 0
         ]
       );
     }
