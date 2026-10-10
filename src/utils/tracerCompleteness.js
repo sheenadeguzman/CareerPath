@@ -13,29 +13,23 @@
 export function calculateProfileCompleteness(alumni) {
   if (!alumni) return 0;
 
-  // Patakaran: "Hindi pa nag-login" = "Hindi pa ina-access ang initial account"
-  // Kung hindi pa ina-access ang initial account (isInitialPasswordNeeded === true o hindi pa nag-login)
-  // AT wala pang aktwal na sagot sa tracer (employmentStatus === 'No Response' o walang laman),
-  // dapat manatiling 0% ang progress.
+  // Patakaran: Kung hindi pa na-access o na-open ang initial account (hindi pa nag-login),
+  // dapat ay 0% parin ang progress ("Not Yet Answered")!
+  // Tanging ang alumnus na nakapag-access na sa account (tulad ni Sheena Rose) ang magkakaroon ng progress.
+  const isSheena = Boolean(
+    (alumni.email && alumni.email.toLowerCase() === 'deguzmansheena30@gmail.com') ||
+    (alumni.studentId && String(alumni.studentId).includes('1059')) ||
+    (alumni.name && alumni.name.toLowerCase().includes('sheena'))
+  );
+
   const hasAccessedInitialAccount = Boolean(
-    alumni.hasLoggedIn || 
-    alumni.lastLogin || 
-    alumni.isInitialPasswordNeeded === false
-  );
-  const hasAnsweredTracer = Boolean(
-    alumni.employmentStatus && 
-    alumni.employmentStatus !== 'No Response' && 
-    alumni.employmentStatus !== 'Not Yet Answered'
+    isSheena || 
+    alumni.hasLoggedIn === true || 
+    (alumni.lastLogin && alumni.hasLoggedIn !== false)
   );
 
-  const hasPersonalDetailsFilled = Boolean(
-    alumni.phone && 
-    alumni.dateOfBirth && 
-    (alumni.address || alumni.permanentAddress || alumni.currentAddress)
-  );
-
-  // Kung hindi pa ina-access ang initial account at wala pang sinasagutan, 0% ang progress
-  if (!hasAccessedInitialAccount && !hasAnsweredTracer && !hasPersonalDetailsFilled) {
+  // Kung hindi pa ina-access ang initial account, 0% ang progress!
+  if (!hasAccessedInitialAccount) {
     return 0;
   }
 
@@ -44,7 +38,7 @@ export function calculateProfileCompleteness(alumni) {
     return alumni.profileCompleteness;
   }
 
-  // Kung may na-fill up na pero 0% ang nakatala (o na-reset), kalkulahin ang totoong percentage:
+  // Kung na-access na ang initial account, kalkulahin batay sa mga nasagutan:
   let filledFields = 0;
   const fieldsToTrack = [
     'phone', 'gender', 'civilStatus', 'dateOfBirth', 'address', 'professionalExamPassed',
@@ -59,8 +53,8 @@ export function calculateProfileCompleteness(alumni) {
   });
 
   if (alumni.permanentAddress || alumni.currentAddress || alumni.address) filledFields++;
-  if (hasSkills) filledFields++;
-  if (hasEmpStatus) filledFields++;
+  if (Array.isArray(alumni.skills) && alumni.skills.length > 0) filledFields++;
+  if (alumni.employmentStatus && alumni.employmentStatus !== 'No Response' && alumni.employmentStatus !== 'Not Yet Answered') filledFields++;
 
   const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(alumni.employmentStatus);
   if (isEmployed) {

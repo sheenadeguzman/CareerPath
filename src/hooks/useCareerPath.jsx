@@ -196,10 +196,9 @@ export function useCareerPath() {
       if (parsed.alumni && Array.isArray(parsed.alumni)) {
         parsed.alumni = parsed.alumni.map(al => {
           const comp = calculateProfileCompleteness(al);
-          const hasLogged = Boolean(al.hasLoggedIn || comp > 0);
           return {
             ...al,
-            hasLoggedIn: hasLogged,
+            hasLoggedIn: Boolean(comp > 0),
             profileCompleteness: comp
           };
         });
@@ -271,8 +270,7 @@ export function useCareerPath() {
           const db = JSON.parse(cached);
           const sanitized = (db.alumni || []).map(al => {
             const comp = calculateProfileCompleteness(al);
-            const hasLogged = Boolean(al.hasLoggedIn || comp > 0);
-            return { ...al, hasLoggedIn: hasLogged, profileCompleteness: comp };
+            return { ...al, hasLoggedIn: Boolean(comp > 0), profileCompleteness: comp };
           });
           setUsers(db.users || []);
           setAlumniList(sanitized);
@@ -295,8 +293,7 @@ export function useCareerPath() {
       const db = await fetchDashboardData(getAuthHeaders());
       const sanitizedAlumni = (db.alumni || []).map(al => {
         const comp = calculateProfileCompleteness(al);
-        const hasLogged = Boolean(al.hasLoggedIn || comp > 0);
-        return { ...al, hasLoggedIn: hasLogged, profileCompleteness: comp };
+        return { ...al, hasLoggedIn: Boolean(comp > 0), profileCompleteness: comp };
       });
       setUsers(db.users || []);
       setAlumniList(sanitizedAlumni);
