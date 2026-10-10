@@ -27,9 +27,11 @@ export default function ExportView({ alumniList = [] }) {
   // Dito ginagawa ang mga kalkulasyon at statistical aggregations para sa dashboard cards
   const totalAlumniCount = alumniList.length;
   
-  // Fina-filter ang mga graduate na registered na
-  const registeredAlumni = alumniList.filter(a => a.isRegistered);
-  const totalRegistered = registeredAlumni.length;
+  // 100% Completed profiles at may progress
+  const completedAlumni = alumniList.filter(a => (a.profileCompleteness || 0) >= 100);
+  const totalCompleted = completedAlumni.length;
+  const answeredAlumni = alumniList.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const totalAnswered = answeredAlumni.length;
   
   // Binibilang ang mga graduates na may trabaho base sa kanilang employment status
   const employedCount = alumniList.filter(a => 
@@ -168,8 +170,11 @@ export default function ExportView({ alumniList = [] }) {
 
         <div className="bg-gradient-to-br from-[#7c191e]/5 to-[#7c191e]/10 p-5 rounded-xl border border-[#7c191e]/15 flex items-center justify-between shadow-xs hover:shadow-sm transition">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#7c191e]">Registered Profiles (Active Tracer)</span>
-            <span className="block text-2xl font-black text-slate-900">{totalRegistered}</span>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#7c191e]">Completed Profiles (100%)</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-black text-slate-900">{totalCompleted}</span>
+              <span className="text-xs font-bold text-slate-500">({totalAnswered} Answered)</span>
+            </div>
           </div>
           <Layers className="w-8 h-8 text-[#7c191e] opacity-60" />
         </div>

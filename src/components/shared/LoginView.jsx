@@ -819,7 +819,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     autoComplete="off"
                     value={userIdInput}
                     onChange={(e) => setUserIdInput(e.target.value)}
-                    placeholder="Enter Student ID, Username, or Email (e.g. BSC-2020-001, admin)"
+                    placeholder="Enter Student ID, Username, or Email (e.g. 2020-0123-AB, admin)"
                     className="w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium"
                   />
                 </div>

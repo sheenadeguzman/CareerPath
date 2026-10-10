@@ -175,8 +175,11 @@ export default function ReportsView({ alumniList, activeUser }) {
   const validAges = filteredAlumni.map(a => calculateAge(a.dateOfBirth)).filter(age => age !== null);
   const averageAge = validAges.length > 0 ? Math.round(validAges.reduce((acc, age) => acc + age, 0) / validAges.length) : 'N/A';
 
+  // Responding alumni (may progress sa tracer o may recorded employment status)
+  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+
   // Geographical Location Region aggregates (Only for employed graduates)
-  const employedAlumni = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
+  const employedAlumni = respondingAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
   const localCount = employedAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
   const nationalCount = employedAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
   const internationalCount = employedAlumni.filter(a => a.locationRegion === 'International').length;
@@ -185,21 +188,28 @@ export default function ReportsView({ alumniList, activeUser }) {
   // State para sa geographic region hover tooltip
   const [hoveredRegion, setHoveredRegion] = useState(null);
 
-  // Kinakalkula ang bilang ng active responses at ang registration rate
-  const registeredAlumni = filteredAlumni.filter(a => a.isRegistered);
+  // Kinakalkula ang 3-tier tracer profile completion model:
+  // 1. Completed: 100% natapos ang profile progress
+  // 2. Answered: May progress pero < 100%
+  // 3. Not Yet Answered: 0% completion
   const total = filteredAlumni.length || 1; // Iniiwasan ang division-by-zero error kung walang alumni sa listahan
-  const totalRegistered = registeredAlumni.length;
-  const regRate = Math.round((totalRegistered / total) * 100);
+  const completedAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100);
+  const totalCompleted = completedAlumni.length;
+  const completionRate = Math.round((totalCompleted / total) * 100);
+  const answeredAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const totalAnswered = answeredAlumni.length;
+  const notAnsweredAlumni = filteredAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
+  const totalNotAnswered = notAnsweredAlumni.length;
 
   const localPct = total > 0 ? Math.round((localCount / total) * 100) : 0;
   const nationalPct = total > 0 ? Math.round((nationalCount / total) * 100) : 0;
   const internationalPct = total > 0 ? Math.round((internationalCount / total) * 100) : 0;
 
-  const accredEmployedCount = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
+  const accredEmployedCount = employedAlumni.length;
   const accredEmploymentRate = total > 0 ? Math.round((accredEmployedCount / total) * 100) : 0;
-  const alignedCount = filteredAlumni.filter(a => a.isRegistered && ['Yes', 'Partially'].includes(a.jobRelatedToCourse)).length;
+  const alignedCount = respondingAlumni.filter(a => ['Yes', 'Partially'].includes(a.jobRelatedToCourse)).length;
   const alignmentIndex = total > 0 ? Math.round((alignedCount / total) * 100) : 0;
-  const immediateOrUnder6m = filteredAlumni.filter(a => a.isRegistered && ['Immediate', '1 to 6 months'].includes(a.timeToFirstJob)).length;
+  const immediateOrUnder6m = respondingAlumni.filter(a => ['Immediate', '1 to 6 months'].includes(a.timeToFirstJob)).length;
   const placementUnder6MonthsRate = total > 0 ? Math.round((immediateOrUnder6m / total) * 100) : 0;
 
   // Initialize and update the map layer
@@ -487,7 +497,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       )
     );
     const subTotal = subset.length;
-    const subEmployed = subset.filter(a => a.isRegistered && a.employmentStatus !== 'Unemployed' && a.employmentStatus !== 'No Response').length;
+    const subEmployed = subset.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
     return {
       name: progName,
       total: subTotal,
@@ -524,7 +534,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
     if (batch.length > 0) {
       totalCount = batch.length;
-      employedCount = batch.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
+      employedCount = batch.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)).length;
       rate = Math.round((employedCount / totalCount) * 100);
     } else {
       const defaults = {
@@ -727,9 +737,9 @@ export default function ReportsView({ alumniList, activeUser }) {
       {/* Mga widget para sa mabilisang buod ng mga key metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-sans select-none">
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">Alumni Registered</span>
-          <div className="text-xl font-extrabold text-[#1e4620] mt-1">{totalRegistered} / {filteredAlumni.length}</div>
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">{regRate}% Reg. Rate &middot; Avg Batch Age: {averageAge}</span>
+          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">Tracer Profile Completion</span>
+          <div className="text-xl font-extrabold text-[#1e4620] mt-1">{totalCompleted} / {filteredAlumni.length}</div>
+          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">{completionRate}% Completed &bull; {totalAnswered} Answered</span>
         </div>
 
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">

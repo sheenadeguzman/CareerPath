@@ -122,16 +122,16 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
     // Status match (Employed vs Unemployed at specific types)
     let matchesStatus = true;
     if (selectedStatus === 'Employed') {
-      matchesStatus = a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus);
+      matchesStatus = ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus);
     } else if (selectedStatus === 'Unemployed') {
-      matchesStatus = !a.isRegistered || a.employmentStatus === 'Unemployed' || a.employmentStatus === 'No Response';
+      matchesStatus = a.employmentStatus === 'Unemployed';
     } else if (selectedStatus !== 'All') {
-      matchesStatus = a.isRegistered && a.employmentStatus === selectedStatus;
+      matchesStatus = a.employmentStatus === selectedStatus;
     }
 
     // Relatedness match
     const matchesRelated = selectedRelatedness === 'All' || 
-      (a.isRegistered && a.jobRelatedToCourse === selectedRelatedness);
+      (a.jobRelatedToCourse === selectedRelatedness);
 
     // Search query match (Pangalan, Kumpanya, Trabaho, o studentId)
     const fullName = `${a.firstName || ''} ${a.middleName || ''} ${a.lastName || ''} ${a.suffix || ''}`.toLowerCase();
@@ -149,7 +149,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
 
   
   const total = filteredAlumni.length || 1;
-  const employedAlumni = filteredAlumni.filter(a => a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
+  const employedAlumni = filteredAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
   const localCount = employedAlumni.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
   const nationalCount = employedAlumni.filter(a => a.locationRegion === 'National (Rest of PH)').length;
   const internationalCount = employedAlumni.filter(a => a.locationRegion === 'International').length;
@@ -357,7 +357,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
       const suffix = a.suffix || '';
       const fullName = `${last}, ${first} ${middle} ${suffix}`.replace(/\s+/g, ' ').trim();
       const name = `"${fullName}"`;
-      const isEmployed = a.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus);
+      const isEmployed = ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus);
       return `${idx + 1},"${a.studentId}",${name},"${a.program}",${a.yearGraduated},"${isEmployed ? a.employmentStatus : (a.employmentStatus || 'No Response')}","${a.jobTitle || 'N/A'}","${a.employerName || 'N/A'}","${a.monthlyIncome || 'N/A'}","${a.jobRelatedToCourse || 'N/A'}","${a.timeToFirstJob || 'N/A'}"`;
     }).join('\n');
 

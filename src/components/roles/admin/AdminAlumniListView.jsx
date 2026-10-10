@@ -111,10 +111,16 @@ export default function AdminAlumniListView({
                            al.program.toLowerCase() === selectedProgram.toLowerCase() ||
                            al.program.toLowerCase().includes(selectedProgram.toLowerCase()) ||
                            selectedProgram.toLowerCase().includes(al.program.toLowerCase());
+    const progress = al.profileCompleteness || 0;
+    const isCompleted = progress >= 100;
+    const isAnswered = progress > 0 && progress < 100;
+    const isNotAnswered = progress === 0;
+
     const matchesStatus = selectedStatus === 'All' || 
-                          (selectedStatus === 'Unregistered' && !al.isRegistered) ||
-                          (selectedStatus === 'Registered' && al.isRegistered) ||
-                          (al.isRegistered && al.employmentStatus === selectedStatus);
+                          (selectedStatus === 'Completed' && isCompleted) ||
+                          (selectedStatus === 'Answered' && isAnswered) ||
+                          (selectedStatus === 'Not Yet Answered' && isNotAnswered) ||
+                          (al.employmentStatus === selectedStatus);
     
     // Pagsuri sa role ng Chairperson: limitahan ang pagtingin sa mga graduate lang ng kaniyang program/department
     if (isChairperson && !isAlumnusInDepartment(al, chairProg)) {
@@ -333,8 +339,9 @@ export default function AdminAlumniListView({
               className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
             >
               <option value="All">All Statuses</option>
-              <option value="Registered">Registered</option>
-              <option value="Unregistered">Unregistered</option>
+              <option value="Completed">Completed (100%)</option>
+              <option value="Answered">Answered (In Progress)</option>
+              <option value="Not Yet Answered">Not Yet Answered</option>
               <option value="Employed">Employed</option>
               <option value="Unemployed">Unemployed</option>
               <option value="Freelance">Freelance</option>
@@ -454,9 +461,7 @@ export default function AdminAlumniListView({
                   <td className="p-3.5 truncate max-w-[200px]" title={al.program}>{al.program}</td>
                   <td className="p-3.5 font-bold text-slate-600">{al.yearGraduated}</td>
                   <td className="p-3.5">
-                    {!al.isRegistered ? (
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-full font-bold text-[10px] uppercase">Unregistered</span>
-                    ) : al.employmentStatus === 'Employed' ? (
+                    {al.employmentStatus === 'Employed' ? (
                       <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full font-bold text-[10px] uppercase">Employed</span>
                     ) : al.employmentStatus === 'Self-Employed' ? (
                       <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-full font-bold text-[10px] uppercase">Self-Employed</span>
@@ -464,18 +469,43 @@ export default function AdminAlumniListView({
                       <span className="px-2 py-0.5 bg-violet-100 text-violet-800 border border-violet-200 rounded-full font-bold text-[10px] uppercase">Freelance</span>
                     ) : al.employmentStatus === 'Further Studies' ? (
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-800 border border-blue-200 rounded-full font-bold text-[10px] uppercase">Further Studies</span>
-                    ) : (
+                    ) : al.employmentStatus === 'Unemployed' ? (
                       <span className="px-2 py-0.5 bg-rose-100 text-rose-850 border border-rose-200 rounded-full font-bold text-[10px] uppercase">Unemployed</span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-full font-bold text-[10px] uppercase">Not Yet Answered</span>
                     )}
                   </td>
                   <td className="p-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-[10px]">{al.profileCompleteness}%</span>
-                      <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block shrink-0 border border-slate-200/50">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 ${al.profileCompleteness >= 100 ? 'bg-emerald-600' : 'bg-amber-500'}`} 
-                          style={{ width: `${al.profileCompleteness}%` }}
-                        />
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[10px]">{al.profileCompleteness || 0}%</span>
+                        <div className="w-16 h-2 bg-slate-105 rounded-full overflow-hidden inline-block shrink-0 border border-slate-200/50">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              (al.profileCompleteness || 0) >= 100 
+                                ? 'bg-emerald-600' 
+                                : (al.profileCompleteness || 0) > 0 
+                                  ? 'bg-amber-500' 
+                                  : 'bg-slate-300'
+                            }`} 
+                            style={{ width: `${al.profileCompleteness || 0}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        {(al.profileCompleteness || 0) >= 100 ? (
+                          <span className="inline-block text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 uppercase">
+                            Completed
+                          </span>
+                        ) : (al.profileCompleteness || 0) > 0 ? (
+                          <span className="inline-block text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 uppercase">
+                            Answered
+                          </span>
+                        ) : (
+                          <span className="inline-block text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200 uppercase">
+                            Not Yet Answered
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>

@@ -64,37 +64,43 @@ export default function ChairpersonDashboard({
     ? deptAlumni
     : deptAlumni.filter(a => a.yearGraduated.toString() === selectedYear);
 
-  // Kinakalkula ang mga istatistika para sa mga metric cards
+  // Kinakalkula ang mga istatistika para sa mga metric cards alinsunod sa completion tiers:
+  // 1. Completed: 100% natapos ang profile progress
+  // 2. Answered: May progress pero < 100%
+  // 3. Not Yet Answered: 0% completion o walang record
   const totalDeptAlumni = filteredDeptAlumni.length;
-  const registeredDeptAlumni = filteredDeptAlumni.filter(a => a.isRegistered);
-  const totalRegisteredDept = registeredDeptAlumni.length;
-  const deptRegistrationRate = totalDeptAlumni > 0 ? ((totalRegisteredDept / totalDeptAlumni) * 100).toFixed(1) : '0';
-  const unregisteredDeptAlumni = totalDeptAlumni - totalRegisteredDept;
+  const completedDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) >= 100);
+  const totalCompletedDept = completedDeptAlumni.length;
+  const deptCompletionRate = totalDeptAlumni > 0 ? ((totalCompletedDept / totalDeptAlumni) * 100).toFixed(1) : '0';
+
+  const answeredDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const totalAnsweredDept = answeredDeptAlumni.length;
+
+  const notAnsweredDeptAlumni = filteredDeptAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
+  const totalNotAnsweredDept = notAnsweredDeptAlumni.length;
   
-  // Breakdown ng bilang ng may trabaho para sa departamento
-  const employedAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Employed').length;
-  const freelanceAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Freelance').length;
-  const selfEmployedAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
-  const furtherStudiesAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
-  const unemployedAlumni = registeredDeptAlumni.filter(a => a.employmentStatus === 'Unemployed').length;
-  const noResponseAlumni = registeredDeptAlumni.filter(a => 
-    !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
-  ).length;
+  // Responding alumni para sa departamento
+  const respondingDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  const employedAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Employed').length;
+  const freelanceAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Freelance').length;
+  const selfEmployedAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
+  const furtherStudiesAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
+  const unemployedAlumni = respondingDeptAlumni.filter(a => a.employmentStatus === 'Unemployed').length;
+  const noResponseAlumni = totalNotAnsweredDept;
   
   const employedCount = employedAlumni + freelanceAlumni + selfEmployedAlumni;
   const employmentRate = totalDeptAlumni > 0 ? ((employedCount / totalDeptAlumni) * 100).toFixed(1) : '0';
 
   // Breakdown ng relevance alignment para sa department
-  const relevanceYes = registeredDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
-  const relevancePartially = registeredDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
-  const relevanceNo = registeredDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
-  const relevanceNoResponse = registeredDeptAlumni.filter(a => !a.employmentStatus).length;
+  const relevanceYes = respondingDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
+  const relevancePartially = respondingDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
+  const relevanceNo = respondingDeptAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
+  const relevanceNoResponse = totalNotAnsweredDept;
   const relevanceDenominator = totalDeptAlumni || 1;
   const relevanceYesPct = Math.round((relevanceYes / relevanceDenominator) * 100);
   const relevancePartiallyPct = Math.round((relevancePartially / relevanceDenominator) * 100);
   const relevanceNoPct = Math.round((relevanceNo / relevanceDenominator) * 100);
-  const relevanceNoResponsePct = Math.round((relevanceNoResponse / relevanceDenominator) * 100);
-  const relevanceUnregisteredPct = Math.round((unregisteredDeptAlumni / relevanceDenominator) * 100);
+  const relevanceNotAnsweredPct = Math.round((totalNotAnsweredDept / relevanceDenominator) * 100);
 
   const deptTotalEmployed = relevanceYes + relevancePartially + relevanceNo;
   const deptAlignmentRate = deptTotalEmployed > 0 ? (((relevanceYes + relevancePartially) / deptTotalEmployed) * 100).toFixed(1) : '0';
@@ -105,12 +111,13 @@ export default function ChairpersonDashboard({
     let csvContent = [
       `Department Name,"${chairProgram}"`,
       `Total Batch Graduates,${totalDeptAlumni}`,
-      `Registered Graduates,${totalRegisteredDept}`,
-      `Registration Rate,${deptRegistrationRate}%`,
+      `Completed Profiles (100%),${totalCompletedDept}`,
+      `Completion Rate,${deptCompletionRate}%`,
+      `Answered Profiles (In Progress),${totalAnsweredDept}`,
+      `Not Yet Answered,${totalNotAnsweredDept}`,
       `Employed Graduates,${employedCount}`,
       `Employment Rate,${employmentRate}%`,
-      `Curriculum Alignment Rate,${deptAlignmentRate}%`,
-      `Unregistered Graduates,${unregisteredDeptAlumni}`
+      `Curriculum Alignment Rate,${deptAlignmentRate}%`
     ].join('\n');
 
     const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -155,8 +162,7 @@ export default function ChairpersonDashboard({
     const selfPct = Math.round((selfEmployedAlumni / total) * 100);
     const furtherPct = Math.round((furtherStudiesAlumni / total) * 100);
     const unemployedPct = Math.round((unemployedAlumni / total) * 100);
-    const noResponsePct = Math.round((noResponseAlumni / total) * 100);
-    const unregisteredPct = Math.round((unregisteredDeptAlumni / total) * 100);
+    const notAnsweredPct = Math.round((totalNotAnsweredDept / total) * 100);
 
     return {
       employed: employedPct,
@@ -164,8 +170,7 @@ export default function ChairpersonDashboard({
       self: selfPct,
       furtherStudies: furtherPct,
       unemployed: unemployedPct,
-      noResponse: noResponsePct,
-      unregistered: unregisteredPct
+      notAnswered: notAnsweredPct
     };
   })();
 
@@ -193,10 +198,8 @@ export default function ChairpersonDashboard({
         return { label: 'Further Studies', value: `${pieSegments.furtherStudies}%`, sub: `${furtherStudiesAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
       case 'unemployed':
         return { label: 'Unemployed', value: `${pieSegments.unemployed}%`, sub: `${unemployedAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
-      case 'noResponse':
-        return { label: 'No Response', value: `${pieSegments.noResponse}%`, sub: `${noResponseAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
-      case 'unregistered':
-        return { label: 'Unregistered', value: `${pieSegments.unregistered}%`, sub: `${unregisteredDeptAlumni} / ${totalDeptAlumni} ${pluralGrad}` };
+      case 'notAnswered':
+        return { label: 'Not Yet Answered', value: `${pieSegments.notAnswered}%`, sub: `${totalNotAnsweredDept} / ${totalDeptAlumni} ${pluralGrad}` };
       default:
         return { label: 'Placed Rate', value: `${employmentRate}%`, sub: '' };
     }
@@ -298,15 +301,15 @@ export default function ChairpersonDashboard({
       {/* Row para sa mga Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
-        {/* Metric card para sa kabuuang rehistradong alumni ng departamento */}
+        {/* Metric card para sa kabuuang profile completion ng departamento */}
         <div 
           onClick={() => onNavigate('Alumni')}
           className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all"
         >
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Alumni Registration</span>
-            <div className="text-xl font-extrabold text-slate-800">{totalRegisteredDept} / {totalDeptAlumni}</div>
-            <span className="text-[10px] text-slate-505 font-semibold block mt-0.5">{deptRegistrationRate}% Registration Rate</span>
+            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Tracer Profile Completion</span>
+            <div className="text-xl font-extrabold text-slate-800">{totalCompletedDept} / {totalDeptAlumni}</div>
+            <span className="text-[10px] text-slate-505 font-semibold block mt-0.5">{deptCompletionRate}% Completed &bull; {totalAnsweredDept} Answered</span>
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
             <GraduationCap className="w-5.5 h-5.5" />
@@ -549,43 +552,19 @@ export default function ChairpersonDashboard({
                   }}
                 />
 
-                {/* Segment para sa No Response */}
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#64748b" 
-                  strokeWidth={hoveredDeptSegment === 'noResponse' ? 18 : 12}
-                  strokeDasharray={`${(pieSegments.noResponse / 100) * 251.2} 251.2`} 
+                {/* Segment para sa Not Yet Answered */}
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" 
+                  strokeWidth={hoveredDeptSegment === 'notAnswered' ? 18 : 12}
+                  strokeDasharray={`${(pieSegments.notAnswered / 100) * 251.2} 251.2`} 
                   strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed) / 100) * 251.2}`}
                   className="donut-chart-segment cursor-pointer"
                   onMouseEnter={(e) => {
-                    setHoveredDeptSegment('noResponse');
+                    setHoveredDeptSegment('notAnswered');
                     setTooltip({
                       x: e.clientX,
                       y: e.clientY,
-                      title: 'No Response',
-                      value: `${noResponseAlumni} Graduates (${pieSegments.noResponse}%)`
-                    });
-                  }}
-                  onMouseMove={(e) => {
-                    setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredDeptSegment(null);
-                    setTooltip(null);
-                  }}
-                />
-
-                {/* Segment para sa Unregistered */}
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" 
-                  strokeWidth={hoveredDeptSegment === 'unregistered' ? 18 : 12}
-                  strokeDasharray={`${(pieSegments.unregistered / 100) * 251.2} 251.2`} 
-                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed + pieSegments.noResponse) / 100) * 251.2}`}
-                  className="donut-chart-segment cursor-pointer"
-                  onMouseEnter={(e) => {
-                    setHoveredDeptSegment('unregistered');
-                    setTooltip({
-                      x: e.clientX,
-                      y: e.clientY,
-                      title: 'Unregistered',
-                      value: `${unregisteredDeptAlumni} Graduates (${pieSegments.unregistered}%)`
+                      title: 'Not Yet Answered',
+                      value: `${totalNotAnsweredDept} Graduates (${pieSegments.notAnswered}%)`
                     });
                   }}
                   onMouseMove={(e) => {
@@ -628,13 +607,9 @@ export default function ChairpersonDashboard({
                   <span className="w-2 h-2 bg-rose-500 rounded-xs block" />
                   <span className="text-slate-650">Unemployed: {unemployedAlumni} ({pieSegments.unemployed}%)</span>
                 </div>
-                 <div className="flex items-center gap-1.5 text-xs font-semibold">
-                  <span className="w-2 h-2 bg-slate-500 rounded-xs block" />
-                  <span className="text-slate-655">No Response: {noResponseAlumni} ({pieSegments.noResponse}%)</span>
-                </div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold">
                   <span className="w-2 h-2 bg-slate-400 rounded-xs block" />
-                  <span className="text-slate-655">Unregistered: {unregisteredDeptAlumni} ({pieSegments.unregistered}%)</span>
+                  <span className="text-slate-655">Not Yet Answered: {totalNotAnsweredDept} ({pieSegments.notAnswered}%)</span>
                 </div>
               </div>
             </div>
@@ -678,27 +653,15 @@ export default function ChairpersonDashboard({
                   <div className="h-full bg-rose-500 rounded-full" style={{ width: `${relevanceNoPct}%` }} />
                 </div>
               </div>
-              {/* No Response */}
-              {relevanceNoResponse > 0 && (
+              {/* Not Yet Answered */}
+              {totalNotAnsweredDept > 0 && (
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-400">No Response</span>
-                    <span className="text-slate-500 font-bold">{relevanceNoResponse} ({relevanceNoResponsePct}%)</span>
+                    <span className="text-slate-400">Not Yet Answered</span>
+                    <span className="text-slate-500 font-bold">{totalNotAnsweredDept} ({relevanceNotAnsweredPct}%)</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${relevanceNoResponsePct}%` }} />
-                  </div>
-                </div>
-              )}
-              {/* Unregistered */}
-              {unregisteredDeptAlumni > 0 && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-400">Unregistered</span>
-                    <span className="text-slate-500 font-bold">{unregisteredDeptAlumni} ({relevanceUnregisteredPct}%)</span>
-                  </div>
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${relevanceUnregisteredPct}%` }} />
+                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${relevanceNotAnsweredPct}%` }} />
                   </div>
                 </div>
               )}

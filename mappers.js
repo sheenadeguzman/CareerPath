@@ -123,7 +123,7 @@ export function mapAlumniFromDB(row) {
     skills: skillsArr,
     profileCompleteness: row.profile_completeness || 0,
     lastUpdated: row.last_updated,
-    isRegistered: row.is_initial_password_needed === 0 || row.is_initial_password_needed === false,
+    isRegistered: (row.profile_completeness || 0) >= 100,
     locationRegion: row.location_region || 'Local (Batanes)',
     avatar: row.avatar || null,
     careerHistory: historyArr,

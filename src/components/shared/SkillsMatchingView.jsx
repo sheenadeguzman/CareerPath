@@ -52,8 +52,8 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
 
   const reqSkills = activeJob ? activeJob.requirements : [];
 
-  // Fina-filter lamang ang mga rehistradong alumni para sa gagawing pagtutugma
-  const registeredAlumniList = alumniList.filter(al => al.isRegistered);
+  // Fina-filter ang mga alumni na may profile data o skills para sa gagawing pagtutugma
+  const registeredAlumniList = alumniList.filter(al => (al.profileCompleteness || 0) > 0 || (al.skills && al.skills.length > 0) || al.isRegistered);
 
   // Helper function para sa Department / Course Compatibility Score (Academic Program Alignment)
   const calculateProgramAlignment = (alumniProgram, jobTitle, jobDescription, jobRequirements = []) => {

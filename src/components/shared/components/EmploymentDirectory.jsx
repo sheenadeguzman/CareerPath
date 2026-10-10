@@ -27,7 +27,7 @@ export default function EmploymentDirectory({ filteredAlumni = [] }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredAlumni.map(al => {
-            const isEmp = al.isRegistered && ['Employed', 'Freelance', 'Self-Employed'].includes(al.employmentStatus);
+            const isEmp = ['Employed', 'Freelance', 'Self-Employed'].includes(al.employmentStatus);
             const initials = `${al.firstName?.[0] || ''}${al.lastName?.[0] || ''}`.toUpperCase();
             
             return (
@@ -84,7 +84,7 @@ export default function EmploymentDirectory({ filteredAlumni = [] }) {
                     </div>
                   ) : (
                     <div className="bg-slate-100/60 border border-slate-200/40 rounded-lg p-2 text-[9.5px] font-extrabold text-slate-400 uppercase text-center py-2.5">
-                      {al.isRegistered && al.employmentStatus === 'Further Studies' 
+                      {al.employmentStatus === 'Further Studies' 
                         ? 'Further Studies / Grad School Program'
                         : 'Currently Seeking Employment / No Active Records'}
                     </div>

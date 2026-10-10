@@ -101,76 +101,82 @@ export default function AdminDashboard({
     return matchesYear && matchesDepartment;
   });
 
-  // Mga kalkulasyon para sa metrics ng dashboard cards
+  // Mga kalkulasyon para sa metrics ng dashboard cards alinsunod sa completion tiers:
+  // 1. Completed: 100% natapos ang progress sa form/profile (profileCompleteness >= 100)
+  // 2. Answered: Sumagot na at may progress pero hindi pa 100% (profileCompleteness > 0 && < 100)
+  // 3. Not Yet Answered: Hindi pa sumasagot sa tracer form (profileCompleteness === 0 o walang record)
   const totalAlumni = filteredAlumni.length;
-  const registeredAlumni = filteredAlumni.filter(a => a.isRegistered);
-  const totalRegistered = registeredAlumni.length;
-  const registrationRate = totalAlumni > 0 ? ((totalRegistered / totalAlumni) * 100).toFixed(1) : '0';
-  const unregisteredAlumni = totalAlumni - totalRegistered;
+  const completedAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100);
+  const totalCompleted = completedAlumni.length;
+  const completionRate = totalAlumni > 0 ? ((totalCompleted / totalAlumni) * 100).toFixed(1) : '0';
+
+  const answeredAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const totalAnswered = answeredAlumni.length;
+
+  const notAnsweredAlumni = filteredAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
+  const totalNotAnswered = notAnsweredAlumni.length;
   
-  // Breakdown ng bilang kada employment status ng mga graduate
-  const employedAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Employed').length;
-  const freelanceAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Freelance').length;
-  const selfEmployedAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
-  const furtherStudiesAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
-  const unemployedAlumni = registeredAlumni.filter(a => a.employmentStatus === 'Unemployed').length;
-  const noResponseAlumni = registeredAlumni.filter(a => 
-    !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
-  ).length;
+  // Responding alumni (lahat ng may progress sa tracer o may recorded employment status)
+  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  const employedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Employed').length;
+  const freelanceAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Freelance').length;
+  const selfEmployedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
+  const furtherStudiesAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
+  const unemployedAlumni = respondingAlumni.filter(a => a.employmentStatus === 'Unemployed').length;
+  const noResponseAlumni = totalNotAnswered;
   
   // Pinagsasama ang mga may trabaho (Employed, Freelance, Self-Employed) para makuha ang porsyento ng employment rate
   const employedCount = employedAlumni + freelanceAlumni + selfEmployedAlumni;
   const employmentRate = totalAlumni > 0 ? ((employedCount / totalAlumni) * 100).toFixed(1) : '0';
 
-  // Breakdown of registeredAlumni syllabus relevance
-  const relevanceYes = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
-  const relevancePartially = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
-  const relevanceNo = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
-  const relevanceNoResponse = registeredAlumni.filter(a => !a.employmentStatus).length;
+  // Breakdown of respondingAlumni syllabus relevance
+  const relevanceYes = respondingAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
+  const relevancePartially = respondingAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
+  const relevanceNo = respondingAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
+  const relevanceNoResponse = totalNotAnswered;
   const relevanceDenominator = totalAlumni || 1;
   const relevanceYesPct = Math.round((relevanceYes / relevanceDenominator) * 100);
   const relevancePartiallyPct = Math.round((relevancePartially / relevanceDenominator) * 100);
   const relevanceNoPct = Math.round((relevanceNo / relevanceDenominator) * 100);
-  const relevanceNoResponsePct = Math.round((relevanceNoResponse / relevanceDenominator) * 100);
-  const relevanceUnregisteredPct = Math.round((unregisteredAlumni / relevanceDenominator) * 100);
+  const relevanceNotAnsweredPct = Math.round((totalNotAnswered / relevanceDenominator) * 100);
 
   const totalEmployed = relevanceYes + relevancePartially + relevanceNo;
   const alignmentRate = totalEmployed > 0 ? (((relevanceYes + relevancePartially) / totalEmployed) * 100).toFixed(1) : '0';
 
   // Time to Land First Job
-  const timeImmediate = registeredAlumni.filter(a => a.timeToFirstJob === 'Immediate').length;
-  const time1to6 = registeredAlumni.filter(a => a.timeToFirstJob === '1 to 6 months').length;
-  const time7to11 = registeredAlumni.filter(a => a.timeToFirstJob === '7 to 11 months').length;
-  const time1YearPlus = registeredAlumni.filter(a => a.timeToFirstJob === '1 year or longer').length;
+  const timeImmediate = respondingAlumni.filter(a => a.timeToFirstJob === 'Immediate').length;
+  const time1to6 = respondingAlumni.filter(a => a.timeToFirstJob === '1 to 6 months').length;
+  const time7to11 = respondingAlumni.filter(a => a.timeToFirstJob === '7 to 11 months').length;
+  const time1YearPlus = respondingAlumni.filter(a => a.timeToFirstJob === '1 year or longer').length;
   const timeDenominator = totalAlumni || 1;
   const timeImmediatePct = Math.round((timeImmediate / timeDenominator) * 100);
   const time1to6Pct = Math.round((time1to6 / timeDenominator) * 100);
   const time7to11Pct = Math.round((time7to11 / timeDenominator) * 100);
   const time1YearPlusPct = Math.round((time1YearPlus / timeDenominator) * 100);
-  const timeUnresponsiveCount = totalAlumni - (timeImmediate + time1to6 + time7to11 + time1YearPlus);
-  const timeUnregisteredPct = Math.max(0, 100 - (timeImmediatePct + time1to6Pct + time7to11Pct + time1YearPlusPct));
+  const timeUnresponsiveCount = totalNotAnswered;
+  const timeNotAnsweredPct = Math.max(0, 100 - (timeImmediatePct + time1to6Pct + time7to11Pct + time1YearPlusPct));
 
   // Monthly Salary Bracket (PHP)
-  const salUnder10k = registeredAlumni.filter(a => a.monthlyIncome === 'Under 10,000').length;
-  const sal10to20k = registeredAlumni.filter(a => a.monthlyIncome === '10,000 - 20,000').length;
-  const sal20to30k = registeredAlumni.filter(a => a.monthlyIncome === '20,001 - 30,000').length;
-  const sal30to40k = registeredAlumni.filter(a => a.monthlyIncome === '30,001 - 40,000').length;
-  const salOver40k = registeredAlumni.filter(a => a.monthlyIncome === 'Above 40,000').length;
+  const salUnder10k = respondingAlumni.filter(a => a.monthlyIncome === 'Under 10,000').length;
+  const sal10to20k = respondingAlumni.filter(a => a.monthlyIncome === '10,000 - 20,000').length;
+  const sal20to30k = respondingAlumni.filter(a => a.monthlyIncome === '20,001 - 30,000').length;
+  const sal30to40k = respondingAlumni.filter(a => a.monthlyIncome === '30,001 - 40,000').length;
+  const salOver40k = respondingAlumni.filter(a => a.monthlyIncome === 'Above 40,000').length;
   const salDenominator = totalAlumni || 1;
   const salUnder10kPct = Math.round((salUnder10k / salDenominator) * 100);
   const sal10to20kPct = Math.round((sal10to20k / salDenominator) * 100);
   const sal20to30kPct = Math.round((sal20to30k / salDenominator) * 100);
   const sal30to40kPct = Math.round((sal30to40k / salDenominator) * 100);
   const salOver40kPct = Math.round((salOver40k / salDenominator) * 100);
-  const salUnresponsiveCount = totalAlumni - (salUnder10k + sal10to20k + sal20to30k + sal30to40k + salOver40k);
-  const salUnregisteredPct = Math.max(0, 100 - (salUnder10kPct + sal10to20kPct + sal20to30kPct + sal30to40kPct + salOver40kPct));
+  const salUnresponsiveCount = totalNotAnswered;
+  const salNotAnsweredPct = Math.max(0, 100 - (salUnder10kPct + sal10to20kPct + sal20to30kPct + sal30to40kPct + salOver40kPct));
 
   // Sector and Location
-  const sectorPrivate = registeredAlumni.filter(a => a.sector === 'Private').length;
-  const sectorPublic = registeredAlumni.filter(a => a.sector === 'Public').length;
-  const sectorNGO = registeredAlumni.filter(a => a.sector === 'NGO').length;
-  const sectorNA = registeredAlumni.filter(a => a.sector === 'N/A' || !a.sector).length;
-  const employedListForLoc = registeredAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
+  const sectorPrivate = respondingAlumni.filter(a => a.sector === 'Private').length;
+  const sectorPublic = respondingAlumni.filter(a => a.sector === 'Public').length;
+  const sectorNGO = respondingAlumni.filter(a => a.sector === 'NGO').length;
+  const sectorNA = respondingAlumni.filter(a => a.sector === 'N/A' || !a.sector).length;
+  const employedListForLoc = respondingAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
   const locLocal = employedListForLoc.filter(a => (a.locationRegion || 'Local (Batanes)') === 'Local (Batanes)').length;
   const locNational = employedListForLoc.filter(a => a.locationRegion === 'National (Rest of PH)').length;
   const locInternational = employedListForLoc.filter(a => a.locationRegion === 'International').length;
@@ -185,12 +191,13 @@ export default function AdminDashboard({
       `Department Filter,${selectedDepartment === 'All' ? 'All Departments' : selectedDepartment}`,
       `Graduation Year Filter,${selectedYear === 'All' ? 'All Years' : selectedYear}`,
       `Total Batch Graduates,${totalAlumni}`,
-      `Registered Graduates,${totalRegistered}`,
-      `Registration Rate,${registrationRate}%`,
+      `Completed Profiles (100%),${totalCompleted}`,
+      `Completion Rate,${completionRate}%`,
+      `Answered Profiles (In Progress),${totalAnswered}`,
+      `Not Yet Answered,${totalNotAnswered}`,
       `Employed Graduates,${employedCount}`,
       `Employment Rate,${employmentRate}%`,
       `Program Alignment Rate,${alignmentRate}%`,
-      `Unregistered Graduates,${unregisteredAlumni}`,
       `Total Partner Employers,${totalEmployers}`,
       `Active Job Openings Slots,${openPositions}`
     ].join('\n');
@@ -217,7 +224,17 @@ export default function AdminDashboard({
     'Bachelor of Secondary Education': 0,
   };
 
-  const programRegisteredCounts = {
+  const programCompletedCounts = {
+    'Bachelor of Science in Information Technology': 0,
+    'Bachelor of Science in Hospitality Management': 0,
+    'Bachelor of Science in Tourism Management': 0,
+    'Bachelor of Science in Industrial Technology': 0,
+    'Bachelor of Science in Agriculture': 0,
+    'Bachelor of Elementary Education': 0,
+    'Bachelor of Secondary Education': 0,
+  };
+
+  const programAnsweredCounts = {
     'Bachelor of Science in Information Technology': 0,
     'Bachelor of Science in Hospitality Management': 0,
     'Bachelor of Science in Tourism Management': 0,
@@ -235,11 +252,18 @@ export default function AdminDashboard({
       programCounts[baseProg] = 1;
     }
 
-    if (al.isRegistered) {
-      if (programRegisteredCounts[baseProg] !== undefined) {
-        programRegisteredCounts[baseProg]++;
+    const prog = al.profileCompleteness || 0;
+    if (prog >= 100) {
+      if (programCompletedCounts[baseProg] !== undefined) {
+        programCompletedCounts[baseProg]++;
       } else {
-        programRegisteredCounts[baseProg] = 1;
+        programCompletedCounts[baseProg] = 1;
+      }
+    } else if (prog > 0) {
+      if (programAnsweredCounts[baseProg] !== undefined) {
+        programAnsweredCounts[baseProg]++;
+      } else {
+        programAnsweredCounts[baseProg] = 1;
       }
     }
   });
@@ -252,8 +276,7 @@ export default function AdminDashboard({
     const selfPct = Math.round((selfEmployedAlumni / total) * 100);
     const furtherPct = Math.round((furtherStudiesAlumni / total) * 100);
     const unemployedPct = Math.round((unemployedAlumni / total) * 100);
-    const noResponsePct = Math.round((noResponseAlumni / total) * 100);
-    const unregisteredPct = Math.round((unregisteredAlumni / total) * 100);
+    const notAnsweredPct = Math.round((totalNotAnswered / total) * 100);
 
     return {
       employed: employedPct,
@@ -261,14 +284,12 @@ export default function AdminDashboard({
       self: selfPct,
       furtherStudies: furtherPct,
       unemployed: unemployedPct,
-      noResponse: noResponsePct,
-      unregistered: unregisteredPct
+      notAnswered: notAnsweredPct
     };
   })();
 
   /**
    * Kumuha ng kaukulang labels at values para ipakita sa gitna ng Donut Chart.
-   * NOTE: Ginawa nating dynamic ang pluralization ng grads ( <= 1 ay 'grad' ) alinsunod sa bagong hiling ng user.
    * @returns {Object} { label, value, sub }
    */
   const getCenterText = () => {
@@ -291,10 +312,8 @@ export default function AdminDashboard({
         return { label: 'Further Studies', value: `${pieSegments.furtherStudies}%`, sub: `${furtherStudiesAlumni} / ${totalAlumni} ${totalGradLabel}` };
       case 'unemployed':
         return { label: 'Unemployed', value: `${pieSegments.unemployed}%`, sub: `${unemployedAlumni} / ${totalAlumni} ${totalGradLabel}` };
-      case 'noResponse':
-        return { label: 'No Response', value: `${pieSegments.noResponse}%`, sub: `${noResponseAlumni} / ${totalAlumni} ${totalGradLabel}` };
-      case 'unregistered':
-        return { label: 'Unregistered', value: `${pieSegments.unregistered}%`, sub: `${unregisteredAlumni} / ${totalAlumni} ${totalGradLabel}` };
+      case 'notAnswered':
+        return { label: 'Not Yet Answered', value: `${pieSegments.notAnswered}%`, sub: `${totalNotAnswered} / ${totalAlumni} ${totalGradLabel}` };
       default:
         return { label: 'Placed Rate', value: `${employmentRate}%`, sub: '' };
     }
@@ -408,15 +427,15 @@ export default function AdminDashboard({
       {/* Hilera ng mga Dashboard Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Kard para sa Kabuuang Alumni Registry */}
+        {/* Kard para sa Kabuuang Profile Completion */}
         <div 
           onClick={() => onNavigate('Alumni')} 
           className="bg-white p-5 rounded-xl shadow-xs border border-slate-100 flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all"
         >
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">Alumni Registration</span>
-            <div className="text-2xl font-bold text-slate-800">{totalRegistered} / {totalAlumni}</div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{registrationRate}% Registration Rate</span>
+            <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">Tracer Profile Completion</span>
+            <div className="text-2xl font-bold text-slate-800">{totalCompleted} / {totalAlumni}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{completionRate}% Completed &bull; {totalAnswered} Answered</span>
           </div>
           <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
             <GraduationCap className="w-5.5 h-5.5" />
@@ -606,43 +625,19 @@ export default function AdminDashboard({
                   }}
                 />
 
-                 {/* No Response */}
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#64748b" 
-                  strokeWidth={hoveredInstSegment === 'noResponse' ? 18 : 12}
-                  strokeDasharray={`${(pieSegments.noResponse / 100) * 251.2} 251.2`} 
+                {/* Not Yet Answered */}
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" 
+                  strokeWidth={hoveredInstSegment === 'notAnswered' ? 18 : 12}
+                  strokeDasharray={`${(pieSegments.notAnswered / 100) * 251.2} 251.2`} 
                   strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed) / 100) * 251.2}`}
                   className="donut-chart-segment cursor-pointer"
                   onMouseEnter={(e) => {
-                    setHoveredInstSegment('noResponse');
+                    setHoveredInstSegment('notAnswered');
                     setTooltip({
                       x: e.clientX,
                       y: e.clientY,
-                      title: 'No Response',
-                      value: `${noResponseAlumni} Graduates (${pieSegments.noResponse}%)`
-                    });
-                  }}
-                  onMouseMove={(e) => {
-                    setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredInstSegment(null);
-                    setTooltip(null);
-                  }}
-                />
-
-                {/* Hindi pa naka-register sa portal (Unregistered) */}
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" 
-                  strokeWidth={hoveredInstSegment === 'unregistered' ? 18 : 12}
-                  strokeDasharray={`${(pieSegments.unregistered / 100) * 251.2} 251.2`} 
-                  strokeDashoffset={`-${((pieSegments.employed + pieSegments.freelance + pieSegments.self + pieSegments.furtherStudies + pieSegments.unemployed + pieSegments.noResponse) / 100) * 251.2}`}
-                  className="donut-chart-segment cursor-pointer"
-                  onMouseEnter={(e) => {
-                    setHoveredInstSegment('unregistered');
-                    setTooltip({
-                      x: e.clientX,
-                      y: e.clientY,
-                      title: 'Unregistered',
-                      value: `${unregisteredAlumni} Graduates (${pieSegments.unregistered}%)`
+                      title: 'Not Yet Answered',
+                      value: `${totalNotAnswered} Graduates (${pieSegments.notAnswered}%)`
                     });
                   }}
                   onMouseMove={(e) => {
@@ -701,17 +696,10 @@ export default function AdminDashboard({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-slate-500 rounded-xs inline-block" />
-                <div>
-                  <span className="block text-xs font-bold text-slate-700 leading-none">No Response</span>
-                  <span className="block text-[10px] text-slate-400 mt-0.5">{noResponseAlumni} Graduates &bull; {pieSegments.noResponse}%</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
                 <span className="w-3 h-3 bg-slate-400 rounded-xs inline-block" />
                 <div>
-                  <span className="block text-xs font-bold text-slate-700 leading-none">Unregistered</span>
-                  <span className="block text-[10px] text-slate-400 mt-0.5">{unregisteredAlumni} Graduates &bull; {pieSegments.unregistered}%</span>
+                  <span className="block text-xs font-bold text-slate-700 leading-none">Not Yet Answered</span>
+                  <span className="block text-[10px] text-slate-400 mt-0.5">{totalNotAnswered} Graduates &bull; {pieSegments.notAnswered}%</span>
                 </div>
               </div>
             </div>
@@ -725,8 +713,9 @@ export default function AdminDashboard({
           <div className="flex-1 py-4 space-y-3">
             {(selectedDepartment === 'All' ? Object.keys(programCounts) : (DEPARTMENT_TO_PROGRAMS[selectedDepartment] || Object.keys(programCounts))).map((prog) => {
               const totalInProg = programCounts[prog] || 0;
-              const registeredInProg = programRegisteredCounts[prog] || 0;
-              const percentage = totalInProg > 0 ? Math.round((registeredInProg / totalInProg) * 100) : 0;
+              const completedInProg = programCompletedCounts[prog] || 0;
+              const answeredInProg = programAnsweredCounts[prog] || 0;
+              const percentage = totalInProg > 0 ? Math.round((completedInProg / totalInProg) * 100) : 0;
               
               // Tagasalin ng opisyal na kurso para sa mas maikling pangalan
               const codeMap = {
@@ -743,12 +732,12 @@ export default function AdminDashboard({
                 <div key={prog} className="space-y-1 group/row">
                   <div className="flex justify-between text-xs font-semibold">
                     <span className="text-slate-655 truncate max-w-[210px] group-hover/row:text-slate-900 transition-colors" title={prog}>{codeMap[prog] || prog}</span>
-                    <span className="text-[#7c191e] font-extrabold">{registeredInProg} / {totalInProg} registered</span>
+                    <span className="text-[#7c191e] font-extrabold">{completedInProg} / {totalInProg} completed</span>
                   </div>
                   <div className="h-5.5 w-full bg-slate-100 rounded-md overflow-hidden relative border border-slate-205 group-hover/row:border-slate-300 transition-colors">
                     <div 
-                      className={`h-full bg-[#7c191e] rounded-r-xs transition-all duration-500 flex items-center ${registeredInProg > 0 ? 'px-2' : 'px-0'}`}
-                      style={{ width: `${registeredInProg > 0 ? (percentage || 4) : 0}%` }}
+                      className={`h-full bg-[#7c191e] rounded-r-xs transition-all duration-500 flex items-center ${completedInProg > 0 ? 'px-2' : 'px-0'}`}
+                      style={{ width: `${completedInProg > 0 ? (percentage || 4) : 0}%` }}
                     >
                       {percentage > 10 && (
                         <span className="text-[9px] font-bold text-[#cca43b]">{percentage}%</span>
@@ -805,27 +794,15 @@ export default function AdminDashboard({
                   <div className="h-full bg-rose-500 rounded-full" style={{ width: `${relevanceNoPct}%` }} />
                 </div>
               </div>
-              {/* No Response */}
-              {relevanceNoResponse > 0 && (
+              {/* Not Yet Answered */}
+              {totalNotAnswered > 0 && (
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-400">No Response</span>
-                    <span className="text-slate-500 font-bold">{relevanceNoResponse} ({relevanceNoResponsePct}%)</span>
+                    <span className="text-slate-400">Not Yet Answered</span>
+                    <span className="text-slate-500 font-bold">{totalNotAnswered} ({relevanceNotAnsweredPct}%)</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${relevanceNoResponsePct}%` }} />
-                  </div>
-                </div>
-              )}
-              {/* Unregistered */}
-              {unregisteredAlumni > 0 && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-400">Unregistered</span>
-                    <span className="text-slate-500 font-bold">{unregisteredAlumni} ({relevanceUnregisteredPct}%)</span>
-                  </div>
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${relevanceUnregisteredPct}%` }} />
+                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${relevanceNotAnsweredPct}%` }} />
                   </div>
                 </div>
               )}
@@ -857,9 +834,9 @@ export default function AdminDashboard({
               </div>
               {timeUnresponsiveCount > 0 && (
                 <div className="p-3 bg-slate-50/70 border border-slate-200/60 rounded-lg text-center space-y-1 col-span-2">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Unregistered / No Response</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Not Yet Answered</span>
                   <div className="text-lg font-black text-slate-505">{timeUnresponsiveCount}</div>
-                  <span className="text-[10px] text-slate-455 font-bold block">{timeUnregisteredPct}% of batch</span>
+                  <span className="text-[10px] text-slate-455 font-bold block">{timeNotAnsweredPct}% of batch</span>
                 </div>
               )}
             </div>
@@ -916,14 +893,14 @@ export default function AdminDashboard({
                 </div>
                 <span className="font-extrabold text-slate-700 w-12 text-right">{salUnder10k} ({salUnder10kPct}%)</span>
               </div>
-              {/* Unregistered / No response */}
+              {/* Not Yet Answered */}
               {salUnresponsiveCount > 0 && (
                 <div className="flex items-center justify-between text-xs border-t border-slate-50 pt-2.5">
-                  <span className="text-slate-400 w-24">No Response</span>
+                  <span className="text-slate-400 w-24">Not Yet Answered</span>
                   <div className="flex-1 mx-3 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${salUnregisteredPct}%` }} />
+                    <div className="h-full bg-slate-400 rounded-full" style={{ width: `${salNotAnsweredPct}%` }} />
                   </div>
-                  <span className="font-extrabold text-slate-500 w-12 text-right">{salUnresponsiveCount} ({salUnregisteredPct}%)</span>
+                  <span className="font-extrabold text-slate-500 w-12 text-right">{salUnresponsiveCount} ({salNotAnsweredPct}%)</span>
                 </div>
               )}
             </div>

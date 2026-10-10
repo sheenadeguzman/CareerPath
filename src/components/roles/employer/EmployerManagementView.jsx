@@ -136,7 +136,6 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
         {employers.map((emp) => {
           const workingGrads = alumniList.filter(al => 
-            al.isRegistered &&
             ['Employed', 'Freelance', 'Self-Employed'].includes(al.employmentStatus) &&
             al.employerName &&
             al.employerName.trim().toLowerCase() === emp.companyName.trim().toLowerCase()
@@ -481,7 +480,6 @@ export default function EmployerManagementView({ employers, activeUser, onSaveEm
       {/* ========================================================== */}
       {viewingGradsOfEmployer && (() => {
         const companyGrads = alumniList.filter(al => 
-          al.isRegistered &&
           ['Employed', 'Freelance', 'Self-Employed'].includes(al.employmentStatus) &&
           al.employerName &&
           al.employerName.trim().toLowerCase() === viewingGradsOfEmployer.companyName.trim().toLowerCase()

@@ -14,11 +14,11 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const [selectedMajorFilter, setSelectedMajorFilter] = useState('All');
   const [viewMode, setViewMode] = useState('byMajor');
   const totalInScope = filteredAlumni.length;
-  const registeredInScope = filteredAlumni.filter(a => a.isRegistered);
-  const totalRegisteredCount = registeredInScope.length;
+  const respondingInScope = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+  const totalRegisteredCount = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100).length;
 
   // Employed base sets
-  const employedList = registeredInScope.filter(a =>
+  const employedList = respondingInScope.filter(a =>
     ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
   );
   const employedCount = employedList.length;
@@ -127,18 +127,16 @@ export default function EmploymentAnalytics({ filteredAlumni = [] }) {
     return uniqueMajors.map(majorName => {
       const batch = filteredAlumni.filter(a => ((a.program || '').trim() || 'Unspecified Program') === majorName);
       const total = batch.length;
-      const registered = batch.filter(a => a.isRegistered);
-      const employed = registered.filter(a =>
+      const responding = batch.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
+      const employed = responding.filter(a =>
         ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus)
       );
       const employedCount = employed.length;
       const placementRate = total > 0 ? Math.round((employedCount / total) * 100) : 0;
-      const unregisteredCount = total - registered.length;
-      const unemployedCount = registered.filter(a => a.employmentStatus === 'Unemployed').length;
-      const furtherStudiesCount = registered.filter(a => a.employmentStatus === 'Further Studies').length;
-      const noResponseCount = registered.filter(a =>
-        !['Employed', 'Freelance', 'Self-Employed', 'Further Studies', 'Unemployed'].includes(a.employmentStatus)
-      ).length;
+      const notAnsweredCount = batch.filter(a => !a.profileCompleteness || a.profileCompleteness === 0).length;
+      const unemployedCount = responding.filter(a => a.employmentStatus === 'Unemployed').length;
+      const furtherStudiesCount = responding.filter(a => a.employmentStatus === 'Further Studies').length;
+      const noResponseCount = notAnsweredCount;
 
       // Group employed by jobIndustry
       const industryMap = {};
