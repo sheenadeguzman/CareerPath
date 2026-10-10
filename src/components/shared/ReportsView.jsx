@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText, ChevronDown } from 'lucide-react';
+import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText, ChevronDown, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { BSC_PROGRAMS, BSC_DEPARTMENTS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
 
@@ -200,8 +200,10 @@ export default function ReportsView({ alumniList, activeUser }) {
   const regRate = completionRate;
   const answeredAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
   const totalAnswered = answeredAlumni.length;
+  const answeredRate = total > 0 ? ((totalAnswered / total) * 100).toFixed(1) : '0';
   const notAnsweredAlumni = filteredAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
   const totalNotAnswered = notAnsweredAlumni.length;
+  const notAnsweredRate = total > 0 ? ((totalNotAnswered / total) * 100).toFixed(1) : '0';
   const registeredAlumni = respondingAlumni;
 
   const localPct = total > 0 ? Math.round((localCount / total) * 100) : 0;
@@ -738,35 +740,69 @@ export default function ReportsView({ alumniList, activeUser }) {
       </div>
 
       {/* Mga widget para sa mabilisang buod ng mga key metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-sans select-none">
-        <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">Tracer Profile Completion</span>
-          <div className="text-xl font-extrabold text-[#1e4620] mt-1">{totalCompleted} / {filteredAlumni.length}</div>
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">{completionRate}% Completed &bull; {totalAnswered} Answered</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 font-sans select-none">
+        
+        {/* Kard 1: Completed Profiles (100% Progress) */}
+        <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs flex items-center justify-between hover:border-emerald-500/30 transition-all">
+          <div className="space-y-1">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Completed Profiles</span>
+            <div className="text-xl font-extrabold text-slate-800">{totalCompleted} / {filteredAlumni.length}</div>
+            <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">{completionRate}% Completed (100%)</span>
+          </div>
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
         </div>
 
+        {/* Kard 2: Answered (In Progress) */}
+        <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs flex items-center justify-between hover:border-amber-500/30 transition-all">
+          <div className="space-y-1">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Answered (In Progress)</span>
+            <div className="text-xl font-extrabold text-slate-800">{totalAnswered} / {filteredAlumni.length}</div>
+            <span className="text-[10px] text-amber-600 font-bold block mt-0.5">{answeredRate}% In Progress</span>
+          </div>
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Kard 3: Not Yet Responded */}
+        <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs flex items-center justify-between hover:border-slate-400 transition-all">
+          <div className="space-y-1">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Not Yet Responded</span>
+            <div className="text-xl font-extrabold text-slate-800">{totalNotAnswered} / {filteredAlumni.length}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{notAnsweredRate}% Not Responded</span>
+          </div>
+          <div className="p-2.5 bg-slate-100 text-slate-500 rounded-lg">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Kard 4: Employability Index */}
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">Employability Index</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Employability Index</span>
           <div className="text-xl font-extrabold text-[#1e4620] mt-1">{employedRate}%</div>
-          <div className="w-full bg-slate-105 h-1 rounded-full overflow-hidden mt-1.5">
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1.5">
             <div className="h-full bg-emerald-600" style={{ width: `${employedRate}%` }} />
           </div>
         </div>
 
+        {/* Kard 5: Curriculum Alignment Ratio */}
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
-          <span className="text-[10px] text-slate-405 font-bold block mt-0.5">Curriculum Alignment Ratio</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Curriculum Alignment Ratio</span>
           <div className="text-xl font-extrabold text-amber-500 mt-1">
             {total > 0 ? Math.round(((relatedYes + relatedPartial) / total) * 100) : 0}%
           </div>
-          <span className="text-[10px] text-slate-405 font-medium block mt-0.5">Course related jobs</span>
+          <span className="text-[10px] text-slate-400 font-medium block mt-0.5">Course related jobs</span>
         </div>
 
+        {/* Kard 6: Audited Careers Count */}
         <div className="bg-white p-4.5 rounded-xl border border-slate-100 shadow-3xs">
-          <span className="text-[10px] text-slate-450 font-bold block mt-0.5">Audited Careers Count</span>
-          <div className="text-xl font-extrabold text-[#1e4620] mt-1">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Audited Careers Count</span>
+          <div className="text-xl font-extrabold text-[#7c191e] mt-1">
             {filteredAlumni.filter(a => a.employmentStatus !== 'Unemployed').length} Careers
           </div>
-          <span className="text-[10px] text-slate-405 font-medium block mt-0.5">Currently being audited</span>
+          <span className="text-[10px] text-slate-400 font-medium block mt-0.5">Currently active records</span>
         </div>
       </div>
 

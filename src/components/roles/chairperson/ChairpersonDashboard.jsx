@@ -11,6 +11,9 @@ import {
   BarChart, 
   Briefcase, 
   Award, 
+  Clock,
+  CheckCircle2,
+  AlertCircle,
   ChevronRight, 
   ArrowUpRight, 
   PlusCircle, 
@@ -75,9 +78,11 @@ export default function ChairpersonDashboard({
 
   const answeredDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
   const totalAnsweredDept = answeredDeptAlumni.length;
+  const deptAnsweredRate = totalDeptAlumni > 0 ? ((totalAnsweredDept / totalDeptAlumni) * 100).toFixed(1) : '0';
 
   const notAnsweredDeptAlumni = filteredDeptAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
   const totalNotAnsweredDept = notAnsweredDeptAlumni.length;
+  const deptNotAnsweredRate = totalDeptAlumni > 0 ? ((totalNotAnsweredDept / totalDeptAlumni) * 100).toFixed(1) : '0';
   
   // Responding alumni para sa departamento
   const respondingDeptAlumni = filteredDeptAlumni.filter(a => (a.profileCompleteness || 0) > 0 || a.employmentStatus);
@@ -298,31 +303,61 @@ export default function ChairpersonDashboard({
         </div>
       </div>
 
-      {/* Row para sa mga Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Row para sa mga Metric Cards: Hiwa-hiwalay ang 3 Tracer Cards kasunod ang Program Employability & Job Matches */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         
-        {/* Metric card para sa kabuuang profile completion ng departamento */}
+        {/* Kard 1: Completed (100% Progress) */}
         <div 
           onClick={() => onNavigate('Alumni')}
-          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all"
+          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-emerald-500/30 transition-all group"
         >
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Tracer Profile Completion</span>
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block group-hover:text-emerald-700 transition-colors">Completed Profiles</span>
             <div className="text-xl font-extrabold text-slate-800">{totalCompletedDept} / {totalDeptAlumni}</div>
-            <span className="text-[10px] text-slate-505 font-semibold block mt-0.5">{deptCompletionRate}% Completed &bull; {totalAnsweredDept} Answered</span>
+            <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">{deptCompletionRate}% Completed Rate</span>
           </div>
-          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
-            <GraduationCap className="w-5.5 h-5.5" />
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition-colors">
+            <CheckCircle2 className="w-5.5 h-5.5" />
           </div>
         </div>
 
-        {/* Metric card para sa employability rate ng program */}
+        {/* Kard 2: Answered (In Progress) */}
         <div 
-          onClick={() => onNavigate('Reports')}
-          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all"
+          onClick={() => onNavigate('Alumni')}
+          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-amber-500/30 transition-all group"
         >
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Program Employability</span>
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block group-hover:text-amber-700 transition-colors">Answered (In Progress)</span>
+            <div className="text-xl font-extrabold text-slate-800">{totalAnsweredDept} / {totalDeptAlumni}</div>
+            <span className="text-[10px] text-amber-600 font-bold block mt-0.5">{deptAnsweredRate}% In Progress</span>
+          </div>
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-lg group-hover:bg-amber-100 transition-colors">
+            <Clock className="w-5.5 h-5.5" />
+          </div>
+        </div>
+
+        {/* Kard 3: Not Yet Answered */}
+        <div 
+          onClick={() => onNavigate('Alumni')}
+          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-slate-400 transition-all group"
+        >
+          <div className="space-y-1">
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block group-hover:text-slate-700 transition-colors">Not Yet Answered</span>
+            <div className="text-xl font-extrabold text-slate-800">{totalNotAnsweredDept} / {totalDeptAlumni}</div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{deptNotAnsweredRate}% Not Responded</span>
+          </div>
+          <div className="p-3 bg-slate-100 text-slate-500 rounded-lg group-hover:bg-slate-200 transition-colors">
+            <AlertCircle className="w-5.5 h-5.5" />
+          </div>
+        </div>
+
+        {/* Kard 4: Program Employability */}
+        <div 
+          onClick={() => onNavigate('Reports')}
+          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all group"
+        >
+          <div className="space-y-1">
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block group-hover:text-[#7c191e] transition-colors">Program Employability</span>
             <div className="flex items-center gap-1">
               <div className="text-xl font-extrabold text-slate-800">{employmentRate}%</div>
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded">
@@ -331,23 +366,24 @@ export default function ChairpersonDashboard({
             </div>
             <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{deptAlignmentRate}% Job Alignment Rate</span>
           </div>
-          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
+          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg group-hover:bg-[#7c191e]/15 transition-colors">
             <BarChart className="w-5.5 h-5.5" />
           </div>
         </div>
 
-        {/* Metric card para sa mga katugmang trabaho sa departamento */}
+        {/* Kard 5: Department Job Matches */}
         <div 
           onClick={() => onNavigate('Job Postings')}
-          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all"
+          className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#7c191e]/20 transition-all group"
         >
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Department Job Matches</span>
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block group-hover:text-[#7c191e] transition-colors">Department Job Matches</span>
             <div className="text-xl font-extrabold text-slate-800">
               {matchedJobs.length} {matchedJobs.length <= 1 ? 'Position' : 'Positions'}
             </div>
+            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">Matching Vacancies</span>
           </div>
-          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg">
+          <div className="p-3 bg-[#7c191e]/10 text-[#7c191e] rounded-lg group-hover:bg-[#7c191e]/15 transition-colors">
             <Briefcase className="w-5.5 h-5.5" />
           </div>
         </div>
