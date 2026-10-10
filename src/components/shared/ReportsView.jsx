@@ -195,11 +195,14 @@ export default function ReportsView({ alumniList, activeUser }) {
   const total = filteredAlumni.length || 1; // Iniiwasan ang division-by-zero error kung walang alumni sa listahan
   const completedAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100);
   const totalCompleted = completedAlumni.length;
+  const totalRegistered = totalCompleted;
   const completionRate = Math.round((totalCompleted / total) * 100);
+  const regRate = completionRate;
   const answeredAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
   const totalAnswered = answeredAlumni.length;
   const notAnsweredAlumni = filteredAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
   const totalNotAnswered = notAnsweredAlumni.length;
+  const registeredAlumni = respondingAlumni;
 
   const localPct = total > 0 ? Math.round((localCount / total) * 100) : 0;
   const nationalPct = total > 0 ? Math.round((nationalCount / total) * 100) : 0;
@@ -465,7 +468,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   // 4. Competency mapping: kinakalkula kung ilang beses lumabas ang bawat skill at ang employment ratio nito
   const competencyPlacements = {};
   registeredAlumni.forEach(al => {
-    al.skills.forEach(skill => {
+    (al.skills || []).forEach(skill => {
       const trimmed = skill.trim();
       if (!competencyPlacements[trimmed]) {
         competencyPlacements[trimmed] = { total: 0, employed: 0 };
