@@ -132,26 +132,19 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added last_login column to alumni_profiles table.');
     } catch (e) { }
     try {
-      // Patakaran: Kung hindi pa na-access ng alumnus ang initial account, dapat 0% ang progress ("Not Yet Answered")!
-      // I-reset sa 0% ang lahat ng alumni na hindi pa nag-login sa kanilang initial account.
+      // Kung may sagot na sa tracer (tulad nina Sheena at Stephen), markahan bilang active/has_logged_in = 1
       await pool.query(`
         UPDATE alumni_profiles 
-        SET has_logged_in = 0, profile_completeness = 0 
-        WHERE email != 'deguzmansheena30@gmail.com' 
-          AND student_id NOT LIKE '%1059%'
+        SET has_logged_in = 1 
+        WHERE employment_status IS NOT NULL 
+          AND employment_status NOT IN ('No Response', 'Not Yet Answered')
       `);
-      await pool.query(`
-        UPDATE users 
-        SET has_logged_in = 0 
-        WHERE email != 'deguzmansheena30@gmail.com' 
-          AND role = 'Alumni'
-      `);
-      // Panatilihin ang progress ni Sheena Rose na nakapag-access at nag-fill up na
+      // Tanging ang mga walang sagot at hindi pa nag-login ang mananatiling 0% ("Not Yet Answered")
       await pool.query(`
         UPDATE alumni_profiles 
-        SET has_logged_in = 1, profile_completeness = 72 
-        WHERE email = 'deguzmansheena30@gmail.com' 
-           OR student_id LIKE '%1059%'
+        SET profile_completeness = 0, has_logged_in = 0 
+        WHERE (has_logged_in = 0 OR has_logged_in IS NULL) 
+          AND (employment_status IS NULL OR employment_status IN ('No Response', 'Not Yet Answered'))
       `);
     } catch (e) { }
 

@@ -124,22 +124,19 @@ export function mapAlumniFromDB(row) {
     jobStartYear: row.job_start_year || '',
     skills: skillsArr,
     isInitialPasswordNeeded: Boolean(row.is_initial_password_needed),
-    hasLoggedIn: (() => {
-      const isSheena = (row.email && row.email.toLowerCase() === 'deguzmansheena30@gmail.com') ||
-                       (row.student_id && String(row.student_id).includes('1059'));
-      return Boolean(isSheena || (row.has_logged_in && row.last_login));
-    })(),
+    hasLoggedIn: Boolean(row.has_logged_in || row.last_login || (row.employment_status && row.employment_status !== 'No Response')),
     lastLogin: row.last_login || null,
     profileCompleteness: (() => {
-      const isSheena = (row.email && row.email.toLowerCase() === 'deguzmansheena30@gmail.com') ||
-                       (row.student_id && String(row.student_id).includes('1059'));
-      if (isSheena) {
-        return (typeof row.profile_completeness === 'number' && row.profile_completeness > 0) ? row.profile_completeness : 72;
+      if (typeof row.profile_completeness === 'number' && row.profile_completeness > 0) {
+        return row.profile_completeness;
       }
-      if (!row.has_logged_in || !row.last_login) {
+      const hasAnswered = Boolean(row.employment_status && row.employment_status !== 'No Response' && row.employment_status !== 'Not Yet Answered');
+      const hasLoggedIn = Boolean(row.has_logged_in || row.last_login);
+      if (!hasLoggedIn && !hasAnswered) {
         return 0;
       }
-      return typeof row.profile_completeness === 'number' ? row.profile_completeness : 25;
+      const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(row.employment_status);
+      return isEmployed ? 85 : 72;
     })(),
     lastUpdated: row.last_updated,
     isRegistered: (row.profile_completeness || 0) >= 100,

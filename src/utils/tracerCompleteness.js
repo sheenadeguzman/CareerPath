@@ -13,23 +13,18 @@
 export function calculateProfileCompleteness(alumni) {
   if (!alumni) return 0;
 
-  // Patakaran: Kung hindi pa na-access o na-open ang initial account (hindi pa nag-login),
+  // Patakaran: Kung hindi pa na-access ang initial account (hindi pa nag-login)
+  // AT wala pang sagot sa tracer (employmentStatus ay 'No Response' o blangko),
   // dapat ay 0% parin ang progress ("Not Yet Answered")!
-  // Tanging ang alumnus na nakapag-access na sa account (tulad ni Sheena Rose) ang magkakaroon ng progress.
-  const isSheena = Boolean(
-    (alumni.email && alumni.email.toLowerCase() === 'deguzmansheena30@gmail.com') ||
-    (alumni.studentId && String(alumni.studentId).includes('1059')) ||
-    (alumni.name && alumni.name.toLowerCase().includes('sheena'))
+  const hasLoggedIn = Boolean(alumni.hasLoggedIn || alumni.lastLogin);
+  const hasAnsweredTracer = Boolean(
+    alumni.employmentStatus && 
+    alumni.employmentStatus !== 'No Response' && 
+    alumni.employmentStatus !== 'Not Yet Answered'
   );
 
-  const hasAccessedInitialAccount = Boolean(
-    isSheena || 
-    alumni.hasLoggedIn === true || 
-    (alumni.lastLogin && alumni.hasLoggedIn !== false)
-  );
-
-  // Kung hindi pa ina-access ang initial account, 0% ang progress!
-  if (!hasAccessedInitialAccount) {
+  // Kung hindi pa nag-login at wala pang naisusumiteng sagot sa tracer, 0% ang progress!
+  if (!hasLoggedIn && !hasAnsweredTracer) {
     return 0;
   }
 
