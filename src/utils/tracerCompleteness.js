@@ -13,18 +13,29 @@
 export function calculateProfileCompleteness(alumni) {
   if (!alumni) return 0;
 
-  // Tinitingnan kung mayroon nang na-fill up na tracer fields
-  const hasPhone = Boolean(alumni.phone && String(alumni.phone).trim());
-  const hasDob = Boolean(alumni.dateOfBirth && String(alumni.dateOfBirth).trim());
-  const hasAddr = Boolean((alumni.address && String(alumni.address).trim()) || (alumni.currentAddress && String(alumni.currentAddress).trim()) || (alumni.permanentAddress && String(alumni.permanentAddress).trim()));
-  const hasEmpStatus = Boolean(alumni.employmentStatus && alumni.employmentStatus !== 'No Response' && alumni.employmentStatus !== 'Not Yet Answered');
-  const hasSkills = Boolean((Array.isArray(alumni.skills) && alumni.skills.length > 0) || (Array.isArray(alumni.usefulSkills) && alumni.usefulSkills.length > 0));
-  const hasJobTitle = Boolean(alumni.jobTitle && String(alumni.jobTitle).trim());
+  // Patakaran: "Hindi pa nag-login" = "Hindi pa ina-access ang initial account"
+  // Kung hindi pa ina-access ang initial account (isInitialPasswordNeeded === true o hindi pa nag-login)
+  // AT wala pang aktwal na sagot sa tracer (employmentStatus === 'No Response' o walang laman),
+  // dapat manatiling 0% ang progress.
+  const hasAccessedInitialAccount = Boolean(
+    alumni.hasLoggedIn || 
+    alumni.lastLogin || 
+    alumni.isInitialPasswordNeeded === false
+  );
+  const hasAnsweredTracer = Boolean(
+    alumni.employmentStatus && 
+    alumni.employmentStatus !== 'No Response' && 
+    alumni.employmentStatus !== 'Not Yet Answered'
+  );
 
-  const hasFilledContent = hasPhone || hasDob || hasAddr || hasEmpStatus || hasSkills || hasJobTitle || Boolean(alumni.hasLoggedIn);
+  const hasPersonalDetailsFilled = Boolean(
+    alumni.phone && 
+    alumni.dateOfBirth && 
+    (alumni.address || alumni.permanentAddress || alumni.currentAddress)
+  );
 
-  // Kung walang anumang na-fill up at hindi pa nag-login, panatilihin sa 0%
-  if (!hasFilledContent) {
+  // Kung hindi pa ina-access ang initial account at wala pang sinasagutan, 0% ang progress
+  if (!hasAccessedInitialAccount && !hasAnsweredTracer && !hasPersonalDetailsFilled) {
     return 0;
   }
 

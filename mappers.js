@@ -123,15 +123,22 @@ export function mapAlumniFromDB(row) {
     timeToFirstJob: row.time_to_first_job || '',
     jobStartYear: row.job_start_year || '',
     skills: skillsArr,
-    hasLoggedIn: Boolean(row.has_logged_in || (row.profile_completeness && row.profile_completeness > 0) || row.phone || row.date_of_birth || (row.employment_status && row.employment_status !== 'No Response')),
+    isInitialPasswordNeeded: Boolean(row.is_initial_password_needed),
+    hasLoggedIn: Boolean(row.has_logged_in || (!row.is_initial_password_needed && row.is_initial_password_needed !== null) || (row.profile_completeness && row.profile_completeness > 0) || (row.employment_status && row.employment_status !== 'No Response')),
     lastLogin: row.last_login || null,
     profileCompleteness: (() => {
       if (typeof row.profile_completeness === 'number' && row.profile_completeness > 0) {
         return row.profile_completeness;
       }
-      // Kung may na-fill up na mga fields tulad ng contact, birthday, employment status
-      const hasContent = Boolean(row.phone || row.date_of_birth || row.address || (row.employment_status && row.employment_status !== 'No Response') || skillsArr.length > 0);
-      if (!hasContent && !row.has_logged_in) return 0;
+      // Kung hindi pa ina-access ang initial account at walang sagot sa tracer, 0%
+      const hasAccessed = Boolean(row.has_logged_in || (!row.is_initial_password_needed && row.is_initial_password_needed !== null) || row.last_login);
+      const hasTracerAnswer = Boolean(row.employment_status && row.employment_status !== 'No Response');
+      const hasPersonalDetails = Boolean(row.phone && row.date_of_birth);
+
+      if (!hasAccessed && !hasTracerAnswer && !hasPersonalDetails) {
+        return 0;
+      }
+
       let filled = 0;
       if (row.phone) filled++;
       if (row.gender) filled++;

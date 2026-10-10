@@ -367,17 +367,28 @@ export function useCareerPath() {
                         (al.studentId && user.userId && al.studentId.toLowerCase() === user.userId.toLowerCase()) ||
                         (al.email && user.email && al.email.toLowerCase() === user.email.toLowerCase());
         if (isMatch) {
-          // Patakaran: Once na naglogin sila, kalkulahin ang kaukulang progress mula sa nasagutan o base 25%
+          // Patakaran: Once na ma-access nila ang account, kalkulahin ang progress mula sa nasagutan o panimulang 25%
           const currentProg = calculateProfileCompleteness(al);
           const newProg = currentProg > 0 ? currentProg : 25;
           return {
             ...al,
             hasLoggedIn: true,
+            isInitialPasswordNeeded: false,
             lastLogin: new Date().toISOString(),
             profileCompleteness: newProg
           };
         }
         return al;
+      }));
+
+      setUsers(prev => prev.map(u => {
+        const isMatch = (u.id && user.id && u.id.toLowerCase() === user.id.toLowerCase()) ||
+                        (u.userId && user.userId && u.userId.toLowerCase() === user.userId.toLowerCase()) ||
+                        (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase());
+        if (isMatch) {
+          return { ...u, hasLoggedIn: true, isInitialPasswordNeeded: false, lastLogin: new Date().toISOString() };
+        }
+        return u;
       }));
 
       // I-update din ang cache para mapanatili ang progreso
@@ -393,12 +404,23 @@ export function useCareerPath() {
               if (isMatch) {
                 const currentProg = calculateProfileCompleteness(al);
                 const newProg = currentProg > 0 ? currentProg : 25;
-                return { ...al, hasLoggedIn: true, lastLogin: new Date().toISOString(), profileCompleteness: newProg };
+                return { ...al, hasLoggedIn: true, isInitialPasswordNeeded: false, lastLogin: new Date().toISOString(), profileCompleteness: newProg };
               }
               return al;
             });
-            localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
           }
+          if (db.users) {
+            db.users = db.users.map(u => {
+              const isMatch = (u.id && user.id && u.id.toLowerCase() === user.id.toLowerCase()) ||
+                              (u.userId && user.userId && u.userId.toLowerCase() === user.userId.toLowerCase()) ||
+                              (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase());
+              if (isMatch) {
+                return { ...u, hasLoggedIn: true, isInitialPasswordNeeded: false, lastLogin: new Date().toISOString() };
+              }
+              return u;
+            });
+          }
+          localStorage.setItem('careerpath_dashboard_cache', JSON.stringify(db));
         }
       } catch (e) { }
 
