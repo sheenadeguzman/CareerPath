@@ -208,7 +208,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const [hoveredRegion, setHoveredRegion] = useState(null);
 
   // Kinakalkula ang 3-tier tracer profile completion model:
-  const total = (reportScope === 'completedOnly' ? completedAlumni.length : filteredAlumni.length) || 1;
+  const total = reportScope === 'completedOnly' ? completedAlumni.length : filteredAlumni.length;
   const totalRegistered = totalCompleted;
   const completionRate = filteredAlumni.length > 0 ? Math.round((totalCompleted / filteredAlumni.length) * 100) : 0;
   const regRate = completionRate;
@@ -457,24 +457,26 @@ export default function ReportsView({ alumniList, activeUser }) {
   const freelance = registeredAlumni.filter(a => a.employmentStatus === 'Freelance').length;
   const selfEmployed = registeredAlumni.filter(a => a.employmentStatus === 'Self-Employed').length;
   const furtherStudies = registeredAlumni.filter(a => a.employmentStatus === 'Further Studies').length;
-  const unregistered = total - totalRegistered;
+  const unregistered = total > 0 ? Math.max(0, total - totalRegistered) : 0;
   // Tinuturing na bahagi ng unemployed o naghahanap ng trabaho ang mga hindi nagparehistro o walang tugon
-  const unemployed = registeredAlumni.filter(a => a.employmentStatus === 'Unemployed' || a.employmentStatus === 'No Response').length + unregistered;
+  const unemployed = total > 0 
+    ? registeredAlumni.filter(a => a.employmentStatus === 'Unemployed' || a.employmentStatus === 'No Response').length + unregistered 
+    : 0;
 
   const employedCount = employed + freelance + selfEmployed;
-  const employedRate = Math.round((employedCount / total) * 100);
+  const employedRate = total > 0 ? Math.round((employedCount / total) * 100) : 0;
 
   // 2. Pag-grupo at pagkalkula ng relatedness ng kasalukuyang trabaho sa kursong tinapos (course alignment)
   const relatedYes = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Yes').length;
   const relatedPartial = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'Partially').length;
   const relatedNo = registeredAlumni.filter(a => a.employmentStatus && a.jobRelatedToCourse === 'No').length;
-  const relatedUnresponsive = total - (relatedYes + relatedPartial + relatedNo);
+  const relatedUnresponsive = total > 0 ? Math.max(0, total - (relatedYes + relatedPartial + relatedNo)) : 0;
 
   // 3. Pag-grupo ng monthly income sa kani-kanilang salary brackets ng mga alumni
   const salariesTotalCount = registeredAlumni.filter(a => 
     ['Above 40,000', '30,001 - 40,000', '20,001 - 30,000', '10,000 - 20,000'].includes(a.monthlyIncome)
   ).length;
-  const salUnresponsive = total - salariesTotalCount;
+  const salUnresponsive = total > 0 ? Math.max(0, total - salariesTotalCount) : 0;
 
   const salaries = {
     'Above 40,000': registeredAlumni.filter(a => a.monthlyIncome === 'Above 40,000').length,
@@ -1086,7 +1088,7 @@ export default function ReportsView({ alumniList, activeUser }) {
 
           <div className="space-y-3.5 pt-1.5">
             {Object.entries(salaries).map(([bracket, count]) => {
-              const totalPct = Math.round((count / total) * 100);
+              const totalPct = total > 0 ? Math.round((count / total) * 100) : 0;
               return (
                 <div key={bracket} className="space-y-1 group/row">
                   <div className="flex justify-between text-[11px] font-bold text-slate-500">
@@ -1127,12 +1129,12 @@ export default function ReportsView({ alumniList, activeUser }) {
                   <span className="w-2.5 h-2.5 bg-amber-500 rounded-xs block" />
                   Direct Alignment (Jobs highly related)
                 </span>
-                <span className="font-extrabold text-slate-800">{relatedYes} {relatedYes <= 1 ? 'grad' : 'grads'} ({Math.round((relatedYes / total) * 100)}%)</span>
+                <span className="font-extrabold text-slate-800">{relatedYes} {relatedYes <= 1 ? 'grad' : 'grads'} ({total > 0 ? Math.round((relatedYes / total) * 100) : 0}%)</span>
               </div>
               <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-yes:border-slate-300 transition-colors">
                 <div
                   className="h-full bg-amber-500 transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.round((relatedYes / total) * 100)}%` }}
+                  style={{ width: `${total > 0 ? Math.round((relatedYes / total) * 100) : 0}%` }}
                 />
               </div>
             </div>
@@ -1144,12 +1146,12 @@ export default function ReportsView({ alumniList, activeUser }) {
                   <span className="w-2.5 h-2.5 bg-emerald-600 rounded-xs block" />
                   Moderate Alignment (Partially related)
                 </span>
-                <span className="font-extrabold text-slate-800">{relatedPartial} {relatedPartial <= 1 ? 'grad' : 'grads'} ({Math.round((relatedPartial / total) * 100)}%)</span>
+                <span className="font-extrabold text-slate-800">{relatedPartial} {relatedPartial <= 1 ? 'grad' : 'grads'} ({total > 0 ? Math.round((relatedPartial / total) * 100) : 0}%)</span>
               </div>
               <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-partial:border-slate-300 transition-colors">
                 <div
                   className="h-full bg-emerald-600 transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.round((relatedPartial / total) * 100)}%` }}
+                  style={{ width: `${total > 0 ? Math.round((relatedPartial / total) * 100) : 0}%` }}
                 />
               </div>
             </div>
@@ -1161,12 +1163,12 @@ export default function ReportsView({ alumniList, activeUser }) {
                   <span className="w-2.5 h-2.5 bg-rose-500 rounded-xs block" />
                   Unaligned Careers (Not related)
                 </span>
-                <span className="font-extrabold text-slate-800">{relatedNo} {relatedNo <= 1 ? 'grad' : 'grads'} ({Math.round((relatedNo / total) * 100)}%)</span>
+                <span className="font-extrabold text-slate-800">{relatedNo} {relatedNo <= 1 ? 'grad' : 'grads'} ({total > 0 ? Math.round((relatedNo / total) * 100) : 0}%)</span>
               </div>
               <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-no:border-slate-300 transition-colors">
                 <div
                   className="h-full bg-rose-500 transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.round((relatedNo / total) * 100)}%` }}
+                  style={{ width: `${total > 0 ? Math.round((relatedNo / total) * 100) : 0}%` }}
                 />
               </div>
             </div>
@@ -1179,12 +1181,12 @@ export default function ReportsView({ alumniList, activeUser }) {
                     <span className="w-2.5 h-2.5 bg-slate-400 rounded-xs block" />
                     Unregistered / No Response
                   </span>
-                  <span className="font-extrabold text-slate-800">{relatedUnresponsive} {relatedUnresponsive <= 1 ? 'grad' : 'grads'} ({Math.round((relatedUnresponsive / total) * 100)}%)</span>
+                  <span className="font-extrabold text-slate-800">{relatedUnresponsive} {relatedUnresponsive <= 1 ? 'grad' : 'grads'} ({total > 0 ? Math.round((relatedUnresponsive / total) * 100) : 0}%)</span>
                 </div>
                 <div className="h-4 w-full bg-slate-105 rounded-full overflow-hidden border border-slate-200/50 group-hover/alignment-unregistered:border-slate-300 transition-colors">
                   <div
                     className="h-full bg-slate-400 transition-all duration-500 rounded-full"
-                    style={{ width: `${Math.round((relatedUnresponsive / total) * 100)}%` }}
+                    style={{ width: `${total > 0 ? Math.round((relatedUnresponsive / total) * 100) : 0}%` }}
                   />
                 </div>
               </div>
