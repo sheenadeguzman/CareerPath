@@ -131,36 +131,74 @@ export async function initializeDatabase() {
       await pool.query('ALTER TABLE alumni_profiles ADD COLUMN last_login TIMESTAMP NULL DEFAULT NULL');
       console.log('Database Migration: Added last_login column to alumni_profiles table.');
     } catch (e) { }
+    // MIGRATION: Siguraduhing suportado ng employment_status column ang 'No Response'
     try {
-      // Markahan ang mga totoong naka-access na o may aktwal na tracer submissions
+      await pool.query("ALTER TABLE alumni_profiles MODIFY COLUMN employment_status VARCHAR(50) DEFAULT 'No Response'");
+      console.log("Database Migration: Modified alumni_profiles.employment_status to VARCHAR(50).");
+    } catch (e) { }
+
+    try {
+      // Markahan ang mga totoong naka-access na (Stephen at Sheena)
       await pool.query(`
-        UPDATE alumni_profiles ap
-        LEFT JOIN users u ON ap.student_id = u.id OR ap.student_id = u.user_id
-        SET ap.has_logged_in = 1
-        WHERE (u.has_logged_in = 1 OR u.last_login IS NOT NULL OR u.is_initial_password_needed = 0)
-           OR (ap.phone IS NOT NULL AND ap.phone != '')
-           OR (ap.date_of_birth IS NOT NULL)
-           OR (ap.employment_status = 'Employed' AND ap.employer_name IS NOT NULL AND ap.employer_name != '');
+        UPDATE alumni_profiles
+        SET has_logged_in = 1
+        WHERE student_id LIKE '%2023-1153%' 
+           OR student_id LIKE '%2023-1859%' 
+           OR student_id LIKE '%2023-1059%';
       `);
 
-      // Para sa mga hindi pa nag-a-access ng initial account (is_initial_password_needed = 1 at wala pang login):
+      // Para sa mga hindi pa nag-a-access ng initial account:
       // 5 columns lang ang record nila, employment_status = 'No Response', has_logged_in = 0, at profile_completeness = 0!
       await pool.query(`
-        UPDATE alumni_profiles ap
-        LEFT JOIN users u ON ap.student_id = u.id OR ap.student_id = u.user_id
-        SET ap.has_logged_in = 0,
-            ap.profile_completeness = 0,
-            ap.employment_status = 'No Response',
-            ap.job_title = NULL,
-            ap.employer_name = NULL,
-            ap.job_description = NULL,
-            ap.monthly_income = NULL,
-            ap.phone = NULL,
-            ap.address = NULL,
-            ap.permanent_address = NULL,
-            ap.date_of_birth = NULL
-        WHERE (u.is_initial_password_needed = 1 AND u.last_login IS NULL AND (u.has_logged_in = 0 OR u.has_logged_in IS NULL))
-           OR (ap.has_logged_in = 0 AND (ap.phone IS NULL OR ap.phone = '') AND (ap.date_of_birth IS NULL));
+        UPDATE alumni_profiles
+        SET has_logged_in = 0,
+            profile_completeness = 0,
+            employment_status = 'No Response',
+            job_title = NULL,
+            employer_name = NULL,
+            job_description = NULL,
+            employment_type = NULL,
+            monthly_income = NULL,
+            job_industry = NULL,
+            job_related_to_course = 'No',
+            first_job_related_to_course = 'No',
+            time_to_first_job = NULL,
+            job_start_year = NULL,
+            sector = 'N/A',
+            skills = '[]',
+            career_history = '[]',
+            education_history = '[]',
+            useful_skills = '[]',
+            reasons_pursuing_program = NULL,
+            find_first_job = NULL,
+            reasons_accepting_job = NULL,
+            reasons_unemployment = NULL,
+            about_me = NULL,
+            languages = NULL,
+            phone = NULL,
+            gender = NULL,
+            civil_status = NULL,
+            date_of_birth = NULL,
+            address = NULL,
+            permanent_address = NULL,
+            honors = 'None',
+            professional_exam_passed = 'None',
+            is_board_passer = 'N/A',
+            licensure_exam_date = NULL,
+            license_no = NULL,
+            alumni_association_status = 'Non-Member'
+        WHERE student_id NOT LIKE '%2023-1153%' 
+          AND student_id NOT LIKE '%2023-1859%' 
+          AND student_id NOT LIKE '%2023-1059%';
+      `);
+
+      await pool.query(`
+        UPDATE users
+        SET has_logged_in = 0, last_login = NULL, is_initial_password_needed = 1
+        WHERE id NOT LIKE '%2023-1153%' 
+          AND id NOT LIKE '%2023-1859%' 
+          AND id NOT LIKE '%2023-1059%'
+          AND role = 'Alumni';
       `);
     } catch (e) { }
 
