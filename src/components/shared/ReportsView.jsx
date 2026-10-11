@@ -11,6 +11,7 @@ import L from 'leaflet';
 import { FileSpreadsheet, Download, BarChart3, PieChart, Award, TrendingUp, Compass, Target, ShieldCheck, Filter, Printer, FileText, ChevronDown, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { BSC_PROGRAMS, BSC_DEPARTMENTS, DEPARTMENT_TO_PROGRAMS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
+import { calculateProfileCompleteness } from '../../utils/tracerCompleteness';
 
 const isAlumnusInDepartment = (al, dept) => {
   if (!al || dept === 'All') return true;
@@ -80,6 +81,7 @@ export default function ReportsView({ alumniList, activeUser }) {
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
+  const [reportScope, setReportScope] = useState('completedOnly'); // 'completedOnly' (default) para tanging completed profiles lang ang kasama sa report
 
   // State para sa custom export selection dropdown menu
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
@@ -99,56 +101,6 @@ export default function ReportsView({ alumniList, activeUser }) {
       }
     }
   };
-
-  // Helper function para sa pag-export ng dataset patungong CSV file format
-  const handleExportCSV = () => {
-    // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
-    let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Alumni_Association_Status,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
-
-    let csvContent = filteredAlumni.map((a, idx) => {
-      const first = a.firstName || a.name?.split(' ')[0] || '';
-      const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
-      const middle = a.middleName || '';
-      const suffix = a.suffix || '';
-      const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
-      const skillsStr = (a.skills || []).join('; ');
-
-      return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
-    }).join('\n');
-
-    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const activeDeptName = isChairperson ? chairDept : selectedDepartment;
-    const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
-    link.setAttribute('download', `BSC_CHED_Tracer_Report_${deptSlug}_${selectedYear}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    alert(`COMPLETED! Prepared official tracer metrics spreadsheet for ${activeDeptName === 'All' ? 'Batanes State College' : activeDeptName} comprising ${filteredAlumni.length} graduates.`);
-  };
-
-  // State para sa coordinates ng floating tooltip sa mga nodes ng trend line graph
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-
-  const mapContainerRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const mapLayersRef = useRef([]);
-
-  // Inject Leaflet CSS
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
-      }
-    };
-  }, []);
 
   // Kinukuha ang mga unique graduation years nang dynamic para sa selection filters
   const graduationYears = Array.from(new Set(alumniList.filter(a => a.yearGraduated).map(a => a.yearGraduated.toString()))).sort();
@@ -172,11 +124,78 @@ export default function ReportsView({ alumniList, activeUser }) {
     return matchesYear && matchesProgram;
   });
 
-  const validAges = filteredAlumni.map(a => calculateAge(a.dateOfBirth)).filter(age => age !== null);
+  // Tanging ang may 100% completed progress lamang ang kabilang sa completedAlumni
+  const completedAlumni = filteredAlumni.filter(a => calculateProfileCompleteness(a) >= 100);
+  const totalCompleted = completedAlumni.length;
+
+  // Dataset na ginagamit sa report: kapag 'completedOnly' (default), tanging completed alumni lamang ang sinusuri at inilalabas sa report
+  const activeReportAlumni = reportScope === 'completedOnly' ? completedAlumni : filteredAlumni;
+
+  // Helper function para sa pag-export ng dataset patungong CSV file format
+  const handleExportCSV = () => {
+    // Isali LAMANG ang mga alumni na completed (100%) ang progress sa official report alinsunod sa patakaran
+    const exportList = reportScope === 'completedOnly' ? completedAlumni : filteredAlumni.filter(a => calculateProfileCompleteness(a) >= 100);
+
+    if (exportList.length === 0) {
+      alert('NOTICE: No alumni with completed (100%) progress found for the selected filter. Incomplete and un-accessed profiles are excluded from the report.');
+      return;
+    }
+
+    // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
+    let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Alumni_Association_Status,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
+
+    let csvContent = exportList.map((a, idx) => {
+      const first = a.firstName || a.name?.split(' ')[0] || '';
+      const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
+      const middle = a.middleName || '';
+      const suffix = a.suffix || '';
+      const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
+      const skillsStr = (a.skills || []).join('; ');
+
+      return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
+    }).join('\n');
+
+    const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const activeDeptName = isChairperson ? chairDept : selectedDepartment;
+    const deptSlug = activeDeptName === 'All' ? 'All_Depts' : activeDeptName.replace(/[^a-zA-Z0-9]/g, '_');
+    link.setAttribute('download', `BSC_CHED_Tracer_Report_${deptSlug}_${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert(`COMPLETED! Prepared official tracer report spreadsheet for ${activeDeptName === 'All' ? 'Batanes State College' : activeDeptName} comprising ${exportList.length} completed (100%) graduates.`);
+  };
+
+  // State para sa coordinates ng floating tooltip sa mga nodes ng trend line graph
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const mapLayersRef = useRef([]);
+
+  // Inject Leaflet CSS
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+    return () => {
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+    };
+  }, []);
+
+  const validAges = activeReportAlumni.map(a => calculateAge(a.dateOfBirth)).filter(age => age !== null);
   const averageAge = validAges.length > 0 ? Math.round(validAges.reduce((acc, age) => acc + age, 0) / validAges.length) : 'N/A';
 
-  // Responding alumni (may progress sa tracer o may recorded employment status matapos mag-login)
-  const respondingAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
+  // Responding alumni sa report dataset
+  const respondingAlumni = reportScope === 'completedOnly' 
+    ? completedAlumni 
+    : filteredAlumni.filter(a => (calculateProfileCompleteness(a) > 0) || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
 
   // Geographical Location Region aggregates (Only for employed graduates)
   const employedAlumni = respondingAlumni.filter(a => ['Employed', 'Freelance', 'Self-Employed'].includes(a.employmentStatus));
@@ -189,21 +208,19 @@ export default function ReportsView({ alumniList, activeUser }) {
   const [hoveredRegion, setHoveredRegion] = useState(null);
 
   // Kinakalkula ang 3-tier tracer profile completion model:
-  // 1. Completed: 100% natapos ang profile progress
-  // 2. Answered: May progress pero < 100%
-  // 3. Not Yet Answered: 0% completion
-  const total = filteredAlumni.length || 1; // Iniiwasan ang division-by-zero error kung walang alumni sa listahan
-  const completedAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100);
-  const totalCompleted = completedAlumni.length;
+  const total = (reportScope === 'completedOnly' ? completedAlumni.length : filteredAlumni.length) || 1;
   const totalRegistered = totalCompleted;
-  const completionRate = Math.round((totalCompleted / total) * 100);
+  const completionRate = filteredAlumni.length > 0 ? Math.round((totalCompleted / filteredAlumni.length) * 100) : 0;
   const regRate = completionRate;
-  const answeredAlumni = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const answeredAlumni = filteredAlumni.filter(a => {
+    const p = calculateProfileCompleteness(a);
+    return p > 0 && p < 100;
+  });
   const totalAnswered = answeredAlumni.length;
-  const answeredRate = total > 0 ? ((totalAnswered / total) * 100).toFixed(1) : '0';
-  const notAnsweredAlumni = filteredAlumni.filter(a => !a.profileCompleteness || a.profileCompleteness === 0);
+  const answeredRate = filteredAlumni.length > 0 ? ((totalAnswered / filteredAlumni.length) * 100).toFixed(1) : '0';
+  const notAnsweredAlumni = filteredAlumni.filter(a => calculateProfileCompleteness(a) === 0);
   const totalNotAnswered = notAnsweredAlumni.length;
-  const notAnsweredRate = total > 0 ? ((totalNotAnswered / total) * 100).toFixed(1) : '0';
+  const notAnsweredRate = filteredAlumni.length > 0 ? ((totalNotAnswered / filteredAlumni.length) * 100).toFixed(1) : '0';
   const registeredAlumni = respondingAlumni;
 
   const localPct = total > 0 ? Math.round((localCount / total) * 100) : 0;
@@ -609,6 +626,10 @@ export default function ReportsView({ alumniList, activeUser }) {
           </div>
           <h2 className="text-base font-extrabold text-slate-800 uppercase tracking-tight mt-1">Tracer Reports and Analytics Module</h2>
           <p className="text-[11px] text-slate-405 mt-0.5">Standard aggregate statistics measuring graduate landing timelines, salary indices, and degree-to-career alignments.</p>
+          <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-[10px] font-bold">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span>Patakaran sa Report: Tanging ang mga alumni na 100% completed ang progress ang isinasama sa official report.</span>
+          </div>
         </div>
 
         <div className="flex gap-2 shrink-0 no-print" data-html2canvas-ignore="true">
@@ -673,12 +694,20 @@ export default function ReportsView({ alumniList, activeUser }) {
             <span className="uppercase tracking-wider">Interactive Dataset Filters</span>
           </div>
           <span className="text-[11px] text-slate-500 font-semibold">
-            Showing metrics for <strong className="text-slate-800 font-extrabold">{filteredAlumni.length}</strong> {filteredAlumni.length <= 1 ? 'graduate' : 'graduates'}
+            {reportScope === 'completedOnly' ? (
+              <>
+                Official Report: <strong className="text-emerald-700 font-extrabold">{completedAlumni.length}</strong> completed {completedAlumni.length <= 1 ? 'graduate' : 'graduates'} ({filteredAlumni.length - completedAlumni.length} uncompleted excluded)
+              </>
+            ) : (
+              <>
+                Census Overview: <strong className="text-slate-800 font-extrabold">{filteredAlumni.length}</strong> {filteredAlumni.length <= 1 ? 'graduate' : 'graduates'}
+              </>
+            )}
           </span>
         </div>
 
         {/* Uniform Grid of Filter Dropdowns: Equal widths and h-9 height */}
-        <div className={`grid grid-cols-1 ${!isChairperson ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
+        <div className={`grid grid-cols-1 ${!isChairperson ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
           {/* Selector ng Department (Admin only) */}
           {!isChairperson && (
             <div className="flex flex-col gap-1">
@@ -734,6 +763,23 @@ export default function ReportsView({ alumniList, activeUser }) {
               {availablePrograms.map(prog => (
                 <option key={prog} value={prog}>{prog}</option>
               ))}
+            </select>
+          </div>
+
+          {/* Selector ng Progress Scope sa Report */}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="report-filter-scope" className="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex items-center justify-between">
+              <span>Report Scope</span>
+              <span className="text-[9px] text-emerald-600 font-extrabold uppercase">100% Completed</span>
+            </label>
+            <select
+              id="report-filter-scope"
+              value={reportScope}
+              onChange={(e) => setReportScope(e.target.value)}
+              className="w-full h-9 bg-slate-50 focus:bg-white border border-slate-200 rounded-lg px-2.5 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-[#7c191e] truncate transition-colors shadow-3xs"
+            >
+              <option value="completedOnly">Completed Only (100% Progress)</option>
+              <option value="all">Include All (Census Overview)</option>
             </select>
           </div>
         </div>

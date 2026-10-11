@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { BSC_PROGRAMS, DEPARTMENT_TO_PROGRAMS, BSC_DEPARTMENTS } from '../../bscData';
 import { exportToPDF } from '../../utils/pdfExport';
+import { calculateProfileCompleteness } from '../../utils/tracerCompleteness';
 import EmploymentAnalytics from './components/EmploymentAnalytics';
 import EmploymentDirectory from './components/EmploymentDirectory';
 
@@ -349,8 +350,16 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
   }, [filteredAlumni, localCount, nationalCount, internationalCount, total]);
   // --- CSV DATA EXPORT HANDLER ---
   const handleExportCSV = () => {
+    // Isali LAMANG ang mga alumni na completed (100%) ang progress sa report
+    const exportList = filteredAlumni.filter(a => calculateProfileCompleteness(a) >= 100);
+
+    if (exportList.length === 0) {
+      alert('NOTICE: Walang alumni na may 100% completed progress para sa napiling filter. Hindi isinasama ang incomplete profiles sa report.');
+      return;
+    }
+
     let csvHeader = 'No.,Student_ID,Full_Name,Degree_Program,Year_Graduated,Employment_Status,Job_Title,Employer_Company,Monthly_Income,Course_Relatedness,Time_To_First_Job\n';
-    let csvContent = filteredAlumni.map((a, idx) => {
+    let csvContent = exportList.map((a, idx) => {
       const first = a.firstName || a.name?.split(' ')[0] || '';
       const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
       const middle = a.middleName || '';
@@ -372,7 +381,7 @@ export default function EmploymentView({ alumniList = [], activeUser }) {
     link.click();
     document.body.removeChild(link);
 
-    alert(`EXPORT SUCCESS! Prepared specialized employment report spreadsheet comprising ${filteredAlumni.length} graduates.`);
+    alert(`EXPORT SUCCESS! Inihanda ang opisyal na employment report para sa ${exportList.length} completed (100%) graduates.`);
   };
 
   return (

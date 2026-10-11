@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { Download, FileSpreadsheet, Layers, PieChart, Users, Check } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../../bscData';
 import { exportToPDF } from '../../../utils/pdfExport';
+import { calculateProfileCompleteness } from '../../../utils/tracerCompleteness';
 
 /**
  * ExportView Component
@@ -19,6 +20,8 @@ import { exportToPDF } from '../../../utils/pdfExport';
 export default function ExportView({ alumniList = [] }) {
   // Piliin kung anong format ang gagamitin sa pag-export ng data (csv o json)
   const [exportFormat, setExportFormat] = useState('csv');
+  // I-filter ang export para tanging 100% completed progress lamang ang isama sa report
+  const [onlyCompleted, setOnlyCompleted] = useState(true);
   // State para sa pagpapakita ng notification/toast kapag nag-trigger ang download
   const [showToast, setShowToast] = useState(false);
   // Mensahe na ipapakita sa loob ng toast notification
@@ -28,9 +31,12 @@ export default function ExportView({ alumniList = [] }) {
   const totalAlumniCount = alumniList.length;
   
   // 100% Completed profiles at may progress
-  const completedAlumni = alumniList.filter(a => (a.profileCompleteness || 0) >= 100);
+  const completedAlumni = alumniList.filter(a => calculateProfileCompleteness(a) >= 100);
   const totalCompleted = completedAlumni.length;
-  const answeredAlumni = alumniList.filter(a => (a.profileCompleteness || 0) > 0 && (a.profileCompleteness || 0) < 100);
+  const answeredAlumni = alumniList.filter(a => {
+    const p = calculateProfileCompleteness(a);
+    return p > 0 && p < 100;
+  });
   const totalAnswered = answeredAlumni.length;
   
   // Binibilang ang mga graduates na may trabaho base sa kanilang employment status
@@ -60,10 +66,22 @@ export default function ExportView({ alumniList = [] }) {
    * at tinatanggal din ang link pagkatapos.
    */
   const handleExportData = () => {
+    // Isali LAMANG ang mga alumni na completed (100%) ang progress kapag onlyCompleted ay true
+    const targetAlumni = onlyCompleted 
+      ? alumniList.filter(a => calculateProfileCompleteness(a) >= 100)
+      : alumniList;
+
+    if (onlyCompleted && targetAlumni.length === 0) {
+      setToastMessage('NOTICE: Walang graduates na may 100% completed progress. Hindi isinama ang incomplete profiles.');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+      return;
+    }
+
     // Kapag JSON ang piniling format ng user
     if (exportFormat === 'json') {
-      // Ina-convert ang buong alumniList sa pre-formatted JSON string
-      const jsonContent = JSON.stringify(alumniList, null, 2);
+      // Ina-convert ang targetAlumni sa pre-formatted JSON string
+      const jsonContent = JSON.stringify(targetAlumni, null, 2);
       const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       // Gumagawa ng tagong link elements sa DOM para sa auto-download
@@ -75,14 +93,14 @@ export default function ExportView({ alumniList = [] }) {
       document.body.removeChild(link); // Nililinis ang DOM pagkatapos mag-download
 
       // Nagpapakita ng success toast notification
-      setToastMessage('SUCCESS! Downloaded database registry as JSON.');
+      setToastMessage(`SUCCESS! Downloaded ${targetAlumni.length} completed records as JSON.`);
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 4000); // Mawawala ang toast pagkatapos ng 4 na segundo
+      setTimeout(() => setShowToast(false), 4000);
     } else if (exportFormat === 'ched-gts') {
       // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
       let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Email_Address,Contact_Number,Address,Location_Region,Degree_Completed,Year_Graduated,License_Passed,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Is_Job_Related_To_Course,Time_To_First_Job,Skills\n';
       
-      let csvContent = alumniList.map((a, idx) => {
+      let csvContent = targetAlumni.map((a, idx) => {
         const first = a.firstName || a.name?.split(' ')[0] || '';
         const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
         const middle = ''; // Fallback for Middle Name
@@ -101,7 +119,7 @@ export default function ExportView({ alumniList = [] }) {
       document.body.removeChild(link);
 
       // Nagpapakita ng success toast notification para sa CHED GTS
-      setToastMessage('SUCCESS! Downloaded official GTS Tracer Packet.');
+      setToastMessage(`SUCCESS! Downloaded official GTS report with ${targetAlumni.length} completed records.`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 4000);
     } else if (exportFormat === 'pdf') {
@@ -114,10 +132,8 @@ export default function ExportView({ alumniList = [] }) {
       setTimeout(() => setShowToast(false), 4000);
     } else {
       // Kapag naman CSV ang napiling format
-      // Gumagawa ng header para sa CSV format
       let csvHeader = 'StudentID,FirstName,LastName,Email,Program,YearGraduated,EmploymentStatus,Company,JobTitle\n';
-      // Binabasa ang bawat alumni record at ginagawang CSV row entry
-      let csvContent = alumniList.map(a => {
+      let csvContent = targetAlumni.map(a => {
         const first = a.firstName || a.name?.split(' ')[0] || '';
         const last = a.lastName || a.name?.split(' ').slice(1).join(' ') || '';
         return `"${a.studentId}","${first}","${last}","${a.email || ''}","${a.program || ''}",${a.yearGraduated || 2026},"${a.employmentStatus || 'Unemployed'}","${a.employerName || ''}","${a.jobTitle || ''}"`;
@@ -125,7 +141,6 @@ export default function ExportView({ alumniList = [] }) {
 
       const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      // Gumagawa ng temporary link sa DOM para sa CSV download
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'BSC_Graduate_Tracer_Registry_2026.csv');
@@ -134,7 +149,7 @@ export default function ExportView({ alumniList = [] }) {
       document.body.removeChild(link);
 
       // Nagpapakita ng success toast notification para sa CSV
-      setToastMessage('SUCCESS! Downloaded database registry as CSV.');
+      setToastMessage(`SUCCESS! Downloaded registry CSV with ${targetAlumni.length} completed records.`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 4000);
     }
@@ -234,6 +249,23 @@ export default function ExportView({ alumniList = [] }) {
                 <option value="ched-gts">Direct CHED GTS Template (Spreadsheet) (.csv)</option>
                 <option value="pdf">Official PDF Report Document (.pdf)</option>
               </select>
+            </div>
+
+            <div className="pt-0.5">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:border-emerald-500/50 transition">
+                <input
+                  type="checkbox"
+                  checked={onlyCompleted}
+                  onChange={(e) => setOnlyCompleted(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer shrink-0"
+                />
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-800">Completed Profiles Only (100% Progress)</span>
+                  <span className="text-[10px] text-slate-500 font-semibold leading-tight mt-0.5">
+                    Hindi isasali sa report ang mga hindi pa completed o un-accessed ({totalCompleted} sa {totalAlumniCount} graduates ang kasama)
+                  </span>
+                </div>
+              </label>
             </div>
 
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-150 text-[10px] font-semibold text-slate-500 space-y-1.5">
