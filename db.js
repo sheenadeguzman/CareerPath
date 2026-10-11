@@ -138,69 +138,86 @@ export async function initializeDatabase() {
     } catch (e) { }
 
     try {
-      // Markahan ang mga totoong naka-access na (Stephen at Sheena)
+      // Tiyakin na may system_migrations table upang hindi maulit ang reset sa bawat server reboot
       await pool.query(`
-        UPDATE alumni_profiles
-        SET has_logged_in = 1
-        WHERE student_id LIKE '%2023-1153%' 
-           OR student_id LIKE '%2023-1859%' 
-           OR student_id LIKE '%2023-1059%';
+        CREATE TABLE IF NOT EXISTS system_migrations (
+          id VARCHAR(100) PRIMARY KEY,
+          executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
       `);
+      const [ran] = await pool.query('SELECT id FROM system_migrations WHERE id = ?', ['align_initial_roster_v1']);
+      if (ran.length === 0) {
+        // Markahan ang mga totoong naka-access na (Stephen at Sheena)
+        await pool.query(`
+          UPDATE alumni_profiles
+          SET has_logged_in = 1
+          WHERE student_id LIKE '%2023-1153%' 
+             OR student_id LIKE '%2023-1859%' 
+             OR student_id LIKE '%2023-1059%';
+        `);
 
-      // Para sa mga hindi pa nag-a-access ng initial account:
-      // 5 columns lang ang record nila, employment_status = 'No Response', has_logged_in = 0, at profile_completeness = 0!
-      await pool.query(`
-        UPDATE alumni_profiles
-        SET has_logged_in = 0,
-            profile_completeness = 0,
-            employment_status = 'No Response',
-            job_title = NULL,
-            employer_name = NULL,
-            job_description = NULL,
-            employment_type = NULL,
-            monthly_income = NULL,
-            job_industry = NULL,
-            job_related_to_course = 'No',
-            first_job_related_to_course = 'No',
-            time_to_first_job = NULL,
-            job_start_year = NULL,
-            sector = 'N/A',
-            skills = '[]',
-            career_history = '[]',
-            education_history = '[]',
-            useful_skills = '[]',
-            reasons_pursuing_program = NULL,
-            find_first_job = NULL,
-            reasons_accepting_job = NULL,
-            reasons_unemployment = NULL,
-            about_me = NULL,
-            languages = NULL,
-            phone = NULL,
-            gender = NULL,
-            civil_status = NULL,
-            date_of_birth = NULL,
-            address = NULL,
-            permanent_address = NULL,
-            honors = 'None',
-            professional_exam_passed = 'None',
-            is_board_passer = 'N/A',
-            licensure_exam_date = NULL,
-            license_no = NULL,
-            alumni_association_status = 'Non-Member'
-        WHERE student_id NOT LIKE '%2023-1153%' 
-          AND student_id NOT LIKE '%2023-1859%' 
-          AND student_id NOT LIKE '%2023-1059%';
-      `);
+        // Para sa mga hindi pa nag-a-access ng initial account:
+        // 5 columns lang ang record nila, employment_status = 'No Response', has_logged_in = 0, at profile_completeness = 0!
+        await pool.query(`
+          UPDATE alumni_profiles
+          SET has_logged_in = 0,
+              profile_completeness = 0,
+              employment_status = 'No Response',
+              job_title = NULL,
+              employer_name = NULL,
+              job_description = NULL,
+              employment_type = NULL,
+              monthly_income = NULL,
+              job_industry = NULL,
+              job_related_to_course = 'No',
+              first_job_related_to_course = 'No',
+              time_to_first_job = NULL,
+              job_start_year = NULL,
+              sector = 'N/A',
+              skills = '[]',
+              career_history = '[]',
+              education_history = '[]',
+              useful_skills = '[]',
+              reasons_pursuing_program = NULL,
+              find_first_job = NULL,
+              reasons_accepting_job = NULL,
+              reasons_unemployment = NULL,
+              about_me = NULL,
+              languages = NULL,
+              phone = NULL,
+              gender = NULL,
+              civil_status = NULL,
+              date_of_birth = NULL,
+              address = NULL,
+              permanent_address = NULL,
+              honors = 'None',
+              professional_exam_passed = 'None',
+              is_board_passer = 'N/A',
+              licensure_exam_date = NULL,
+              license_no = NULL,
+              alumni_association_status = 'Non-Member'
+          WHERE student_id NOT LIKE '%2023-1153%' 
+            AND student_id NOT LIKE '%2023-1859%' 
+            AND student_id NOT LIKE '%2023-1059%'
+            AND (has_logged_in = 0 OR has_logged_in IS NULL);
+        `);
 
-      await pool.query(`
-        UPDATE users
-        SET has_logged_in = 0, last_login = NULL, is_initial_password_needed = 1
-        WHERE id NOT LIKE '%2023-1153%' 
-          AND id NOT LIKE '%2023-1859%' 
-          AND id NOT LIKE '%2023-1059%'
-          AND role = 'Alumni';
-      `);
-    } catch (e) { }
+        await pool.query(`
+          UPDATE users
+          SET has_logged_in = 0, last_login = NULL, is_initial_password_needed = 1
+          WHERE id NOT LIKE '%2023-1153%' 
+            AND id NOT LIKE '%2023-1859%' 
+            AND id NOT LIKE '%2023-1059%'
+            AND role = 'Alumni'
+            AND (has_logged_in = 0 OR has_logged_in IS NULL);
+        `);
+
+        await pool.query('INSERT INTO system_migrations (id) VALUES (?)', ['align_initial_roster_v1']);
+        console.log('Database Migration: Ran one-time initial roster alignment (align_initial_roster_v1).');
+      }
+    } catch (e) {
+      console.error('Database Migration Notice (Initial Roster Alignment):', e.message);
+    }
 
     // MIGRATION: Seed default Super Admin user if not exists
     try {

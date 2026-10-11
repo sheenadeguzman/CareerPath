@@ -7,7 +7,7 @@
     "dev": "node --dns-result-order=ipv4first server.js",
     "build": "vite build && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node --dns-result-order=ipv4first dist/server.cjs",
-    "clean": "rm -rf dist server.js"
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('dist', {recursive:true, force:true});\""
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",

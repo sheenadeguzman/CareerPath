@@ -9,13 +9,14 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { BSC_PROGRAMS } from '../../../bscData';
+import { calculateProfileCompleteness } from '../../../utils/tracerCompleteness';
 
 export default function EmploymentAnalytics({ filteredAlumni = [] }) {
   const [selectedMajorFilter, setSelectedMajorFilter] = useState('All');
   const [viewMode, setViewMode] = useState('byMajor');
   const totalInScope = filteredAlumni.length;
-  const respondingInScope = filteredAlumni.filter(a => (a.profileCompleteness || 0) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
-  const totalRegisteredCount = filteredAlumni.filter(a => (a.profileCompleteness || 0) >= 100).length;
+  const respondingInScope = filteredAlumni.filter(a => calculateProfileCompleteness(a) > 0 || (a.hasLoggedIn && a.employmentStatus && a.employmentStatus !== 'No Response'));
+  const totalRegisteredCount = filteredAlumni.filter(a => calculateProfileCompleteness(a) >= 100).length;
 
   // Employed base sets
   const employedList = respondingInScope.filter(a =>

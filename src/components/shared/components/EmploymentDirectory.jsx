@@ -86,7 +86,9 @@ export default function EmploymentDirectory({ filteredAlumni = [] }) {
                     <div className="bg-slate-100/60 border border-slate-200/40 rounded-lg p-2 text-[9.5px] font-extrabold text-slate-400 uppercase text-center py-2.5">
                       {al.employmentStatus === 'Further Studies' 
                         ? 'Further Studies / Grad School Program'
-                        : 'Currently Seeking Employment / No Active Records'}
+                        : al.employmentStatus === 'Unemployed'
+                        ? 'Unemployed (Seeking Employment)'
+                        : 'Not Yet Answered'}
                     </div>
                   )}
                 </div>

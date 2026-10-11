@@ -162,7 +162,7 @@ export default function AdminDashboard({
   const time7to11Pct = Math.round((time7to11 / timeDenominator) * 100);
   const time1YearPlusPct = Math.round((time1YearPlus / timeDenominator) * 100);
   const timeUnresponsiveCount = totalNotAnswered;
-  const timeNotAnsweredPct = Math.max(0, 100 - (timeImmediatePct + time1to6Pct + time7to11Pct + time1YearPlusPct));
+  const timeNotAnsweredPct = totalAlumni > 0 ? Math.max(0, 100 - (timeImmediatePct + time1to6Pct + time7to11Pct + time1YearPlusPct)) : 0;
 
   // Monthly Salary Bracket (PHP)
   const salUnder10k = respondingAlumni.filter(a => a.monthlyIncome === 'Under 10,000').length;

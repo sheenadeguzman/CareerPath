@@ -144,18 +144,11 @@ export function mapAlumniFromDB(row) {
     isInitialPasswordNeeded: Boolean(row.is_initial_password_needed),
     hasLoggedIn: hasLoggedIn,
     lastLogin: isInitialPending ? null : (row.last_login || null),
-    profileCompleteness: (() => {
-      if (isInitialPending) {
-        return 0;
-      }
-      if (typeof row.profile_completeness === 'number' && row.profile_completeness > 0) {
-        return row.profile_completeness;
-      }
-      const isEmployed = ['Employed', 'Self-Employed', 'Freelance'].includes(employmentStatus);
-      return isEmployed ? 85 : 72;
-    })(),
+    profileCompleteness: isInitialPending 
+      ? 0 
+      : (typeof row.profile_completeness === 'number' ? row.profile_completeness : 0),
     lastUpdated: row.last_updated,
-    isRegistered: !isInitialPending && (row.profile_completeness || 0) >= 100,
+    isRegistered: !isInitialPending && (typeof row.profile_completeness === 'number' && row.profile_completeness >= 100),
     locationRegion: isInitialPending ? '' : (row.location_region || 'Local (Batanes)'),
     avatar: row.avatar || null,
     careerHistory: historyArr,

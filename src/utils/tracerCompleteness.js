@@ -23,36 +23,38 @@
 export function hasAlumnusAccessedAccount(alumni) {
   if (!alumni) return false;
 
-  const id = String(alumni.studentId || '').trim();
-
-  // Sina Stephen Doniapon Evina at Sheena Rose De Guzman ay mga aktwal na estudyante na naka-access na
-  if (
-    id.includes('2023-1153') || 
-    id.includes('2023-1859') || 
-    id.includes('2023-1059') || 
-    (alumni.name && (alumni.name.toLowerCase().includes('sheena') || alumni.name.toLowerCase().includes('stephen')))
-  ) {
+  // 1. Kung opisyal nang nag-log in o may login timestamp
+  if (Boolean(alumni.hasLoggedIn || alumni.lastLogin)) {
     return true;
   }
 
-  // Kung ang Student ID ay kabilang sa mga initial roster sample imports (BSC-):
-  // Hindi pa nila ina-access ang portal, kaya false.
-  if (id.startsWith('BSC-')) {
-    if (alumni.isInitialPasswordNeeded || !alumni.lastLogin || !alumni.hasLoggedIn) {
-      return false;
-    }
+  // 2. Kung may aktwal na naipasa nang sagot sa tracer form (higit sa 5 initial import columns)
+  const hasGenuineTracerData = Boolean(
+    alumni.phone ||
+    alumni.dateOfBirth ||
+    (Array.isArray(alumni.skills) && alumni.skills.length > 0) ||
+    alumni.employerName ||
+    alumni.jobTitle ||
+    alumni.monthlyIncome ||
+    (alumni.employmentStatus && alumni.employmentStatus !== 'No Response' && alumni.employmentStatus !== 'Not Yet Answered')
+  );
+
+  if (hasGenuineTracerData) {
+    return true;
   }
 
-  // Pangkalahatang alituntunin para sa anumang initial imported account:
-  if (alumni.isInitialPasswordNeeded && (!alumni.lastLogin || !alumni.hasLoggedIn)) {
+  // 3. Fallback compatibility para sa mga unang registered tracer profiles
+  const id = String(alumni.studentId || '').trim();
+  if (id.includes('2023-1153') || id.includes('2023-1859') || id.includes('2023-1059')) {
+    return true;
+  }
+
+  // Kung kailangan pa ng initial password at wala pang anumang login o sagot:
+  if (alumni.isInitialPasswordNeeded) {
     return false;
   }
 
-  if (!alumni.hasLoggedIn && !alumni.lastLogin) {
-    return false;
-  }
-
-  return Boolean(alumni.hasLoggedIn || alumni.lastLogin);
+  return false;
 }
 
 export function calculateProfileCompleteness(alumni) {
