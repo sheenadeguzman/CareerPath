@@ -30,7 +30,7 @@ export default function MessageEmailView({
 
   const portalUrl = typeof window !== 'undefined' ? window.location.origin : 'https://careerpath-1ed8.onrender.com';
 
-  // Default official messages na awtomatikong nakalagay base sa napiling kategorya
+  // Default official messages na awtomatikong may kasamang credentials, initial password, at step-by-step instructions
   const defaultCategoryMessages = useMemo(() => ({
     Alumni: {
       subject: 'Official Notice: Complete Your BSC Graduate Tracer Profile',
@@ -40,10 +40,17 @@ Greetings from Batanes State College!
 
 This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
 
-Please log in to the portal using your Student ID to verify and update your employment records and skills competencies:
-${portalUrl}
+---
+LOGIN & ACCESS INSTRUCTIONS:
+1. Portal Link: ${portalUrl}
+2. Role Tab: Select "Alumni"
+3. Student ID: {id}
+4. Initial Password: {password}
+5. First Sign-In Setup: You will be prompted to change your initial password to a secure personal password.
+6. Action Required: Verify and complete your Graduate Tracer Profile & employment records.
+---
 
-If you have already updated your details, please disregard this notice.
+If you have already updated your details and completed your tracer profile, please disregard this notice.
 
 Respectfully,
 Office of Tracer Programs & Administrative Analytics
@@ -57,8 +64,15 @@ Greetings!
 
 The Batanes State College CareerPath analytics engine has synthesized new tracer telemetry and employer feedback for your department's degree programs.
 
-Please review the latest curricular gap metrics and employment alignment figures on the portal to support upcoming CHED institutional reviews:
-${portalUrl}
+---
+LOGIN & ACCESS INSTRUCTIONS:
+1. Portal Link: ${portalUrl}
+2. Role Tab: Select "Dept Chair"
+3. Login ID: Enter your designated Chairperson account email ({id})
+4. Initial Password: {password}
+5. First Sign-In Setup: Please configure your private password upon initial sign-in.
+6. Action Required: Review curriculum gap metrics, industry alignment, and pending alumni submissions.
+---
 
 Respectfully,
 Office of Academic Affairs & Portal Administration
@@ -70,8 +84,17 @@ Batanes State College`
 
 Greetings from Batanes State College!
 
-As an esteemed industry partner, we invite you to access the BSC CareerPath portal to review graduating talent competencies and submit new career vacancy bulletins:
-${portalUrl}
+As an esteemed industry partner, we invite you to access the BSC CareerPath portal to review graduating talent competencies and submit career vacancy bulletins.
+
+---
+LOGIN & ACCESS INSTRUCTIONS:
+1. Portal Link: ${portalUrl}
+2. Role Tab: Select "Employer"
+3. Login ID: Enter your registered partner email ({id})
+4. Initial Password: {password}
+5. First Sign-In Setup: Update your password to a private credential upon first access.
+6. Opportunities: Post job openings and view talent recommendations tailored to your industry.
+---
 
 Thank you for your active collaboration in enhancing graduate career outcomes.
 
@@ -87,8 +110,14 @@ Greetings from Batanes State College!
 
 This is an official advisory and communication update regarding the BSC CareerPath Portal.
 
-Please access the portal for the latest institution-wide career tracking, updates, and announcements:
-${portalUrl}
+---
+PORTAL ACCESS INSTRUCTIONS:
+1. Portal Link: ${portalUrl}
+2. Role Selection: Select your assigned role tab (Alumni, Dept Chair, or Employer)
+3. Login ID: Enter your Student ID ({id}) or assigned Email / User ID
+4. Initial Password (for new users): {password}
+5. First Sign-In: Change temporary credentials to a private password upon first sign-in.
+---
 
 Respectfully,
 Office of the Administrator
@@ -101,7 +130,7 @@ Batanes State College`
   const [recipientSearchQuery, setRecipientSearchQuery] = useState('');
   const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
 
-  // Email Content States - May kumpletong official notice na agad bilang default
+  // Email Content States - May kumpletong official notice na may kasamang credentials at instructions agad
   const [customSubject, setCustomSubject] = useState(
     'Official Notice: Complete Your BSC Graduate Tracer Profile'
   );
@@ -112,10 +141,17 @@ Greetings from Batanes State College!
 
 This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
 
-Please log in to the portal using your Student ID to verify and update your employment records and skills competencies:
-${portalUrl}
+---
+LOGIN & ACCESS INSTRUCTIONS:
+1. Portal Link: ${portalUrl}
+2. Role Tab: Select "Alumni"
+3. Student ID: {id}
+4. Initial Password: {password}
+5. First Sign-In Setup: You will be prompted to change your initial password to a secure personal password.
+6. Action Required: Verify and complete your Graduate Tracer Profile & employment records.
+---
 
-If you have already updated your details, please disregard this notice.
+If you have already updated your details and completed your tracer profile, please disregard this notice.
 
 Respectfully,
 Office of Tracer Programs & Administrative Analytics
@@ -421,7 +457,7 @@ Batanes State College`
                   <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
                     Message Body (Admin Email Content)
                   </label>
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400 font-medium">
                     <span>Personalize:</span>
                     <button
                       type="button"
@@ -430,6 +466,22 @@ Batanes State College`
                       title="Insert recipient's name"
                     >
                       {'{name}'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCustomBody(prev => prev + ' {id}')}
+                      className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
+                      title="Insert Student ID or User ID"
+                    >
+                      {'{id}'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCustomBody(prev => prev + ' {password}')}
+                      className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
+                      title="Insert initial password (bsc123)"
+                    >
+                      {'{password}'}
                     </button>
                     <button
                       type="button"

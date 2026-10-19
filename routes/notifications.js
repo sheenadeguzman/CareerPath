@@ -249,10 +249,14 @@ router.post('/send-email', authenticateToken, async (req, res) => {
 
       const emailSubject = customSubject || 'Official Communication | Batanes State College CareerPath';
       
-      // I-replace ang placeholder tags tulad ng '{name}' at '{role}' gamit ang aktwal na detalye ng recipient
+      // I-replace ang placeholder tags tulad ng '{name}', '{role}', '{id}', '{password}' gamit ang aktwal na detalye ng recipient
       const emailBody = (customBody || `Hello {name},\n\nGreetings from Batanes State College CareerPath.\n\nRespectfully,\nOffice of the Portal Administrator\nBatanes State College`)
         .replace(/{name}/g, recipientName)
-        .replace(/{role}/g, recipientRole);
+        .replace(/{role}/g, recipientRole)
+        .replace(/{id}/g, recipientId)
+        .replace(/{studentId}/g, recipientId)
+        .replace(/{password}/g, 'bsc123')
+        .replace(/{initialPassword}/g, 'bsc123');
 
       let sendSuccess = true;
       let errorMessage = '';
