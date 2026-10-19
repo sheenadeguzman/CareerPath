@@ -30,14 +30,22 @@ export default function MessageEmailView({
 
   // Target Role Category: 'Alumni' | 'Department Chairperson' | 'Employer' | 'All'
   const [targetCategory, setTargetCategory] = useState('Alumni');
-  const [alumniFilterSubtype, setAlumniFilterSubtype] = useState('Incomplete'); // 'Incomplete' | 'All' | 'Custom'
   const [recipientSearchQuery, setRecipientSearchQuery] = useState('');
   const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
 
   // Email Content States
-  const [customSubject, setCustomSubject] = useState('');
-  const [customBody, setCustomBody] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('alumni_reminder');
+  const [customSubject, setCustomSubject] = useState('Official Advisory | Batanes State College CareerPath');
+  const [customBody, setCustomBody] = useState(
+`Hello {name},
+
+Greetings from Batanes State College!
+
+[Please enter your message here...]
+
+Respectfully,
+Office of the Administrator
+Batanes State College`
+  );
 
   // Form para sa pag-imbita ng bagong user
   const [inviteEmail, setInviteEmail] = useState('');
@@ -106,9 +114,6 @@ export default function MessageEmailView({
   // Listahan ng recipients base sa napiling kategorya
   const currentCategoryPool = useMemo(() => {
     if (targetCategory === 'Alumni') {
-      if (alumniFilterSubtype === 'Incomplete') {
-        return alumniRecipients.filter(a => a.profileCompleteness < 80);
-      }
       return alumniRecipients;
     }
     if (targetCategory === 'Department Chairperson') {
@@ -119,82 +124,12 @@ export default function MessageEmailView({
     }
     // 'All' - broadcast sa lahat
     return [...alumniRecipients, ...chairRecipients, ...employerRecipients];
-  }, [targetCategory, alumniFilterSubtype, alumniRecipients, chairRecipients, employerRecipients]);
+  }, [targetCategory, alumniRecipients, chairRecipients, employerRecipients]);
 
-  // I-initialize ang selected recipients sa tuwing magpapalit ng target category o sub-filter
+  // I-initialize ang selected recipients sa tuwing magpapalit ng target category
   useEffect(() => {
     setSelectedRecipientIds(currentCategoryPool.map(r => r.id));
-  }, [targetCategory, alumniFilterSubtype, currentCategoryPool]);
-
-  // Mga Quick Preset Templates
-  const applyTemplate = (templateKey) => {
-    setSelectedTemplate(templateKey);
-    const portalUrl = window.location.origin;
-
-    if (templateKey === 'alumni_reminder') {
-      setCustomSubject('Official Notice: Complete Your BSC Graduate Tracer Profile');
-      setCustomBody(
-`Hello {name},
-
-Greetings from Batanes State College!
-
-This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
-
-Please log in to the portal using your Student ID to verify and update your employment records and skills competencies:
-${portalUrl}
-
-If you have already updated your details, please disregard this notice.
-
-Respectfully,
-Office of Tracer Programs & Administrative Analytics
-Batanes State College`
-      );
-    } else if (templateKey === 'chair_curriculum') {
-      setCustomSubject('Curriculum Alignment & Graduate Tracer Telemetry Advisory');
-      setCustomBody(
-`Dear {name},
-
-Greetings!
-
-The Batanes State College CareerPath analytics engine has synthesized new tracer telemetry and employer feedback for your department's degree programs.
-
-Kindly log in to your Department Chairperson account to review the latest Curriculum Gap Matrix, CHED Annex accreditation metrics, and skills alignment data:
-${portalUrl}
-
-Your insights will be valuable for the upcoming institutional curriculum review.
-
-Respectfully,
-Office of Academic Affairs & Portal Administration
-Batanes State College`
-      );
-    } else if (templateKey === 'employer_collab') {
-      setCustomSubject('Partnership Invitation: Post Vacancies & Explore Graduate Talent Matches');
-      setCustomBody(
-`Dear {name},
-
-Greetings from Batanes State College!
-
-As an esteemed industry partner, we invite you to access the BSC CareerPath portal to review graduating talent competencies and submit new career vacancy bulletins:
-${portalUrl}
-
-Our Hybrid Skills Matching engine connects your specific hiring prerequisites directly with qualified alumni profiles.
-
-We look forward to your active participation in providing career opportunities to our graduates.
-
-Sincerely,
-BSC Career Placement & Industry Linkages Office
-Batanes State College`
-      );
-    } else if (templateKey === 'blank') {
-      setCustomSubject('');
-      setCustomBody('');
-    }
-  };
-
-  // Mag-apply ng default template sa unang load
-  useEffect(() => {
-    applyTemplate('alumni_reminder');
-  }, []);
+  }, [targetCategory, currentCategoryPool]);
 
   // Filtered recipients para sa live table search
   const filteredRecipients = useMemo(() => {
@@ -312,52 +247,25 @@ Batanes State College`
           <div className="space-y-4">
             
             {/* Header ng Email Workspace */}
-            <div className="pb-3 border-b border-slate-100 space-y-3">
-              <div>
-                <h2 className="text-xs sm:text-sm font-extrabold text-[#1e4620] uppercase tracking-wider flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#7c191e]" /> Campus Email &amp; Advisory Dispatch Hub
-                </h2>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Type and send custom emails and portal notifications directly to Alumni, Department Chairs, or Employers.
-                </p>
-              </div>
-
-              {/* Sleek Dedicated "From:" Sender Meta Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 px-3.5 bg-slate-50/90 rounded-xl border border-slate-200/80">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-full bg-[#7c191e] text-white flex items-center justify-center text-xs font-black uppercase shrink-0 shadow-xs">
-                    {activeUser?.name?.charAt(0) || 'A'}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs min-w-0">
-                    <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider shrink-0">From:</span>
-                    <span className="font-extrabold text-slate-800 whitespace-nowrap">{activeUser?.name || 'Administrator'}</span>
-                    <span className="text-slate-500 font-mono text-[11px] whitespace-nowrap">&lt;{activeUser?.email || 'admin@bsc.edu.ph'}&gt;</span>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-[#7c191e]/10 text-[#7c191e] border border-[#7c191e]/20 uppercase whitespace-nowrap">
-                      {activeUser?.role || 'Administrator'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 text-[10.5px] text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>SMTP Outbox Ready</span>
-                </div>
-              </div>
+            <div className="pb-3 border-b border-slate-100">
+              <h2 className="text-xs sm:text-sm font-extrabold text-[#1e4620] uppercase tracking-wider flex items-center gap-2">
+                <Mail className="w-4 h-4 text-[#7c191e]" /> Campus Email &amp; Advisory Dispatch Hub
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                Type and send custom emails and portal notifications directly to Alumni, Department Chairs, or Employers.
+              </p>
             </div>
 
             {/* 1. Target Recipient Category Selector */}
             <div className="space-y-1.5">
               <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                1. Select Recipient Category
+                Select Recipient Category
               </label>
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                 <button
                   type="button"
-                  onClick={() => {
-                    setTargetCategory('Alumni');
-                    if (selectedTemplate !== 'alumni_reminder') applyTemplate('alumni_reminder');
-                  }}
+                  onClick={() => setTargetCategory('Alumni')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'Alumni'
                       ? 'bg-[#1e4620] text-white border-[#1e4620] shadow-xs'
@@ -370,10 +278,7 @@ Batanes State College`
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setTargetCategory('Department Chairperson');
-                    if (selectedTemplate !== 'chair_curriculum') applyTemplate('chair_curriculum');
-                  }}
+                  onClick={() => setTargetCategory('Department Chairperson')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'Department Chairperson'
                       ? 'bg-[#1e4620] text-white border-[#1e4620] shadow-xs'
@@ -386,10 +291,7 @@ Batanes State College`
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setTargetCategory('Employer');
-                    if (selectedTemplate !== 'employer_collab') applyTemplate('employer_collab');
-                  }}
+                  onClick={() => setTargetCategory('Employer')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'Employer'
                       ? 'bg-[#1e4620] text-white border-[#1e4620] shadow-xs'
@@ -402,9 +304,7 @@ Batanes State College`
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setTargetCategory('All');
-                  }}
+                  onClick={() => setTargetCategory('All')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'All'
                       ? 'bg-[#7c191e] text-white border-[#7c191e] shadow-xs'
@@ -415,105 +315,9 @@ Batanes State College`
                   <span>Broadcast All</span>
                 </button>
               </div>
-
-              {/* Sub-filter para sa Alumni (Incomplete vs All) */}
-              {targetCategory === 'Alumni' && (
-                <div className="flex items-center gap-2 pt-1 text-[11px] font-bold">
-                  <span className="text-slate-400 font-semibold text-[10px] uppercase">Alumni Scope:</span>
-                  <button
-                    type="button"
-                    onClick={() => setAlumniFilterSubtype('Incomplete')}
-                    className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                      alumniFilterSubtype === 'Incomplete'
-                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200/70'
-                    }`}
-                  >
-                    Pending Tracer Completion (&lt; 80%) ({alumniRecipients.filter(a => a.profileCompleteness < 80).length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAlumniFilterSubtype('All')}
-                    className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                      alumniFilterSubtype === 'All'
-                        ? 'bg-emerald-100 text-[#1e4620] border border-emerald-300'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200/70'
-                    }`}
-                  >
-                    All Graduates ({alumniRecipients.length})
-                  </button>
-                </div>
-              )}
             </div>
 
-            {/* 2. Preset Templates & Variable Tag Chips */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span className="font-bold text-slate-700 text-[11px]">Quick Templates:</span>
-                <div className="flex flex-wrap gap-1">
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('alumni_reminder')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${
-                      selectedTemplate === 'alumni_reminder' ? 'bg-[#1e4620] text-white border-[#1e4620]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    Tracer Reminder
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('chair_curriculum')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${
-                      selectedTemplate === 'chair_curriculum' ? 'bg-[#1e4620] text-white border-[#1e4620]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    Curriculum Audit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('employer_collab')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${
-                      selectedTemplate === 'employer_collab' ? 'bg-[#1e4620] text-white border-[#1e4620]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    Employer Collab
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('blank')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${
-                      selectedTemplate === 'blank' ? 'bg-slate-700 text-white border-slate-700' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    Blank Message
-                  </button>
-                </div>
-              </div>
-
-              {/* Variable Chips */}
-              <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                <span>Personalize:</span>
-                <button
-                  type="button"
-                  onClick={() => setCustomBody(prev => prev + ' {name}')}
-                  className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-700 hover:border-[#1e4620] font-mono font-bold cursor-pointer"
-                  title="Click to insert recipient's name"
-                >
-                  {'{name}'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCustomBody(prev => prev + ' {role}')}
-                  className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-700 hover:border-[#1e4620] font-mono font-bold cursor-pointer"
-                  title="Click to insert recipient's role"
-                >
-                  {'{role}'}
-                </button>
-              </div>
-            </div>
-
-            {/* 3. Email Form (Subject & Message Body) */}
+            {/* 2. Email Form (Subject & Message Body) */}
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">
@@ -524,17 +328,38 @@ Batanes State College`
                   required
                   value={customSubject}
                   onChange={(e) => setCustomSubject(e.target.value)}
-                  placeholder="e.g., Notice to Department Chairs: Upcoming Curriculum Review"
+                  placeholder="Enter email subject line..."
                   className="w-full bg-slate-50 focus:bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#1e4620]/20 focus:border-[#1e4620] transition"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                  Message Body (Admin Email Content)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                    Message Body (Admin Email Content)
+                  </label>
+                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                    <span>Personalize:</span>
+                    <button
+                      type="button"
+                      onClick={() => setCustomBody(prev => prev + ' {name}')}
+                      className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
+                      title="Insert recipient's name"
+                    >
+                      {'{name}'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCustomBody(prev => prev + ' {role}')}
+                      className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
+                      title="Insert recipient's role"
+                    >
+                      {'{role}'}
+                    </button>
+                  </div>
+                </div>
                 <textarea
-                  rows={8}
+                  rows={9}
                   required
                   value={customBody}
                   onChange={(e) => setCustomBody(e.target.value)}
