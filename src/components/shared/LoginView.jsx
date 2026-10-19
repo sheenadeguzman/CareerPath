@@ -894,7 +894,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
               <form onSubmit={handleLoginSubmit} className="space-y-4" autoComplete="off">
                 <div>
                   <label htmlFor="user-id-input" className="block text-xs font-semibold text-slate-600 mb-1">
-                    {selectedRoleTab === 'alumni' && 'Student ID or Registered Email'}
+                    {selectedRoleTab === 'alumni' && 'Student ID'}
                     {selectedRoleTab === 'admin' && 'Admin Username or Email'}
                     {selectedRoleTab === 'chairperson' && 'Chairperson Username or Email'}
                     {selectedRoleTab === 'employer' && 'Company Email or Employer Username'}
@@ -908,7 +908,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     onChange={(e) => setUserIdInput(e.target.value)}
                     placeholder={
                       selectedRoleTab === 'alumni'
-                        ? 'Enter Student ID or Email (e.g. 2020-0123-AB)'
+                        ? 'Enter Student ID (e.g. 2020-0123-AB)'
                         : selectedRoleTab === 'admin'
                         ? 'Enter Admin Username or Email (e.g. admin)'
                         : selectedRoleTab === 'chairperson'
