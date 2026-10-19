@@ -28,24 +28,107 @@ export default function MessageEmailView({
   // State hook para sa text na ipapakita sa toast status message
   const [showStatus, setShowStatus] = useState('');
 
+  const portalUrl = typeof window !== 'undefined' ? window.location.origin : 'https://careerpath-1ed8.onrender.com';
+
+  // Default official messages na awtomatikong nakalagay base sa napiling kategorya
+  const defaultCategoryMessages = useMemo(() => ({
+    Alumni: {
+      subject: 'Official Notice: Complete Your BSC Graduate Tracer Profile',
+      body: `Hello {name},
+
+Greetings from Batanes State College!
+
+This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
+
+Please log in to the portal using your Student ID to verify and update your employment records and skills competencies:
+${portalUrl}
+
+If you have already updated your details, please disregard this notice.
+
+Respectfully,
+Office of Tracer Programs & Administrative Analytics
+Batanes State College`
+    },
+    'Department Chairperson': {
+      subject: 'Curriculum Alignment & Graduate Tracer Telemetry Advisory',
+      body: `Dear {name},
+
+Greetings!
+
+The Batanes State College CareerPath analytics engine has synthesized new tracer telemetry and employer feedback for your department's degree programs.
+
+Please review the latest curricular gap metrics and employment alignment figures on the portal to support upcoming CHED institutional reviews:
+${portalUrl}
+
+Respectfully,
+Office of Academic Affairs & Portal Administration
+Batanes State College`
+    },
+    Employer: {
+      subject: 'Partnership Invitation: Post Vacancies & Explore Graduate Talent Matches',
+      body: `Dear {name},
+
+Greetings from Batanes State College!
+
+As an esteemed industry partner, we invite you to access the BSC CareerPath portal to review graduating talent competencies and submit new career vacancy bulletins:
+${portalUrl}
+
+Thank you for your active collaboration in enhancing graduate career outcomes.
+
+Warm regards,
+BSC Career Placement & Industry Linkages Office
+Batanes State College`
+    },
+    All: {
+      subject: 'Official Campus Advisory | Batanes State College CareerPath Portal',
+      body: `Hello {name},
+
+Greetings from Batanes State College!
+
+This is an official advisory and communication update regarding the BSC CareerPath Portal.
+
+Please access the portal for the latest institution-wide career tracking, updates, and announcements:
+${portalUrl}
+
+Respectfully,
+Office of the Administrator
+Batanes State College`
+    }
+  }), [portalUrl]);
+
   // Target Role Category: 'Alumni' | 'Department Chairperson' | 'Employer' | 'All'
   const [targetCategory, setTargetCategory] = useState('Alumni');
   const [recipientSearchQuery, setRecipientSearchQuery] = useState('');
   const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
 
-  // Email Content States
-  const [customSubject, setCustomSubject] = useState('Official Advisory | Batanes State College CareerPath');
+  // Email Content States - May kumpletong official notice na agad bilang default
+  const [customSubject, setCustomSubject] = useState(
+    'Official Notice: Complete Your BSC Graduate Tracer Profile'
+  );
   const [customBody, setCustomBody] = useState(
 `Hello {name},
 
 Greetings from Batanes State College!
 
-[Please enter your message here...]
+This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
+
+Please log in to the portal using your Student ID to verify and update your employment records and skills competencies:
+${portalUrl}
+
+If you have already updated your details, please disregard this notice.
 
 Respectfully,
-Office of the Administrator
+Office of Tracer Programs & Administrative Analytics
 Batanes State College`
   );
+
+  const handleSelectCategory = (cat) => {
+    setTargetCategory(cat);
+    if (defaultCategoryMessages[cat]) {
+      setCustomSubject(defaultCategoryMessages[cat].subject);
+      setCustomBody(defaultCategoryMessages[cat].body);
+    }
+  };
 
   // Form para sa pag-imbita ng bagong user
   const [inviteEmail, setInviteEmail] = useState('');
@@ -265,7 +348,7 @@ Batanes State College`
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setTargetCategory('Alumni')}
+                  onClick={() => handleSelectCategory('Alumni')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'Alumni'
                       ? 'bg-[#1e4620] text-white border-[#1e4620] shadow-xs'
@@ -278,7 +361,7 @@ Batanes State College`
 
                 <button
                   type="button"
-                  onClick={() => setTargetCategory('Department Chairperson')}
+                  onClick={() => handleSelectCategory('Department Chairperson')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'Department Chairperson'
                       ? 'bg-[#1e4620] text-white border-[#1e4620] shadow-xs'
@@ -291,7 +374,7 @@ Batanes State College`
 
                 <button
                   type="button"
-                  onClick={() => setTargetCategory('Employer')}
+                  onClick={() => handleSelectCategory('Employer')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'Employer'
                       ? 'bg-[#1e4620] text-white border-[#1e4620] shadow-xs'
@@ -304,7 +387,7 @@ Batanes State College`
 
                 <button
                   type="button"
-                  onClick={() => setTargetCategory('All')}
+                  onClick={() => handleSelectCategory('All')}
                   className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     targetCategory === 'All'
                       ? 'bg-[#7c191e] text-white border-[#7c191e] shadow-xs'
@@ -338,7 +421,7 @@ Batanes State College`
                   <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
                     Message Body (Admin Email Content)
                   </label>
-                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
                     <span>Personalize:</span>
                     <button
                       type="button"
@@ -355,6 +438,19 @@ Batanes State College`
                       title="Insert recipient's role"
                     >
                       {'{role}'}
+                    </button>
+                    <span className="text-slate-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const def = defaultCategoryMessages[targetCategory] || defaultCategoryMessages.Alumni;
+                        setCustomSubject(def.subject);
+                        setCustomBody(def.body);
+                      }}
+                      className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 rounded cursor-pointer font-bold transition"
+                      title="Restore official default template for this role"
+                    >
+                      Reset Default
                     </button>
                   </div>
                 </div>
