@@ -312,7 +312,7 @@ Batanes State College`
           <div className="space-y-4">
             
             {/* Header ng Email Workspace */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div className="pb-3 border-b border-slate-100 space-y-3">
               <div>
                 <h2 className="text-xs sm:text-sm font-extrabold text-[#1e4620] uppercase tracking-wider flex items-center gap-2">
                   <Mail className="w-4 h-4 text-[#7c191e]" /> Campus Email &amp; Advisory Dispatch Hub
@@ -322,11 +322,26 @@ Batanes State College`
                 </p>
               </div>
 
-              {/* Sender Pill */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600">
-                <span className="text-slate-400 font-medium">From:</span>
-                <span className="text-[#7c191e] font-extrabold">{activeUser?.name || 'Administrator'}</span>
-                <span className="text-slate-400">({activeUser?.email || 'admin@bsc.edu.ph'})</span>
+              {/* Sleek Dedicated "From:" Sender Meta Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 px-3.5 bg-slate-50/90 rounded-xl border border-slate-200/80">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-[#7c191e] text-white flex items-center justify-center text-xs font-black uppercase shrink-0 shadow-xs">
+                    {activeUser?.name?.charAt(0) || 'A'}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs min-w-0">
+                    <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider shrink-0">From:</span>
+                    <span className="font-extrabold text-slate-800 whitespace-nowrap">{activeUser?.name || 'Administrator'}</span>
+                    <span className="text-slate-500 font-mono text-[11px] whitespace-nowrap">&lt;{activeUser?.email || 'admin@bsc.edu.ph'}&gt;</span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-[#7c191e]/10 text-[#7c191e] border border-[#7c191e]/20 uppercase whitespace-nowrap">
+                      {activeUser?.role || 'Administrator'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[10.5px] text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>SMTP Outbox Ready</span>
+                </div>
               </div>
             </div>
 
