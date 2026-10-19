@@ -158,12 +158,25 @@ Office of Tracer Programs & Administrative Analytics
 Batanes State College`
   );
 
+  // Flag kung in-edit na ng user ang mensahe.
+  // Kapag true, HINDI ito i-o-overwrite ng category switches, at sa 'Reset Default' lang ito babalik sa default.
+  const [isUserEdited, setIsUserEdited] = useState(false);
+
   const handleSelectCategory = (cat) => {
     setTargetCategory(cat);
-    if (defaultCategoryMessages[cat]) {
+    // Kung HINDI pa in-edit ng user, i-load ang default template para sa role na ito
+    // Kung IN-EDIT na ng user, HUWAG i-overwrite! Naka-save ang in-edit ng user sa editor.
+    if (!isUserEdited && defaultCategoryMessages[cat]) {
       setCustomSubject(defaultCategoryMessages[cat].subject);
       setCustomBody(defaultCategoryMessages[cat].body);
     }
+  };
+
+  const handleResetDefault = () => {
+    const def = defaultCategoryMessages[targetCategory] || defaultCategoryMessages.Alumni;
+    setCustomSubject(def.subject);
+    setCustomBody(def.body);
+    setIsUserEdited(false);
   };
 
   // Form para sa pag-imbita ng bagong user
@@ -446,7 +459,10 @@ Batanes State College`
                   type="text"
                   required
                   value={customSubject}
-                  onChange={(e) => setCustomSubject(e.target.value)}
+                  onChange={(e) => {
+                    setCustomSubject(e.target.value);
+                    setIsUserEdited(true);
+                  }}
                   placeholder="Enter email subject line..."
                   className="w-full bg-slate-50 focus:bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#1e4620]/20 focus:border-[#1e4620] transition"
                 />
@@ -461,7 +477,10 @@ Batanes State College`
                     <span>Personalize:</span>
                     <button
                       type="button"
-                      onClick={() => setCustomBody(prev => prev + ' {name}')}
+                      onClick={() => {
+                        setCustomBody(prev => prev + ' {name}');
+                        setIsUserEdited(true);
+                      }}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert recipient's name"
                     >
@@ -469,7 +488,10 @@ Batanes State College`
                     </button>
                     <button
                       type="button"
-                      onClick={() => setCustomBody(prev => prev + ' {id}')}
+                      onClick={() => {
+                        setCustomBody(prev => prev + ' {id}');
+                        setIsUserEdited(true);
+                      }}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert Student ID or User ID"
                     >
@@ -477,7 +499,10 @@ Batanes State College`
                     </button>
                     <button
                       type="button"
-                      onClick={() => setCustomBody(prev => prev + ' {password}')}
+                      onClick={() => {
+                        setCustomBody(prev => prev + ' {password}');
+                        setIsUserEdited(true);
+                      }}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert initial password (bsc123)"
                     >
@@ -485,20 +510,24 @@ Batanes State College`
                     </button>
                     <button
                       type="button"
-                      onClick={() => setCustomBody(prev => prev + ' {role}')}
+                      onClick={() => {
+                        setCustomBody(prev => prev + ' {role}');
+                        setIsUserEdited(true);
+                      }}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert recipient's role"
                     >
                       {'{role}'}
                     </button>
                     <span className="text-slate-300">|</span>
+                    {isUserEdited && (
+                      <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded font-bold text-[9px] uppercase tracking-wider">
+                        Draft Saved
+                      </span>
+                    )}
                     <button
                       type="button"
-                      onClick={() => {
-                        const def = defaultCategoryMessages[targetCategory] || defaultCategoryMessages.Alumni;
-                        setCustomSubject(def.subject);
-                        setCustomBody(def.body);
-                      }}
+                      onClick={handleResetDefault}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 rounded cursor-pointer font-bold transition"
                       title="Restore official default template for this role"
                     >
@@ -510,7 +539,10 @@ Batanes State College`
                   rows={9}
                   required
                   value={customBody}
-                  onChange={(e) => setCustomBody(e.target.value)}
+                  onChange={(e) => {
+                    setCustomBody(e.target.value);
+                    setIsUserEdited(true);
+                  }}
                   placeholder="Type your official announcement, reminder, or communication here..."
                   className="w-full bg-slate-50 focus:bg-white border border-slate-200 rounded-lg p-3 text-xs leading-relaxed font-sans text-slate-800 focus:ring-2 focus:ring-[#1e4620]/20 focus:border-[#1e4620] transition"
                 />
