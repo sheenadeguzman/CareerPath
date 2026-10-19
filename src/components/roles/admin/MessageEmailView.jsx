@@ -130,53 +130,88 @@ Batanes State College`
   const [recipientSearchQuery, setRecipientSearchQuery] = useState('');
   const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
 
-  // Email Content States - May kumpletong official notice na may kasamang credentials at instructions agad
-  const [customSubject, setCustomSubject] = useState(
-    'Official Notice: Complete Your BSC Graduate Tracer Profile'
-  );
-  const [customBody, setCustomBody] = useState(
-`Hello {name},
+  // Bawat role ay may sariling template at draft state (subject, body, at isEdited flag)
+  // Sa ganitong paraan, magkakaiba ang official instructions ng Alumni, Dept Chair, Employer, at Broadcast All.
+  // At kung in-edit mo ang isa sa kanila, naka-save ito kahit magpalit-palit ka ng tab!
+  const [roleMessages, setRoleMessages] = useState(() => ({
+    Alumni: {
+      subject: defaultCategoryMessages.Alumni.subject,
+      body: defaultCategoryMessages.Alumni.body,
+      isEdited: false
+    },
+    'Department Chairperson': {
+      subject: defaultCategoryMessages['Department Chairperson'].subject,
+      body: defaultCategoryMessages['Department Chairperson'].body,
+      isEdited: false
+    },
+    Employer: {
+      subject: defaultCategoryMessages.Employer.subject,
+      body: defaultCategoryMessages.Employer.body,
+      isEdited: false
+    },
+    All: {
+      subject: defaultCategoryMessages.All.subject,
+      body: defaultCategoryMessages.All.body,
+      isEdited: false
+    }
+  }));
 
-Greetings from Batanes State College!
-
-This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
-
----
-LOGIN & ACCESS INSTRUCTIONS:
-1. Portal Link: ${portalUrl}
-2. Role Tab: Select "Alumni"
-3. Student ID: {id}
-4. Initial Password: {password}
-5. First Sign-In Setup: You will be prompted to change your initial password to a secure personal password.
-6. Action Required: Verify and complete your Graduate Tracer Profile & employment records.
----
-
-If you have already updated your details and completed your tracer profile, please disregard this notice.
-
-Respectfully,
-Office of Tracer Programs & Administrative Analytics
-Batanes State College`
-  );
-
-  // Flag kung in-edit na ng user ang mensahe.
-  // Kapag true, HINDI ito i-o-overwrite ng category switches, at sa 'Reset Default' lang ito babalik sa default.
-  const [isUserEdited, setIsUserEdited] = useState(false);
+  // Kasalukuyang mensahe base sa napiling kategorya
+  const currentMessage = roleMessages[targetCategory] || defaultCategoryMessages[targetCategory] || defaultCategoryMessages.Alumni;
+  const customSubject = currentMessage.subject;
+  const customBody = currentMessage.body;
+  const isUserEdited = currentMessage.isEdited;
 
   const handleSelectCategory = (cat) => {
     setTargetCategory(cat);
-    // Kung HINDI pa in-edit ng user, i-load ang default template para sa role na ito
-    // Kung IN-EDIT na ng user, HUWAG i-overwrite! Naka-save ang in-edit ng user sa editor.
-    if (!isUserEdited && defaultCategoryMessages[cat]) {
-      setCustomSubject(defaultCategoryMessages[cat].subject);
-      setCustomBody(defaultCategoryMessages[cat].body);
-    }
+  };
+
+  const handleSubjectChange = (val) => {
+    setRoleMessages(prev => ({
+      ...prev,
+      [targetCategory]: {
+        ...(prev[targetCategory] || defaultCategoryMessages[targetCategory]),
+        subject: val,
+        isEdited: true
+      }
+    }));
+  };
+
+  const handleBodyChange = (val) => {
+    setRoleMessages(prev => ({
+      ...prev,
+      [targetCategory]: {
+        ...(prev[targetCategory] || defaultCategoryMessages[targetCategory]),
+        body: val,
+        isEdited: true
+      }
+    }));
+  };
+
+  const handleInsertTag = (tag) => {
+    setRoleMessages(prev => {
+      const current = prev[targetCategory] || defaultCategoryMessages[targetCategory];
+      return {
+        ...prev,
+        [targetCategory]: {
+          ...current,
+          body: (current.body || '') + ` ${tag}`,
+          isEdited: true
+        }
+      };
+    });
   };
 
   const handleResetDefault = () => {
     const def = defaultCategoryMessages[targetCategory] || defaultCategoryMessages.Alumni;
-    setCustomSubject(def.subject);
-    setCustomBody(def.body);
-    setIsUserEdited(false);
+    setRoleMessages(prev => ({
+      ...prev,
+      [targetCategory]: {
+        subject: def.subject,
+        body: def.body,
+        isEdited: false
+      }
+    }));
   };
 
   // Form para sa pag-imbita ng bagong user
@@ -459,10 +494,7 @@ Batanes State College`
                   type="text"
                   required
                   value={customSubject}
-                  onChange={(e) => {
-                    setCustomSubject(e.target.value);
-                    setIsUserEdited(true);
-                  }}
+                  onChange={(e) => handleSubjectChange(e.target.value)}
                   placeholder="Enter email subject line..."
                   className="w-full bg-slate-50 focus:bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#1e4620]/20 focus:border-[#1e4620] transition"
                 />
@@ -477,10 +509,7 @@ Batanes State College`
                     <span>Personalize:</span>
                     <button
                       type="button"
-                      onClick={() => {
-                        setCustomBody(prev => prev + ' {name}');
-                        setIsUserEdited(true);
-                      }}
+                      onClick={() => handleInsertTag('{name}')}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert recipient's name"
                     >
@@ -488,10 +517,7 @@ Batanes State College`
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setCustomBody(prev => prev + ' {id}');
-                        setIsUserEdited(true);
-                      }}
+                      onClick={() => handleInsertTag('{id}')}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert Student ID or User ID"
                     >
@@ -499,10 +525,7 @@ Batanes State College`
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setCustomBody(prev => prev + ' {password}');
-                        setIsUserEdited(true);
-                      }}
+                      onClick={() => handleInsertTag('{password}')}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert initial password (bsc123)"
                     >
@@ -510,10 +533,7 @@ Batanes State College`
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setCustomBody(prev => prev + ' {role}');
-                        setIsUserEdited(true);
-                      }}
+                      onClick={() => handleInsertTag('{role}')}
                       className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded font-mono font-bold cursor-pointer"
                       title="Insert recipient's role"
                     >
@@ -539,10 +559,7 @@ Batanes State College`
                   rows={9}
                   required
                   value={customBody}
-                  onChange={(e) => {
-                    setCustomBody(e.target.value);
-                    setIsUserEdited(true);
-                  }}
+                  onChange={(e) => handleBodyChange(e.target.value)}
                   placeholder="Type your official announcement, reminder, or communication here..."
                   className="w-full bg-slate-50 focus:bg-white border border-slate-200 rounded-lg p-3 text-xs leading-relaxed font-sans text-slate-800 focus:ring-2 focus:ring-[#1e4620]/20 focus:border-[#1e4620] transition"
                 />
