@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Eye, EyeOff, Lock, RefreshCw, Key, Mail, Check } from 'lucide-react';
-import bcrypt from 'bcryptjs';
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   const [userIdInput, setUserIdInput] = useState('');
@@ -54,56 +53,36 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   }, []);
 
   const tryOfflineLogin = () => {
-    let localUsers = users || [];
-    if (localUsers.length === 0) {
-      try {
-        const cached = localStorage.getItem('careerpath_dashboard_cache');
-        if (cached) {
-          const db = JSON.parse(cached);
-          localUsers = db.users || [];
-        }
-      } catch (e) {
-        console.error('Failed to parse cached users for offline login:', e);
-      }
-    }
-
-    const inputId = userIdInput.trim().toLowerCase();
-    const matchedUser = localUsers.find(u => u.userId && u.userId.toLowerCase() === inputId);
-
-    if (!matchedUser) {
-      setErrorMessage('Offline Mode: User ID not found in local cache. You must log in online at least once.');
-      return false;
-    }
-
-    let isMatch = false;
     try {
-      isMatch = bcrypt.compareSync(passwordInput.trim(), matchedUser.password);
-    } catch (err) {
-      console.error('Bcrypt comparison failed:', err);
-    }
+      const savedUserStr = sessionStorage.getItem('careerpath_user') || localStorage.getItem('careerpath_active_offline_user');
+      if (savedUserStr) {
+        const savedUser = JSON.parse(savedUserStr);
+        const inputId = userIdInput.trim().toLowerCase();
+        const matchesUser = (savedUser.userId && savedUser.userId.toLowerCase() === inputId) ||
+                            (savedUser.id && savedUser.id.toLowerCase() === inputId) ||
+                            (savedUser.email && savedUser.email.toLowerCase() === inputId);
 
-    if (isMatch || passwordInput.trim() === matchedUser.password) {
-      if (matchedUser.isInitialPasswordNeeded) {
-        setErrorMessage('Password reset requires an active internet connection.');
-        return false;
+        if (matchesUser) {
+          const mockToken = `offline_token_${savedUser.id}_${Date.now()}`;
+          const loggedUser = { ...savedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+          
+          onAddActivity(
+            'Offline Portal Entrance',
+            'Authentication',
+            `Logged in successfully (Offline Re-entry) as ${savedUser.name} (${savedUser.role})`,
+            loggedUser,
+            mockToken
+          );
+          onLoginSuccess(loggedUser, mockToken);
+          return true;
+        }
       }
-
-      const mockToken = `offline_token_${matchedUser.id}_${Date.now()}`;
-      const loggedUser = { ...matchedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
-      
-      onAddActivity(
-        'Offline Portal Entrance',
-        'Authentication',
-        `Logged in successfully (Offline) as ${matchedUser.name} (${matchedUser.role})`,
-        loggedUser,
-        mockToken
-      );
-      onLoginSuccess(loggedUser, mockToken);
-      return true;
-    } else {
-      setErrorMessage('Offline Mode: Incorrect Password.');
-      return false;
+    } catch (e) {
+      console.error('Offline session validation failed:', e);
     }
+
+    setErrorMessage('Offline Mode: Internet connection is required to authenticate new credentials.');
+    return false;
   };
 
   const handleLoginSubmit = async (e) => {
@@ -170,6 +149,10 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       }
 
       const authUserWithLogin = { ...authenticatedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+
+      try {
+        localStorage.setItem('careerpath_active_offline_user', JSON.stringify(authUserWithLogin));
+      } catch (e) { }
 
       // Magpatuloy nang normal kung okay ang lahat
       onAddActivity(

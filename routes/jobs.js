@@ -16,12 +16,12 @@ const router = express.Router();
 router.post('/save-job', authenticateToken, async (req, res) => {
   try {
     const { job, activeUserId } = req.body;
+    const activeUser = req.user;
 
-    // Kunin ang data ng active user para sa pag-audit ng action logs
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    // Allowed roles for posting and updating job vacancies
+    const allowedRoles = ['Super Admin', 'Administrator', 'Department Chairperson', 'Employer'];
+    if (!activeUser || !allowedRoles.includes(activeUser.role)) {
+      return res.status(403).json({ error: 'Permission denied: You do not have permissions to post or edit job vacancies.' });
     }
 
     const jobId = job.id || `job-${Date.now()}`;

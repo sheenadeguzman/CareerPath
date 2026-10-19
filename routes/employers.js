@@ -16,19 +16,25 @@ const router = express.Router();
 //Tumutulong din ito sa pag-verify ng employer profile at pagpapadala ng alert notifications.
 router.post('/save-employer', authenticateToken, async (req, res) => {
   try {
-    const { employer, activeUserId } = req.body;
+    const { employer } = req.body;
+    const activeUser = req.user;
 
-    // Kunin ang active admin/chairperson user para sa verification logging
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    // Allowed roles
+    const allowedRoles = ['Super Admin', 'Administrator', 'Employer'];
+    if (!activeUser || !allowedRoles.includes(activeUser.role)) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators and Partner Employers can save company details.' });
     }
 
     const empId = employer.id || `employer-${Date.now()}`;
     
     // I-verify kung umiiral na sa db ang employer gamit ang company ID
-    const [existing] = await pool.query('SELECT id FROM employers WHERE id = ?', [empId]);
+    const [existing] = await pool.query('SELECT * FROM employers WHERE id = ?', [empId]);
+    
+    // Non-admins cannot self-verify their company
+    const isAdmin = activeUser.role === 'Super Admin' || activeUser.role === 'Administrator';
+    const isVerifiedVal = isAdmin 
+      ? (employer.isVerified ? 1 : 0) 
+      : (existing.length > 0 ? existing[0].is_verified : 0);
 
     if (existing.length > 0) {
       // Mag-execute ng UPDATE query kung may record na ang employer
@@ -41,7 +47,7 @@ router.post('/save-employer', authenticateToken, async (req, res) => {
         [
           employer.companyName, employer.industry, employer.address, employer.email, employer.phone,
           employer.contactPerson, employer.position, employer.companySize, employer.website || null,
-          employer.isVerified ? 1 : 0, employer.vacanciesCount || 0, empId
+          isVerifiedVal, employer.vacanciesCount || 0, empId
         ]
       );
     } else {

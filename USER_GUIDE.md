@@ -21,11 +21,11 @@ Before accessing the system, ensure your device meets the following requirements
 
 ### 2.2. Administrator (Admin)
 *   **Role Overview**: Institutional managers who run day-to-day coordination, register graduates, broadcast reminders, and perform exports.
-*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Reports, Import, Export, Settings, Activity Logs, and Message/Email tabs.
+*   **Privileges**: Access to the Dashboard, Alumni Profiles (including Bulk Import & Export), Job Vacancies, Surveys, Reports (including CSV & PDF Export), Settings, Activity Logs, and Message/Email tabs.
 
 ### 2.3. Department Chairperson
 *   **Role Overview**: Scoped accounts for academic department leads (e.g. IT, HTM, Education, Agriculture, Tech) to audit curriculum alignment.
-*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Reports, Import, Export, and Settings. All graduate lists and telemetry data are strictly filtered to their specific academic program.
+*   **Privileges**: Access to the Dashboard, Alumni Profiles, Job Vacancies, Surveys, Reports, and Settings. All graduate lists and telemetry data are strictly filtered to their specific academic program.
 *   *Note*: Department Chairpersons do not have access to system-wide Activity Logs or the Message/Email broadcast tab.
 
 ### 2.4. Employer
@@ -60,12 +60,13 @@ Before accessing the system, ensure your device meets the following requirements
 ### 3.2 Administrator Procedures
 
 #### A. Bulk Importing Alumni Records (CSV/JSON)
-1.  Go to the **Import** tab.
-2.  Review the template format displayed inside the **Raw Text CSV Simulation Input** box to understand required headers (`studentId`, `firstName`, `lastName`, `email`, `program`, `yearGraduated`).
-3.  Prepare your graduate registry spreadsheet (supports CSV or JSON formats).
-4.  Drag and drop the spreadsheet file into the upload zone, or click to browse local files. Alternatively, paste the raw CSV text directly into the text box and click **Parse CSV Text Rows**.
-5.  Verify the integrity audit table. The validation engine will flag critical errors (such as duplicate student IDs, invalid email formats) or warnings (programs not matching pre-defined degrees).
-6.  Once free of critical errors, click **Confirm Roster Import** to batch-create profiles. The system will pre-configure temporary login credentials matching the graduate's Student ID.
+1.  Navigate to the **Alumni Profiles** tab.
+2.  Click the **Import CSV** button located at the top action toolbar.
+3.  The **Batch Import Alumni Registry** modal will appear. Review the template format to understand required headers (`studentId`, `firstName`, `lastName`, `email`, `program`, `yearGraduated`).
+4.  Prepare your graduate registry spreadsheet (supports CSV or JSON formats).
+5.  Drag and drop the spreadsheet file into the upload zone, or click to browse local files. Alternatively, paste the raw CSV text directly into the text box and click **Parse CSV Text Rows**.
+6.  Verify the integrity audit table. The validation engine will flag critical errors (such as duplicate student IDs, invalid email formats) or warnings (programs not matching pre-defined degrees).
+7.  Once free of critical errors, click **Import Verified Records** to batch-create profiles. The system will pre-configure temporary login credentials matching the graduate's Student ID.
 
 #### B. Sending Incomplete Profile Batch Reminders
 1.  Go to the **Message/Email** tab.
@@ -73,13 +74,9 @@ Before accessing the system, ensure your device meets the following requirements
 3.  Customize the email **Subject** and **Message Body** (you can use `{name}` as a placeholder to personalize).
 4.  Click **Broadcast Message update to...** to trigger email notifications requesting profile updates.
 
-#### C. Database Registry Export
-1.  Go to the **Export** tab.
-2.  Select your export format from the parameters dropdown:
-    *   **Standard CSV Table Spreadsheet (.csv)**
-    *   **Structured JSON Document (.json)**
-    *   **Direct CHED GTS Template (.csv)** (matches official Commission on Higher Education survey formats).
-3.  Click **Download Registry File** to obtain your local copy.
+#### C. Database Registry & Analytics Export
+1.  **Graduate Registry Export**: Go to the **Alumni Profiles** tab, click the **Export** dropdown button, and choose **Export as CSV** or **Export as PDF**.
+2.  **Tracer & CHED Summary Export**: Go to the **Reports** tab, click the **Export** dropdown button, and select **Export as CSV** (comprehensive tracer dataset) or **Export as PDF** (formatted institutional placement summary report).
 
 ---
 

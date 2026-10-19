@@ -54,13 +54,12 @@ function getDepartmentAbbreviation(email) {
 
 router.post('/invite-user', authenticateToken, async (req, res) => {
   try {
-    const { email, role, activeUserId } = req.body;
+    const { email, role } = req.body;
+    const activeUser = req.user;
 
-    // Kunin ang active user details para sa logging audit trail
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    // Only Super Admin and Administrator can invite users
+    if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator')) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators and Super Admins can issue portal invitations.' });
     }
 
     const cleanEmail = email.trim();
@@ -134,8 +133,9 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
     }
 
     // Magpadala ng email invitation details gamit ang nodemailer SMTP transporter
+    const portalUrl = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
     const emailSubject = 'Portal Access Invitation | Batanes State College CareerPath';
-    const emailBody = `Hello,\n\nYou have been invited by Batanes State College to register and access the CareerPath Graduate Tracer & Employability Analytics System as an ${role}.\n\nBelow are your initial portal credentials:\nPortal URL: http://localhost:3000/\nUser ID: ${newUser.userId}\nTemporary Password: bsc123\n\nPlease log in and update your password immediately upon your first access.\n\nRespectfully,\nBatanes State College`;
+    const emailBody = `Hello,\n\nYou have been invited by Batanes State College to register and access the CareerPath Graduate Tracer & Employability Analytics System as an ${role}.\n\nBelow are your initial portal credentials:\nPortal URL: ${portalUrl}/\nUser ID: ${newUser.userId}\nTemporary Password: bsc123\n\nPlease log in and update your password immediately upon your first access.\n\nRespectfully,\nBatanes State College`;
 
     if (transporter && cleanEmail) {
       try {
@@ -199,12 +199,12 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
 //Endpoint para sa pagpapadala ng batch emails/nudges (reminders) sa mga alumni na hindi pa kumpleto ang tracer profile.
 router.post('/send-email', authenticateToken, async (req, res) => {
   try {
-    const { activeUserId, targetAlumniIds, customSubject, customBody } = req.body;
+    const { targetAlumniIds, customSubject, customBody } = req.body;
+    const activeUser = req.user;
 
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    // Only Super Admin and Administrator can send batch nudge emails
+    if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator')) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators and Super Admins can broadcast reminder emails.' });
     }
 
     let sentCount = 0;

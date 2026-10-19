@@ -51,15 +51,16 @@ router.post('/login', async (req, res) => {
 
     // I-map ang database record patungo sa malinis na JavaScript camelCase object format
     const user = mapUserFromDB(rows[0]);
+    const dbPassword = rows[0].password;
 
     // I-validate ang password gamit ang bcrypt.compare
     let isMatch = false;
     try {
-      isMatch = await bcrypt.compare(password, user.password);
+      isMatch = await bcrypt.compare(password, dbPassword);
     } catch (err) { }
 
     // Kung match ang password (o kung match sa default plaintext para sa mga bagong gawang account)
-    if (isMatch || password === user.password) {
+    if (isMatch || password === dbPassword) {
       // Kung kailangang magpalit ng initial password, idirekta agad sa initial password setup
       if (user.isInitialPasswordNeeded) {
         return res.json({
@@ -414,19 +415,11 @@ router.post('/forgot-password', async (req, res) => {
       console.log(`[Forgot Pass Code Log] Reset code for ${user.name} (${email}): ${code}`);
     }
 
-    // Mag-save rin ng abiso sa notifications table ng database
-    const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    await pool.query(
-      `INSERT INTO notifications (id, title, text, date, \`read\`) 
-       VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
-      [notifyId, subject, `Verification code: ${code}. Sent to ${user.name} (${email}).`]
-    );
-
-    // I-audit ang recovery request na ito sa activity logs para sa trace history ng admin
+    // I-audit ang recovery request na ito sa activity logs para sa trace history ng admin nang hindi inilalabas ang sikretong code
     const logId = `log-${Date.now()}`;
     await pool.query(
       'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [logId, new Date().toISOString().slice(0, 19).replace('T', ' '), user.id, user.email, user.name, user.role, 'Requested Password Recovery', 'Security / Authentication', `Reset code generated: ${code} for ${email}`]
+      [logId, new Date().toISOString().slice(0, 19).replace('T', ' '), user.id, user.email, user.name, user.role, 'Requested Password Recovery', 'Security / Authentication', `Password recovery verification code dispatched to registered contact for ${email}`]
     );
 
     res.json({ success: true, message: 'Verification code sent successfully.' });
@@ -544,14 +537,10 @@ router.post('/change-password', async (req, res) => {
 //Endpoint para burahin ang isang user sa system. Super Admin lamang ang may pahintulot na gawin ito.
 router.post('/delete-user', authenticateToken, async (req, res) => {
   try {
-    const { userId, activeUserId } = req.body;
+    const { userId } = req.body;
 
-    // Kunin ang kasalukuyang nag-aaksyong user at siguraduhing may dynamic role checks
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
-    }
+    // Kunin ang verified user mula sa JWT token
+    const activeUser = req.user;
 
     // Pag hindi Super Admin, harangan ang access (403 Forbidden)
     if (!activeUser || activeUser.role !== 'Super Admin') {
@@ -559,7 +548,7 @@ router.post('/delete-user', authenticateToken, async (req, res) => {
     }
 
     // Hindi pwedeng burahin ng Super Admin ang kanyang sariling account habang naka-login
-    if (userId === activeUser.id) {
+    if (userId === activeUser.id || userId === activeUser.userId) {
       return res.status(400).json({ error: 'Cannot delete your own account.' });
     }
 
@@ -571,7 +560,7 @@ router.post('/delete-user', authenticateToken, async (req, res) => {
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
       userId: activeUser.id,
       userEmail: activeUser.email,
-      userName: activeUser.name,
+      userName: activeUser.userId || 'Super Admin',
       userRole: activeUser.role,
       action: 'Deleted System User',
       module: 'User Management / Settings',
@@ -596,7 +585,8 @@ router.post('/delete-user', authenticateToken, async (req, res) => {
 //Endpoint para sa pagpapalit ng login user_id ng kasalukuyang user. May limitasyon na isang beses lang kada 30 days.
 router.post('/update-username', authenticateToken, async (req, res) => {
   try {
-    const { newUsername, activeUserId } = req.body;
+    const { newUsername } = req.body;
+    const activeUserId = req.user.id;
 
     if (!newUsername || !newUsername.trim()) {
       return res.status(400).json({ error: 'Username cannot be empty.' });

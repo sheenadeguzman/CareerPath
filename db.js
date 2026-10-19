@@ -12,8 +12,18 @@ import crypto from 'crypto';
 dotenv.config();
 
 const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'bsc_careerpath_secure_crypt_key!'; // Fallback 32-character key
+const RAW_ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'bsc_careerpath_secure_crypt_key!'; // Fallback 32-character key
 const IV_LENGTH = 16;
+
+/**
+ * Normalizes the encryption key buffer to exactly 32 bytes for AES-256-CBC.
+ * If 32 bytes, uses original buffer to maintain backward compatibility with existing encrypted records.
+ */
+function getKeyBuffer() {
+  const buf = Buffer.from(RAW_ENCRYPTION_KEY, 'utf8');
+  if (buf.length === 32) return buf;
+  return crypto.createHash('sha256').update(RAW_ENCRYPTION_KEY).digest();
+}
 
 /**
  * Encrypts cleartext into iv:ciphertext using AES-256-CBC
@@ -22,7 +32,7 @@ export function encrypt(text) {
   if (text === null || text === undefined || text === '') return text;
   const stringText = String(text);
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, getKeyBuffer(), iv);
   let encrypted = cipher.update(stringText);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   return iv.toString('hex') + ':' + encrypted.toString('hex');
@@ -41,7 +51,7 @@ export function decrypt(text) {
     }
     const iv = Buffer.from(parts.shift(), 'hex');
     const encryptedText = Buffer.from(parts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    const decipher = crypto.createDecipheriv(ALGORITHM, getKeyBuffer(), iv);
     let decrypted = decipher.update(encryptedText);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();

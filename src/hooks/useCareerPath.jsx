@@ -537,6 +537,9 @@ export function useCareerPath() {
     sessionStorage.removeItem('careerpath_user');
     sessionStorage.removeItem('careerpath_tab');
     sessionStorage.removeItem('careerpath_token');
+    try {
+      localStorage.removeItem('careerpath_active_offline_user');
+    } catch (e) { }
   };
 
   // Idle timeout / Inactivity logout (Configurable via Settings: 5, 10, 15, 20 mins, or 'none')

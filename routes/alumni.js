@@ -98,11 +98,15 @@ router.post('/save-alumni', authenticateToken, async (req, res) => {
   try {
     const { profile, activeUserId } = req.body;
 
-    // Kuhanin ang active user details para sa logging audit trail
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    // Kuhanin ang active user details mula sa verified token
+    const activeUser = req.user;
+
+    // Privacy restriction: Tiyakin na ang alumni ay sarili lamang nilang profile ang pwedeng i-save
+    if (activeUser.role === 'Alumni') {
+      const isSelf = profile.studentId === activeUser.id || profile.studentId === activeUser.userId;
+      if (!isSelf) {
+        return res.status(403).json({ error: 'Permission denied: Alumni accounts can only update their own personal profile.' });
+      }
     }
 
     // I-check muna kung may existing profile na para sa student ID na ito
@@ -314,11 +318,8 @@ router.post('/delete-alumni', authenticateToken, async (req, res) => {
   try {
     const { studentId, activeUserId } = req.body;
 
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
-    }
+    // Kuhanin ang verified user mula sa JWT token
+    const activeUser = req.user;
 
     // Pigilan kung hindi admin, super admin, o chairperson ang nagbubura
     if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
@@ -382,11 +383,8 @@ router.post('/delete-multiple-alumni', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'No student IDs provided for deletion.' });
     }
 
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
-    }
+    // Kuhanin ang verified user mula sa JWT token
+    const activeUser = req.user;
 
     // Pigilan kung hindi admin, super admin, o chairperson ang nagbubura
     if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator' && activeUser.role !== 'Department Chairperson')) {
@@ -444,10 +442,9 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
   try {
     const { rows, activeUserId } = req.body;
 
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    const activeUser = req.user;
+    if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator')) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators and Super Admins can import alumni rosters.' });
     }
 
     let countImported = 0;
@@ -457,7 +454,7 @@ router.post('/import-alumni', authenticateToken, async (req, res) => {
       const studentId = row.studentId || `BSC-2026-${Math.floor(100 + Math.random() * 900)}`;
       const name = row.name || `${row.firstName || 'First'} ${row.lastName || 'Last'}`;
       const email = row.email || `${studentId.toLowerCase()}@example.com`;
-      const program = row.program || 'BS Information Technology';
+      const program = row.program || 'Bachelor of Science in Information Technology';
       const yearGraduated = parseInt(row.yearGraduated) || 2026;
 
       // I-check kung may active account na para sa student id na ito para hindi maging duplicate user credentials

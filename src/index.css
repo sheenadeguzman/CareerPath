@@ -149,6 +149,17 @@
     background-color: #7c191e !important;
     border-color: #fde68a !important;
   }
+
+  /* Custom intermediary slate micro-tone utility classes */
+  .text-slate-405 { color: #8493a8 !important; }
+  .text-slate-450 { color: #78889e !important; }
+  .text-slate-505 { color: #5f7086 !important; }
+  .text-slate-550 { color: #52637a !important; }
+  .text-slate-650 { color: #3e4c5e !important; }
+  .text-slate-750 { color: #283547 !important; }
+  .bg-slate-105 { background-color: #f1f4f8 !important; }
+  .bg-slate-205 { background-color: #e0e5ed !important; }
+  .border-slate-350 { border-color: #cbd5e1 !important; }
 }
 
 /* ==========================================

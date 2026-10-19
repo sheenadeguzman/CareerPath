@@ -6,7 +6,26 @@
 import { decrypt } from './db.js';
 
 /**
- * Mina-map ang database User rows papunta sa Frontend User objects.
+ * Safely extracts local YYYY-MM-DD from Date objects or strings without UTC timezone rollback.
+ * @param {string|Date|null} val
+ * @returns {string}
+ */
+export function formatDateOnly(val) {
+  if (!val) return '';
+  if (typeof val === 'string') {
+    return val.split('T')[0].split(' ')[0];
+  }
+  if (val instanceof Date) {
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, '0');
+    const d = String(val.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(val);
+}
+
+/**
+ * Mina-map ang database User rows papunta sa Frontend User objects nang may safe data exposure.
  * @param {Object} row - Ang hilaw na user record mula sa MySQL database.
  * @returns {Object|null}
  */
@@ -15,7 +34,6 @@ export function mapUserFromDB(row) {
   return {
     id: row.id,
     userId: row.user_id,
-    password: row.password,
     name: decrypt(row.name),
     email: row.email,
     role: row.role,
@@ -115,7 +133,7 @@ export function mapAlumniFromDB(row) {
     phone: isInitialPending ? '' : (row.phone || ''),
     gender: isInitialPending ? '' : (row.gender || ''),
     civilStatus: isInitialPending ? '' : (row.civil_status || ''),
-    dateOfBirth: (isInitialPending || !row.date_of_birth) ? '' : new Date(row.date_of_birth).toISOString().split('T')[0],
+    dateOfBirth: (isInitialPending || !row.date_of_birth) ? '' : formatDateOnly(row.date_of_birth),
     address: isInitialPending ? '' : (row.address || ''),
     currentAddress: isInitialPending ? '' : (row.address || ''),
     permanentAddress: isInitialPending ? '' : (row.permanent_address || row.address || ''),
@@ -224,7 +242,7 @@ export function mapJobPostingFromDB(row) {
     salaryRange: row.salary_range,
     location: row.location,
     slots: row.slots || 1,
-    deadline: row.deadline ? new Date(row.deadline).toISOString().split('T')[0] : '',
+    deadline: row.deadline ? formatDateOnly(row.deadline) : '',
     status: row.status,
     contactPerson: row.contact_person || '',
     contactEmail: row.contact_email || '',
@@ -254,8 +272,8 @@ export function mapSurveyFromDB(row) {
     id: row.id,
     title: row.title,
     description: row.description,
-    startDate: row.start_date ? new Date(row.start_date).toISOString().split('T')[0] : '',
-    endDate: row.end_date ? new Date(row.end_date).toISOString().split('T')[0] : '',
+    startDate: row.start_date ? formatDateOnly(row.start_date) : '',
+    endDate: row.end_date ? formatDateOnly(row.end_date) : '',
     status: row.status,
     questions: qs,
     responsesCount: row.responses_count || 0,

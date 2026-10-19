@@ -3,7 +3,7 @@
  * @description Router para sa pag-save ng surveys at pagsusumite ng survey responses ng mga alumni.*/
 
 import express from 'express';
-import { pool } from '../db.js';
+import { pool, decrypt } from '../db.js';
 import { authenticateToken } from './middleware.js';
 import { mapUserFromDB, mapSurveyFromDB, mapSurveyResponseFromDB } from '../mappers.js';
 import { transporter } from './mailer.js';
@@ -16,12 +16,11 @@ const router = express.Router();
 router.post('/save-survey', authenticateToken, async (req, res) => {
   try {
     const { survey, activeUserId } = req.body;
+    const activeUser = req.user;
 
-    // Kunin ang admin user credentials para sa audit logging
-    let activeUser = null;
-    if (activeUserId) {
-      const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [activeUserId]);
-      if (users.length > 0) activeUser = mapUserFromDB(users[0]);
+    // Role check: Only Super Admin and Administrator can configure surveys
+    if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator')) {
+      return res.status(403).json({ error: 'Permission denied: Only Administrators and Super Admins can configure surveys.' });
     }
 
     const surveyId = survey.id || `survey-${Date.now()}`;
@@ -50,17 +49,19 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
     // Kung bagong active survey, magpadala ng notification at email sa LAHAT ng alumni
     if (isNew && (survey.status || 'Draft') === 'Active') {
       try {
+        const portalUrl = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
         const [alumniUsers] = await pool.query("SELECT * FROM users WHERE role = 'Alumni'");
         for (const u of alumniUsers) {
-          // 1. Gumawa ng notification record sa database para sa alumni
+          const alumName = decrypt(u.name) || 'Alumnus';
+          // 1. Gumawa ng notification record sa database para sa bawat partikular na alumni
           const notifyId = `notify-survey-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
           const notifyTitle = `New Tracer Survey Deployed`;
-          const notifyText = `Hi ${u.name}, a new Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
+          const notifyText = `Hi ${alumName}, a new Graduate Tracer survey "${survey.title}" has been deployed. Please complete this questionnaire before ${endDate}.`;
 
           await pool.query(
-            `INSERT INTO notifications (id, title, text, date, \`read\`) 
-             VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0)`,
-            [notifyId, notifyTitle, notifyText]
+            `INSERT INTO notifications (id, title, text, date, \`read\`, user_id) 
+             VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, ?)`,
+            [notifyId, notifyTitle, notifyText, u.id]
           );
 
           // 2. Mag-dispatch ng email notification gamit ang SMTP transporter
@@ -70,7 +71,7 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
                 from: process.env.SMTP_FROM || `"BSC Graduate Tracer" <${process.env.SMTP_USER}>`,
                 to: u.email,
                 subject: `New Tracer Survey: ${survey.title}`,
-                text: `Hello ${u.name},\n\nA new graduate tracer survey "${survey.title}" has been deployed on the Batanes State College CareerPath portal.\n\nDescription: ${survey.description}\nDeadline: ${endDate}\n\nPlease log in to your account at https://careerpath-1ed8.onrender.com to fill out the questionnaire.\n\nRespectfully,\nBatanes State College`
+                text: `Hello ${alumName},\n\nA new graduate tracer survey "${survey.title}" has been deployed on the Batanes State College CareerPath portal.\n\nDescription: ${survey.description}\nDeadline: ${endDate}\n\nPlease log in to your account at ${portalUrl} to fill out the questionnaire.\n\nRespectfully,\nBatanes State College`
               });
               console.log(`[Survey Email Alert] Dispatched notification email to ${u.email}`);
             } catch (mailErr) {
@@ -115,6 +116,15 @@ router.post('/save-survey', authenticateToken, async (req, res) => {
 router.post('/submit-survey-response', authenticateToken, async (req, res) => {
   try {
     const { surveyId, alumniId, alumniName, answers } = req.body;
+    const activeUser = req.user;
+
+    // Tiyakin na kung Alumni ang nag-submit, sariling submission lang nila ang inaaplayan
+    if (activeUser.role === 'Alumni') {
+      const isSelf = alumniId === activeUser.id || alumniId === activeUser.userId;
+      if (!isSelf) {
+        return res.status(403).json({ error: 'Permission denied: Alumni can only submit survey responses for themselves.' });
+      }
+    }
 
     const respId = `resp-${Date.now()}`;
     const answersStr = JSON.stringify(answers || {});

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, AlertTriangle, BookOpen, Printer, FileText, Download, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { Check, AlertTriangle, BookOpen, Printer, FileText, Download, ChevronDown, FileSpreadsheet, Mail, Phone, Copy, CheckCircle2, X } from 'lucide-react';
 import { exportToPDF } from '../../utils/pdfExport';
 
 /**
@@ -25,6 +25,8 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
   // State hook para sa ID ng kasalukuyang piniling trabaho (job vacancy)
   const [selectedJobID, setSelectedJobID] = useState(filteredJobPostings[0]?.id || '');
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [contactCandidate, setContactCandidate] = useState(null);
+  const [copiedStatus, setCopiedStatus] = useState(false);
 
   // Helper function para sa pag-export ng skills matching table patungong CSV
   const handleExportCSV = () => {
@@ -467,7 +469,8 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
                       </div>
                       <button 
                         onClick={() => {
-                          alert(`Initiating administrative contact invite with ${item.alumni.name} for ${activeJob.jobTitle}...`);
+                          setContactCandidate({ alumni: item.alumni, hybridScore: item.hybridScore, overlappingSkills: item.overlappingSkills });
+                          setCopiedStatus(false);
                         }}
                         className="text-[10px] text-[#1e4620] hover:underline block font-bold cursor-pointer mt-1 sm:ml-auto"
                       >
@@ -488,6 +491,128 @@ export default function SkillsMatchingView({ jobPostings = [], alumniList = [], 
           {isEmployer 
             ? "You have no active job vacancies. Please post a vacancy under 'Job Vacancies' first to run skills matching."
             : "Please add partner job bulletins and vacancies to calculate skills overlaps."}
+        </div>
+      )}
+
+      {/* Opportunity Invitation / Contact Candidate Modal */}
+      {contactCandidate && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in font-sans">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden flex flex-col">
+            <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[#1e4620]/10 flex items-center justify-center text-[#1e4620]">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Opportunity Invitation</h3>
+                  <p className="text-[11px] text-slate-500">Contact candidate for target vacancy</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setContactCandidate(null)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              {/* Candidate Info Card */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">{contactCandidate.alumni.name}</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {contactCandidate.alumni.program} &bull; Class of {contactCandidate.alumni.yearGraduated}
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                    ID: {contactCandidate.alumni.studentId}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Match Score</span>
+                  <span className="text-sm font-extrabold text-emerald-600">
+                    {contactCandidate.hybridScore}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Contact Channels */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <a 
+                  href={contactCandidate.alumni.email ? `mailto:${contactCandidate.alumni.email}` : undefined}
+                  className="p-2.5 rounded-lg border border-slate-200/70 hover:border-slate-300 flex items-center gap-2 text-slate-700 bg-white hover:bg-slate-50 transition"
+                >
+                  <Mail className="w-3.5 h-3.5 text-[#1e4620] shrink-0" />
+                  <span className="truncate text-[11px] font-medium select-all">
+                    {contactCandidate.alumni.email || 'No email on record'}
+                  </span>
+                </a>
+                <a 
+                  href={contactCandidate.alumni.phone || contactCandidate.alumni.contactNumber ? `tel:${contactCandidate.alumni.phone || contactCandidate.alumni.contactNumber}` : undefined}
+                  className="p-2.5 rounded-lg border border-slate-200/70 hover:border-slate-300 flex items-center gap-2 text-slate-700 bg-white hover:bg-slate-50 transition"
+                >
+                  <Phone className="w-3.5 h-3.5 text-[#7c191e] shrink-0" />
+                  <span className="truncate text-[11px] font-medium select-all">
+                    {contactCandidate.alumni.phone || contactCandidate.alumni.contactNumber || 'No phone on record'}
+                  </span>
+                </a>
+              </div>
+
+              {/* Message Preview */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Invitation Message Preview
+                </label>
+                <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 text-slate-700 text-[11.5px] leading-relaxed whitespace-pre-wrap font-sans select-all max-h-48 overflow-y-auto">
+{`Dear ${contactCandidate.alumni.name},
+
+Greetings from Batanes State College!
+
+Based on your academic profile and credentials recorded on the BSC CareerPath portal, your skills match the open vacancy for "${activeJob?.jobTitle}" at ${activeJob?.employerName}.
+
+If you are open to discussing this employment opportunity, please respond to this email or update your profile on the BSC CareerPath portal.
+
+Best regards,
+${activeUser?.name || 'Career Placement Office'}
+Batanes State College`}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-2">
+              <button
+                onClick={() => {
+                  const messageText = `Dear ${contactCandidate.alumni.name},\n\nGreetings from Batanes State College!\n\nBased on your academic profile and credentials recorded on the BSC CareerPath portal, your skills match the open vacancy for "${activeJob?.jobTitle}" at ${activeJob?.employerName}.\n\nIf you are open to discussing this employment opportunity, please respond to this email or update your profile on the BSC CareerPath portal.\n\nBest regards,\n${activeUser?.name || 'Career Placement Office'}\nBatanes State College`;
+                  navigator.clipboard.writeText(messageText);
+                  setCopiedStatus(true);
+                  setTimeout(() => setCopiedStatus(false), 2500);
+                }}
+                className="w-full sm:w-auto px-4 py-2 border border-slate-200 hover:bg-white text-slate-700 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs"
+              >
+                {copiedStatus ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-700">Copied to Clipboard!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Copy Message</span>
+                  </>
+                )}
+              </button>
+
+              {contactCandidate.alumni.email && (
+                <a
+                  href={`mailto:${contactCandidate.alumni.email}?subject=${encodeURIComponent(`Career Opportunity: ${activeJob?.jobTitle} at ${activeJob?.employerName}`)}&body=${encodeURIComponent(`Dear ${contactCandidate.alumni.name},\n\nGreetings from Batanes State College!\n\nBased on your academic profile and credentials recorded on the BSC CareerPath portal, your skills match the open vacancy for "${activeJob?.jobTitle}" at ${activeJob?.employerName}.\n\nIf you are open to discussing this employment opportunity, please respond to this email or update your profile on the BSC CareerPath portal.\n\nBest regards,\n${activeUser?.name || 'Career Placement Office'}\nBatanes State College`)}`}
+                  className="w-full sm:w-auto px-4 py-2 bg-[#1e4620] hover:bg-[#1e4620]/90 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Open in Mail App</span>
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
