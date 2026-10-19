@@ -40,7 +40,7 @@ Greetings from Batanes State College!
 
 This is an official advisory regarding the BSC Graduate Tracer System. Your participation is required under CHED Memorandum Guidelines to track the professional trajectory and employability of our graduates.
 
----
+
 LOGIN & ACCESS INSTRUCTIONS:
 1. Portal Link: ${portalUrl}
 2. Role Tab: Select "Alumni"
@@ -48,7 +48,7 @@ LOGIN & ACCESS INSTRUCTIONS:
 4. Initial Password: {password}
 5. First Sign-In Setup: You will be prompted to change your initial password to a secure personal password.
 6. Action Required: Verify and complete your Graduate Tracer Profile & employment records.
----
+
 
 If you have already updated your details and completed your tracer profile, please disregard this notice.
 
