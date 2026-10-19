@@ -64,7 +64,7 @@ Greetings!
 
 The Batanes State College CareerPath analytics engine has synthesized new tracer telemetry and employer feedback for your department's degree programs.
 
----
+
 LOGIN & ACCESS INSTRUCTIONS:
 1. Portal Link: ${portalUrl}
 2. Role Tab: Select "Dept Chair"
@@ -72,7 +72,7 @@ LOGIN & ACCESS INSTRUCTIONS:
 4. Initial Password: {password}
 5. First Sign-In Setup: Please configure your private password upon initial sign-in.
 6. Action Required: Review curriculum gap metrics, industry alignment, and pending alumni submissions.
----
+
 
 Respectfully,
 Office of Academic Affairs & Portal Administration
@@ -86,7 +86,7 @@ Greetings from Batanes State College!
 
 As an esteemed industry partner, we invite you to access the BSC CareerPath portal to review graduating talent competencies and submit career vacancy bulletins.
 
----
+
 LOGIN & ACCESS INSTRUCTIONS:
 1. Portal Link: ${portalUrl}
 2. Role Tab: Select "Employer"
@@ -94,7 +94,7 @@ LOGIN & ACCESS INSTRUCTIONS:
 4. Initial Password: {password}
 5. First Sign-In Setup: Update your password to a private credential upon first access.
 6. Opportunities: Post job openings and view talent recommendations tailored to your industry.
----
+
 
 Thank you for your active collaboration in enhancing graduate career outcomes.
 
@@ -110,14 +110,14 @@ Greetings from Batanes State College!
 
 This is an official advisory and communication update regarding the BSC CareerPath Portal.
 
----
+
 PORTAL ACCESS INSTRUCTIONS:
 1. Portal Link: ${portalUrl}
 2. Role Selection: Select your assigned role tab (Alumni, Dept Chair, or Employer)
 3. Login ID: Enter your Student ID ({id}) or assigned Email / User ID
 4. Initial Password (for new users): {password}
 5. First Sign-In: Change temporary credentials to a private password upon first sign-in.
----
+
 
 Respectfully,
 Office of the Administrator
