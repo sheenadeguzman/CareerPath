@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, Lock, RefreshCw, Key, Mail, Check, GraduationCap, Building, ShieldCheck } from 'lucide-react';
+import { Shield, Eye, EyeOff, Lock, RefreshCw, Key, Mail, Check, GraduationCap, Building, ShieldCheck, Award } from 'lucide-react';
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   const [selectedRoleTab, setSelectedRoleTab] = useState('alumni');
@@ -790,22 +790,54 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                 <div className="h-0.5 w-12 bg-amber-500 mx-auto mt-2" />
               </div>
 
-              {/* Segmented Role Tabs */}
-              <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200/80 shadow-inner">
+              {/* Segmented Role Tabs (4 Roles: Alumni, Admin, Dept Chair, Employer) */}
+              <div className="bg-slate-100 p-1 rounded-xl grid grid-cols-4 gap-1 border border-slate-200/80 shadow-inner">
                 <button
                   type="button"
                   onClick={() => {
                     setSelectedRoleTab('alumni');
                     setErrorMessage('');
                   }}
-                  className={`flex-1 py-2 px-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                  className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
                     selectedRoleTab === 'alumni'
                       ? 'bg-white text-[#7c191e] shadow-xs border border-slate-200/80 font-extrabold'
                       : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
                   }`}
                 >
                   <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-                  <span>Alumni</span>
+                  <span className="truncate">Alumni</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRoleTab('admin');
+                    setErrorMessage('');
+                  }}
+                  className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
+                    selectedRoleTab === 'admin'
+                      ? 'bg-white text-[#7c191e] shadow-xs border border-slate-200/80 font-extrabold'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRoleTab('chairperson');
+                    setErrorMessage('');
+                  }}
+                  className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
+                    selectedRoleTab === 'chairperson'
+                      ? 'bg-white text-[#7c191e] shadow-xs border border-slate-200/80 font-extrabold'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Dept Chair</span>
                 </button>
 
                 <button
@@ -814,30 +846,14 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     setSelectedRoleTab('employer');
                     setErrorMessage('');
                   }}
-                  className={`flex-1 py-2 px-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                  className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
                     selectedRoleTab === 'employer'
                       ? 'bg-white text-[#7c191e] shadow-xs border border-slate-200/80 font-extrabold'
                       : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
                   }`}
                 >
                   <Building className="w-3.5 h-3.5 shrink-0" />
-                  <span>Employer</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedRoleTab('staff');
-                    setErrorMessage('');
-                  }}
-                  className={`flex-1 py-2 px-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
-                    selectedRoleTab === 'staff'
-                      ? 'bg-white text-[#7c191e] shadow-xs border border-slate-200/80 font-extrabold'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
-                  }`}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">Staff / Admin</span>
+                  <span className="truncate">Employer</span>
                 </button>
               </div>
 
@@ -849,16 +865,22 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     <span>For BSC graduates updating tracer records &amp; finding jobs</span>
                   </>
                 )}
+                {selectedRoleTab === 'admin' && (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#7c191e] shrink-0"></span>
+                    <span>For Portal Administrators &amp; Institutional Managers</span>
+                  </>
+                )}
+                {selectedRoleTab === 'chairperson' && (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                    <span>For Department Chairs auditing curriculum &amp; program analytics</span>
+                  </>
+                )}
                 {selectedRoleTab === 'employer' && (
                   <>
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                    <span>For industry partners posting jobs &amp; recruiting talent</span>
-                  </>
-                )}
-                {selectedRoleTab === 'staff' && (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                    <span>For Deans, Program Chairs, Administrators &amp; Super Admin</span>
+                    <span>For industry partner companies posting vacancies &amp; recruiting talent</span>
                   </>
                 )}
               </div>
@@ -873,8 +895,9 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                 <div>
                   <label htmlFor="user-id-input" className="block text-xs font-semibold text-slate-600 mb-1">
                     {selectedRoleTab === 'alumni' && 'Student ID or Registered Email'}
+                    {selectedRoleTab === 'admin' && 'Admin Username or Email'}
+                    {selectedRoleTab === 'chairperson' && 'Chairperson Username or Email'}
                     {selectedRoleTab === 'employer' && 'Company Email or Employer Username'}
-                    {selectedRoleTab === 'staff' && 'Employee Username or User ID'}
                   </label>
                   <input
                     id="user-id-input"
@@ -886,9 +909,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                     placeholder={
                       selectedRoleTab === 'alumni'
                         ? 'Enter Student ID or Email (e.g. 2020-0123-AB)'
-                        : selectedRoleTab === 'employer'
-                        ? 'Enter Company Email or Username (e.g. hr@company.com)'
-                        : 'Enter Username or Admin ID (e.g. admin, chair_ict)'
+                        : selectedRoleTab === 'admin'
+                        ? 'Enter Admin Username or Email (e.g. admin)'
+                        : selectedRoleTab === 'chairperson'
+                        ? 'Enter Chair Username (e.g. chair_ict, chair_htm)'
+                        : 'Enter Company Email or Username (e.g. hr@company.com)'
                     }
                     className="w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium"
                   />
