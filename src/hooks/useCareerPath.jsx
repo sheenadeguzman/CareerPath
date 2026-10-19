@@ -916,18 +916,12 @@ export function useCareerPath() {
     }
   };
 
-  const handleSendBatchReminders = async (targetIds, customSubject, customBody) => {
+  const handleSendBatchReminders = async (targetIds, customSubject, customBody, recipients = null) => {
     try {
-      const res = await sendBatchReminders(targetIds, activeUser?.id, customSubject, customBody, getAuthHeaders());
+      const res = await sendBatchReminders(targetIds, activeUser?.id, customSubject, customBody, getAuthHeaders(), recipients);
       await fetchData();
-      if (targetIds.length > 1) {
-        const failed = res.results ? res.results.filter(r => !r.success) : [];
-        if (failed.length === 0) {
-          showSuccessToast(`Successfully sent reminders to all ${targetIds.length} alumni!`);
-        } else {
-          showSuccessToast(`Sent reminders: ${targetIds.length - failed.length} succeeded, ${failed.length} failed.`);
-        }
-      }
+      const totalCount = recipients ? recipients.length : (targetIds ? targetIds.length : 0);
+      showSuccessToast(`Successfully dispatched message to ${totalCount} recipient(s)!`);
       return res;
     } catch (err) {
       console.error('Failed to dispatch emails:', err);

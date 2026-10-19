@@ -135,11 +135,11 @@ export async function deleteMultipleAlumni(studentIds, activeUserId, headers) {
 /**
  * Magpadala ng batch email reminders (nudge alerts) sa mga alumni.
  */
-export async function sendBatchReminders(targetAlumniIds, activeUserId, customSubject, customBody, headers) {
+export async function sendBatchReminders(targetAlumniIds, activeUserId, customSubject, customBody, headers, recipients = null) {
   const response = await fetch('/api/send-email', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ targetAlumniIds, activeUserId, customSubject, customBody })
+    body: JSON.stringify({ targetAlumniIds, activeUserId, customSubject, customBody, recipients })
   });
   return handleResponse(response);
 }

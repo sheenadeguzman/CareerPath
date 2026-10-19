@@ -5,7 +5,7 @@
 
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { pool, encrypt } from '../db.js';
+import { pool, encrypt, decrypt } from '../db.js';
 import { authenticateToken } from './middleware.js';
 import { mapUserFromDB, mapAlumniFromDB, mapNotificationFromDB } from '../mappers.js';
 import { transporter } from './mailer.js';
@@ -196,88 +196,119 @@ router.post('/invite-user', authenticateToken, async (req, res) => {
 });
 
 //POST /api/send-email
-//Endpoint para sa pagpapadala ng batch emails/nudges (reminders) sa mga alumni na hindi pa kumpleto ang tracer profile.
+//Endpoint para sa pagpapadala ng custom email/advisory sa mga Alumni, Department Chair, o Employers.
 router.post('/send-email', authenticateToken, async (req, res) => {
   try {
-    const { targetAlumniIds, customSubject, customBody } = req.body;
+    const { targetAlumniIds, customSubject, customBody, recipients } = req.body;
     const activeUser = req.user;
 
-    // Only Super Admin and Administrator can send batch nudge emails
+    // Only Super Admin and Administrator can broadcast emails
     if (!activeUser || (activeUser.role !== 'Super Admin' && activeUser.role !== 'Administrator')) {
-      return res.status(403).json({ error: 'Permission denied: Only Administrators and Super Admins can broadcast reminder emails.' });
+      return res.status(403).json({ error: 'Permission denied: Only Administrators and Super Admins can broadcast emails.' });
+    }
+
+    let finalRecipients = [];
+
+    // 1. Kung nagpasa ng tahasang recipients list (array ng { id, email, name, role })
+    if (Array.isArray(recipients) && recipients.length > 0) {
+      finalRecipients = recipients.filter(r => r && (r.email || r.id));
+    }
+
+    // 2. Kung nagpasa ng targetAlumniIds (backward compatibility para sa alumni batching)
+    if (Array.isArray(targetAlumniIds) && targetAlumniIds.length > 0) {
+      for (const studentId of targetAlumniIds) {
+        if (!finalRecipients.some(r => r.id === studentId || r.studentId === studentId)) {
+          const [alRows] = await pool.query('SELECT * FROM alumni_profiles WHERE student_id = ?', [studentId]);
+          if (alRows.length > 0) {
+            const alumni = mapAlumniFromDB(alRows[0]);
+            finalRecipients.push({
+              id: studentId,
+              studentId: studentId,
+              name: alumni.name,
+              email: alumni.email,
+              role: 'Alumni'
+            });
+          }
+        }
+      }
+    }
+
+    if (finalRecipients.length === 0) {
+      return res.status(400).json({ error: 'No valid recipients selected. Please select at least one recipient.' });
     }
 
     let sentCount = 0;
     const dispatchResults = [];
     
-    // Ipadala ang nudge email sa bawat isa sa napiling target list
-    for (const studentId of targetAlumniIds) {
-      const [alRows] = await pool.query('SELECT * FROM alumni_profiles WHERE student_id = ?', [studentId]);
-      if (alRows.length > 0) {
-        const alumni = mapAlumniFromDB(alRows[0]);
-        const customEmailSubject = customSubject || 'Profile Incomplete Notice | Batanes State College Tracer Program';
-        
-        // I-replace ang placeholder tag na '{name}' gamit ang pangalan ng alumni
-        const customEmailBody = (customBody || `Hello {name},\n\nWe noticed that your Batanes State College Graduate Tracer profile is currently at ${alumni.profileCompleteness}% completion.\n\nTo align with official Commission on Higher Education (CHED) Memorandum Orders, please log in with your credentials and update your current employment status and matching skill inventory.\n\nRespectfully,\nOffice of Tracer Programs & Administrative Analytics\nBatanes State College`).replace('{name}', alumni.name);
+    // Ipadala ang custom email sa bawat isa sa napiling target list
+    for (const rec of finalRecipients) {
+      const recipientName = rec.name ? decrypt(rec.name) : 'Valued Member';
+      const recipientEmail = rec.email;
+      const recipientRole = rec.role || 'Member';
+      const recipientId = rec.id || rec.userId || rec.studentId || 'system';
 
-        let emailStatusDetail = `Message dispatched to ${alumni.name}`;
-        let sendSuccess = true;
-        let errorMessage = '';
-        
-        // Ipadala gamit ang SMTP kung configured
-        if (transporter && alumni.email) {
-          try {
-            await transporter.sendMail({
-              from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
-              to: alumni.email,
-              subject: customEmailSubject,
-              text: customEmailBody
-            });
-            emailStatusDetail = `Email sent successfully to ${alumni.name} (${alumni.email})`;
-            console.log(`[Mail Dispatch] Dispatched real email to ${alumni.email}`);
-          } catch (mailErr) {
-            sendSuccess = false;
-            errorMessage = mailErr.message;
-            emailStatusDetail = `Failed to send email to ${alumni.name}: ${mailErr.message}`;
-            console.error(`[Mail Dispatch Error] Failed to send to ${alumni.email}:`, mailErr);
-          }
-        } else {
+      const emailSubject = customSubject || 'Official Communication | Batanes State College CareerPath';
+      
+      // I-replace ang placeholder tags tulad ng '{name}' at '{role}' gamit ang aktwal na detalye ng recipient
+      const emailBody = (customBody || `Hello {name},\n\nGreetings from Batanes State College CareerPath.\n\nRespectfully,\nOffice of the Portal Administrator\nBatanes State College`)
+        .replace(/{name}/g, recipientName)
+        .replace(/{role}/g, recipientRole);
+
+      let sendSuccess = true;
+      let errorMessage = '';
+      
+      // Ipadala gamit ang SMTP kung configured
+      if (transporter && recipientEmail) {
+        try {
+          await transporter.sendMail({
+            from: process.env.SMTP_FROM || `"BSC CareerPath" <${process.env.SMTP_USER}>`,
+            to: recipientEmail,
+            subject: emailSubject,
+            text: emailBody
+          });
+          console.log(`[Mail Dispatch] Dispatched real email to ${recipientEmail} (${recipientRole})`);
+        } catch (mailErr) {
           sendSuccess = false;
-          errorMessage = transporter ? 'Missing recipient email' : 'SMTP configuration is missing (Fallback mode)';
-          console.log(`[Mail Dispatch Log] Fallback logged notification for ${alumni.name} (No active SMTP server).`);
+          errorMessage = mailErr.message;
+          console.error(`[Mail Dispatch Error] Failed to send to ${recipientEmail}:`, mailErr);
         }
-
-        dispatchResults.push({
-          studentId,
-          name: alumni.name,
-          email: alumni.email,
-          success: sendSuccess,
-          error: errorMessage
-        });
-
-        // I-record din ang abiso sa notifications table para makita sa notification log list ng app
-        const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-        await pool.query(
-          `INSERT INTO notifications (id, title, text, date, \`read\`, user_id) 
-           VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, ?)`,
-          [notifyId, customEmailSubject, customEmailBody, studentId]
-        );
-        sentCount++;
+      } else {
+        sendSuccess = false;
+        errorMessage = transporter ? 'Missing recipient email' : 'SMTP configuration is missing (Logged as in-app alert)';
+        console.log(`[Mail Dispatch Log] In-app notification logged for ${recipientName} (${recipientRole})`);
       }
+
+      dispatchResults.push({
+        id: recipientId,
+        name: recipientName,
+        email: recipientEmail,
+        role: recipientRole,
+        success: sendSuccess,
+        error: errorMessage
+      });
+
+      // I-record din ang abiso sa notifications table para makita sa notification bell ng recipient
+      const notifyId = `notify-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      await pool.query(
+        `INSERT INTO notifications (id, title, text, date, \`read\`, user_id) 
+         VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, ?)`,
+        [notifyId, emailSubject, emailBody, recipientId]
+      );
+      sentCount++;
     }
 
-    // Mag-create ng log event para sa batch send operation na ito
+    // Mag-create ng log event para sa dispatch operation na ito
     if (sentCount > 0) {
       const newLog = {
         id: `log-${Date.now()}`,
         timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        userId: activeUserId || 'bsc-admin-1',
+        userId: activeUser?.id || 'bsc-admin',
         userEmail: activeUser?.email || 'admin@bsc.edu.ph',
-        userName: activeUser?.name || 'Sheena De Guzman',
+        userName: activeUser?.name || 'Administrator',
         userRole: activeUser?.role || 'Administrator',
-        action: 'Batch Dispatched Tracer Reminder Emails',
-        module: 'Notification Center / Settings',
-        details: `Dispatched ${sentCount} reminder letters requesting profile completes sent from Batanes State College.`
+        action: 'Dispatched Portal Communication Email',
+        module: 'Message / Email Hub',
+        details: `Dispatched communication "${customSubject || 'Advisory'}" to ${sentCount} recipient(s).`
       };
 
       await pool.query(
@@ -288,7 +319,7 @@ router.post('/send-email', authenticateToken, async (req, res) => {
 
     // Kunin ang mga bagong notifications at ibalik sa client
     const [notificationRows] = await pool.query('SELECT * FROM notifications ORDER BY date DESC');
-    res.json({ success: true, results: dispatchResults, notifications: notificationRows.map(mapNotificationFromDB) });
+    res.json({ success: true, count: sentCount, results: dispatchResults, notifications: notificationRows.map(mapNotificationFromDB) });
   } catch (err) {
     console.error('Send email error:', err);
     res.status(500).json({ error: 'Internal Server Error' });

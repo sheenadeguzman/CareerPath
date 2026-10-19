@@ -436,6 +436,7 @@ export default function App() {
                 alumniList={alumniList}
                 activeUser={activeUser}
                 users={users}
+                employers={employers}
                 onSendReminders={handleSendBatchReminders}
                 onInviteUserByEmail={handleInviteUserByEmail}
                 onDeleteUser={handleDeleteUser}

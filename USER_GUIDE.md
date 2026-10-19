@@ -68,11 +68,17 @@ Before accessing the system, ensure your device meets the following requirements
 6.  Verify the integrity audit table. The validation engine will flag critical errors (such as duplicate student IDs, invalid email formats) or warnings (programs not matching pre-defined degrees).
 7.  Once free of critical errors, click **Import Verified Records** to batch-create profiles. The system will pre-configure temporary login credentials matching the graduate's Student ID.
 
-#### B. Sending Incomplete Profile Batch Reminders
-1.  Go to the **Message/Email** tab.
-2.  Under the **"Tracer Update & Reminder Dispatch Workspace"**, choose the **"Pending"** recipient audience. This automatically targets graduates with a profile completeness index below 80%.
-3.  Customize the email **Subject** and **Message Body** (you can use `{name}` as a placeholder to personalize).
-4.  Click **Broadcast Message update to...** to trigger email notifications requesting profile updates.
+#### B. Composing & Dispatching Custom Emails (Alumni, Dept Chairs, Employers)
+1.  Navigate to the **Message/Email** tab.
+2.  Under the **"Campus Email & Advisory Dispatch Hub"**, select the target recipient category:
+    *   **Alumni**: Option to target *Pending Tracer Completion (< 80%)* or *All Graduates*.
+    *   **Dept Chairs**: Target academic department heads for curriculum audits and tracer telemetry reviews.
+    *   **Employers**: Target partner enterprises for vacancy bulletins and talent collaboration.
+    *   **Broadcast All**: Dispatch institutional announcements to all roles simultaneously.
+3.  Select a pre-composed template (*Tracer Reminder*, *Curriculum Audit*, *Employer Collab*) or choose *Blank Message* to write completely from scratch.
+4.  Type your custom **Email Subject Line** and **Message Body** (click `{name}` or `{role}` chips to personalize each message).
+5.  Review the **Target Queue** table below the composer to search, check, or uncheck individual recipients.
+6.  Click **Send Email Message to...** to trigger real SMTP email dispatch and live in-app notification alerts.
 
 #### C. Database Registry & Analytics Export
 1.  **Graduate Registry Export**: Go to the **Alumni Profiles** tab, click the **Export** dropdown button, and choose **Export as CSV** or **Export as PDF**.
