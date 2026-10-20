@@ -238,6 +238,16 @@ export function mapJobPostingFromDB(row) {
     employerName: row.employer_name,
     description: row.description,
     requirements: reqsArr,
+    applicationRequirements: (() => {
+      if (!row.application_requirements) return [];
+      try {
+        const parsed = JSON.parse(row.application_requirements);
+        if (Array.isArray(parsed)) return parsed;
+        return String(row.application_requirements).split(',').map(r => r.trim()).filter(Boolean);
+      } catch {
+        return String(row.application_requirements).split(',').map(r => r.trim()).filter(Boolean);
+      }
+    })(),
     employmentType: row.employment_type,
     salaryRange: row.salary_range,
     location: row.location,

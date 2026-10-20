@@ -418,6 +418,12 @@ export const INITIAL_JOB_POSTINGS = [
     employerName: 'TechBatanes Inc.',
     description: 'Seeking a passionate developer who wants to build stable clean web interfaces.',
     requirements: ['JavaScript', 'React', 'HTML/CSS', 'MySQL', 'Git'],
+    applicationRequirements: [
+      'Updated Resume / Curriculum Vitae',
+      'Transcript of Records (TOR)',
+      'Portfolio or GitHub Profile Link',
+      'Cover Letter / Application Letter'
+    ],
     employmentType: 'Regular/Permanent',
     salaryRange: 'P 18,000 - P 25,000',
     location: 'Basco, Batanes',
@@ -431,6 +437,12 @@ export const INITIAL_JOB_POSTINGS = [
     employerName: 'Batanes Provincial Government',
     description: 'Coordinate tour logistics, heritage sessions, and environmental safeguards.',
     requirements: ['Excellent Communication', 'Customer Service', 'Hospitality', 'Tourism Operations'],
+    applicationRequirements: [
+      'Updated Resume / Curriculum Vitae',
+      'Transcript of Records (TOR)',
+      'Application Letter addressed to the Provincial Governor',
+      'Certificate of Good Moral Character'
+    ],
     employmentType: 'Contractual',
     salaryRange: 'P 15,000 - P 20,000',
     location: 'Basco, Batanes',
@@ -444,6 +456,12 @@ export const INITIAL_JOB_POSTINGS = [
     employerName: 'Department of Agriculture - Region II',
     description: 'Research soil profiles and guide local farmers with modern eco-friendly crop fertilizers.',
     requirements: ['Crop Research', 'Organic Farming Strategy', 'Pest Control Management'],
+    applicationRequirements: [
+      'Updated Resume / Curriculum Vitae',
+      'Transcript of Records (TOR)',
+      'Application Letter',
+      'Relevant Training or TESDA NC II Certificate (if any)'
+    ],
     employmentType: 'Project-Based',
     salaryRange: 'P 12,000 - P 18,000',
     location: 'Basco, Batanes',

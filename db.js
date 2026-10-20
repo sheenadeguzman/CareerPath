@@ -524,6 +524,26 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added contact_website column to job_postings table.');
     } catch (e) { }
 
+    // MIGRATION: Add application_requirements to job_postings table if missing
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN application_requirements TEXT DEFAULT NULL");
+      console.log('Database Migration: Added application_requirements column to job_postings table.');
+    } catch (e) { }
+
+    try {
+      await pool.query(`
+        UPDATE job_postings 
+        SET application_requirements = '["Updated Resume / CV", "Transcript of Records (TOR)", "Portfolio / GitHub Link", "Application Letter"]' 
+        WHERE (application_requirements IS NULL OR application_requirements = '') AND (job_title LIKE '%Developer%' OR job_title LIKE '%IT%')
+      `);
+      await pool.query(`
+        UPDATE job_postings 
+        SET application_requirements = '["Updated Resume / CV", "Transcript of Records (TOR)", "Application Letter", "Certificate of Good Moral Character"]' 
+        WHERE application_requirements IS NULL OR application_requirements = ''
+      `);
+      console.log('Database Migration: Seeded default application_requirements for existing jobs.');
+    } catch (e) { }
+
     // MIGRATION: Add languages to alumni_profiles table if missing
     try {
       await pool.query("ALTER TABLE alumni_profiles ADD COLUMN languages TEXT DEFAULT NULL");

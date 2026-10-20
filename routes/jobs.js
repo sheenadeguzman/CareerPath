@@ -31,19 +31,20 @@ router.post('/save-job', authenticateToken, async (req, res) => {
     
     // I-serialize ang requirements array para maging JSON string
     const reqsStr = JSON.stringify(job.requirements || []);
+    const appReqsStr = JSON.stringify(job.applicationRequirements || []);
     const deadline = job.deadline ? job.deadline : null;
 
     if (existing.length > 0) {
       // Mag-execute ng UPDATE query kapag ine-edit ang trabaho
       await pool.query(
         `UPDATE job_postings SET 
-          job_title = ?, employer_name = ?, description = ?, requirements = ?, 
+          job_title = ?, employer_name = ?, description = ?, requirements = ?, application_requirements = ?,
           employment_type = ?, salary_range = ?, location = ?, slots = ?, 
           deadline = ?, status = ?, contact_person = ?, contact_email = ?,
           contact_phone = ?, contact_website = ?
          WHERE id = ?`,
         [
-          job.jobTitle, job.employerName, job.description, reqsStr,
+          job.jobTitle, job.employerName, job.description, reqsStr, appReqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
           deadline, job.status, job.contactPerson || null, job.contactEmail || null,
           job.contactPhone || null, job.contactWebsite || null, jobId
@@ -53,12 +54,12 @@ router.post('/save-job', authenticateToken, async (req, res) => {
       // Mag-execute ng INSERT query para sa bagong lagay na trabaho
       await pool.query(
         `INSERT INTO job_postings (
-          id, job_title, employer_name, description, requirements, 
+          id, job_title, employer_name, description, requirements, application_requirements,
           employment_type, salary_range, location, slots, deadline, status,
           contact_person, contact_email, contact_phone, contact_website
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          jobId, job.jobTitle, job.employerName, job.description, reqsStr,
+          jobId, job.jobTitle, job.employerName, job.description, reqsStr, appReqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
           deadline, job.status || 'Open', job.contactPerson || null, job.contactEmail || null,
           job.contactPhone || null, job.contactWebsite || null

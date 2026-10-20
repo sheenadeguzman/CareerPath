@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Briefcase, Calendar, MapPin, Tag, PlusCircle, Check, Users, ShieldAlert, X, Mail, Phone, Globe, User, Pencil } from 'lucide-react';
+import { Briefcase, Calendar, MapPin, Tag, PlusCircle, Check, Users, ShieldAlert, X, Mail, Phone, Globe, User, Pencil, FileText } from 'lucide-react';
 
 export default function JobPostingsView({ jobPostings = [], employers = [], activeUser, onSaveJob }) {
   const [isPosting, setIsPosting] = useState(false);
@@ -25,6 +25,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     employerName: employers[0]?.companyName || '',
     description: '',
     requirements: [],
+    applicationRequirements: [],
     employmentType: 'Regular/Permanent',
     salaryRange: 'P 18,000 - P 25,000',
     location: 'Basco, Batanes',
@@ -38,6 +39,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
   });
 
   const [reqInput, setReqInput] = useState('');
+  const [appReqInput, setAppReqInput] = useState('');
 
   // Mga Coordinate ng Lokasyon (Ang BSC Main Campus sa Basco ang gitnang punto)
   const LOCATION_COORDINATES = {
@@ -98,12 +100,14 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     }
 
     const separatedReqs = reqInput.split(',').map(r => r.trim()).filter(r => r.length > 0);
+    const separatedAppReqs = appReqInput.split(',').map(r => r.trim()).filter(r => r.length > 0);
 
     const submission = {
       ...newJob,
       employerName: activeUser.role === 'Employer' ? loggedInEmpName : newJob.employerName,
       id: newJob.id || `job-${Date.now()}`,
       requirements: separatedReqs.length > 0 ? separatedReqs : ['None specified'],
+      applicationRequirements: separatedAppReqs.length > 0 ? separatedAppReqs : ['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter'],
       status: newJob.status || 'Open'
     };
 
@@ -120,6 +124,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       employerName: employers[0]?.companyName || '',
       description: '',
       requirements: [],
+      applicationRequirements: [],
       employmentType: 'Regular/Permanent',
       salaryRange: 'P 18,000 - P 25,000',
       location: 'Basco, Batanes',
@@ -132,15 +137,21 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       contactWebsite: ''
     });
     setReqInput('');
+    setAppReqInput('');
   };
 
   const handleEditClick = (job) => {
+    const appReqs = (job.applicationRequirements && job.applicationRequirements.length > 0)
+      ? job.applicationRequirements
+      : ['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter'];
+
     setNewJob({
       id: job.id,
       jobTitle: job.jobTitle,
       employerName: job.employerName,
       description: job.description,
       requirements: job.requirements || [],
+      applicationRequirements: appReqs,
       employmentType: job.employmentType || 'Regular/Permanent',
       salaryRange: job.salaryRange || 'P 18,000 - P 25,000',
       location: job.location || 'Basco, Batanes',
@@ -153,10 +164,17 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       contactWebsite: job.contactWebsite || ''
     });
     setReqInput((job.requirements || []).join(', '));
+    setAppReqInput(appReqs.join(', '));
     setIsEditing(true);
     setIsPosting(true);
   };  const filteredJobs = jobPostings.filter(job => {
-    const text = (job.jobTitle + ' ' + job.employerName + ' ' + job.location + ' ' + job.description).toLowerCase();
+    const text = (
+      job.jobTitle + ' ' + 
+      job.employerName + ' ' + 
+      job.location + ' ' + 
+      job.description + ' ' + 
+      (job.applicationRequirements || []).join(' ')
+    ).toLowerCase();
     const matchesSearch = text.includes(searchQuery.toLowerCase());
     const matchesType = selectedEmpType === 'All' || job.employmentType === selectedEmpType;
     const salary = parseSalary(job.salaryRange);
@@ -357,7 +375,6 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 </div>
 
                 {/* Requirements tags and chips */}
-                {/* Requirements tags and chips */}
                 <div className="space-y-1.5">
                   <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Basic Competency Requirements:</span>
                   <div className="flex flex-wrap gap-1">
@@ -368,6 +385,35 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                     ))}
                   </div>
                 </div>
+
+                {/* Application Requirements (mga kailangang dokumento para mag-apply) */}
+                {(() => {
+                  const appReqs = (job.applicationRequirements && job.applicationRequirements.length > 0)
+                    ? job.applicationRequirements
+                    : ['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter'];
+
+                  return (
+                    <div className="space-y-1.5 pt-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-[#7c191e] shrink-0" />
+                        <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">
+                          Application Requirements:
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {appReqs.map((appReq, idx) => (
+                          <span 
+                            key={idx} 
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#fdf2f2] text-[#7c191e] border border-[#f5c6cb]/70 rounded text-[9px] font-bold"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#7c191e] shrink-0" />
+                            {appReq}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Employer Contact Details */}
                 {(() => {
@@ -456,7 +502,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       {isPosting && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in font-sans">
           
-          <div className="bg-white w-full max-w-lg h-[540px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative">
+          <div className="bg-white w-full max-w-lg max-h-[92vh] h-[620px] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-100 relative">
             
             {/* FIXED HEADER - Nakapako sa itaas na Header ng modal */}
             <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between z-10">
@@ -537,6 +583,39 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                     onChange={(e) => setReqInput(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
                   />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-slate-500">Required Application Documents (Split values by comma)</label>
+                    <span className="text-[9.5px] text-slate-400 font-normal">e.g., Resume, TOR, Cover Letter</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="e.g., Updated Resume / CV, Transcript of Records (TOR), Cover Letter"
+                    value={appReqInput}
+                    onChange={(e) => setAppReqInput(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                  />
+                  {/* Quick Add Presets */}
+                  <div className="mt-1.5 flex flex-wrap gap-1 items-center">
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mr-1">Quick Add:</span>
+                    {['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter', 'Portfolio / GitHub Link', 'Certificate of Employment', 'Valid ID'].map(preset => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          const current = appReqInput.split(',').map(s => s.trim()).filter(Boolean);
+                          if (!current.includes(preset)) {
+                            setAppReqInput(current.length > 0 ? `${appReqInput}, ${preset}` : preset);
+                          }
+                        }}
+                        className="px-1.5 py-0.5 bg-slate-100 hover:bg-[#7c191e] hover:text-white text-slate-600 rounded text-[9px] font-semibold transition cursor-pointer"
+                      >
+                        + {preset}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
