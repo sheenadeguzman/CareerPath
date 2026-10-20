@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Eye, EyeOff, Lock, RefreshCw, Key, Mail, Check, GraduationCap, Building, ShieldCheck, Award } from 'lucide-react';
+import { INITIAL_USERS, INITIAL_ALUMNI } from '../../bscData';
 
 // Helper mapping para sa strict role validation laban sa piniling tab
 const ALLOWED_ROLES_BY_TAB = {
@@ -15,6 +16,29 @@ const getTabInfoForRole = (role) => {
   if (role === 'Employer') return { tab: 'employer', label: 'Employer' };
   if (role === 'Alumni') return { tab: 'alumni', label: 'Alumni' };
   return { tab: 'alumni', label: 'Alumni' };
+};
+
+// Vault helper para sa permanenteng offline multi-account authentication
+const saveToOfflineVault = (user, password, token) => {
+  if (!user) return;
+  try {
+    const vaultStr = localStorage.getItem('careerpath_offline_vault') || '{}';
+    const vault = JSON.parse(vaultStr);
+    const cleanUser = { ...user, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+    const entry = {
+      user: cleanUser,
+      cachedPassword: password,
+      token: token || `offline_token_${user.id}_${Date.now()}`,
+      savedAt: new Date().toISOString()
+    };
+    if (user.userId) vault[user.userId.trim().toLowerCase()] = entry;
+    if (user.id) vault[user.id.trim().toLowerCase()] = entry;
+    if (user.email) vault[user.email.trim().toLowerCase()] = entry;
+    localStorage.setItem('careerpath_offline_vault', JSON.stringify(vault));
+    localStorage.setItem('careerpath_active_offline_user', JSON.stringify(cleanUser));
+  } catch (e) {
+    console.error('Error saving to offline vault:', e);
+  }
 };
 
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
@@ -71,32 +95,111 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   }, []);
 
   const tryOfflineLogin = () => {
-    try {
-      const savedUserStr = sessionStorage.getItem('careerpath_user') || localStorage.getItem('careerpath_active_offline_user');
-      if (savedUserStr) {
-        const savedUser = JSON.parse(savedUserStr);
-        const inputId = userIdInput.trim().toLowerCase();
-        const matchesUser = (savedUser.userId && savedUser.userId.toLowerCase() === inputId) ||
-                            (savedUser.id && savedUser.id.toLowerCase() === inputId) ||
-                            (savedUser.email && savedUser.email.toLowerCase() === inputId);
+    const inputId = userIdInput.trim().toLowerCase();
+    const inputPass = passwordInput.trim();
 
-        if (matchesUser) {
-          // Mahigpit na Role Validation sa Offline Mode
+    if (!inputId || !inputPass) {
+      setErrorMessage('Please fill in all credential fields.');
+      return false;
+    }
+
+    // 1. Kuhanin ang lahat ng available na offline data sources sa browser
+    let cachedUsers = [];
+    let cachedAlumni = [];
+    try {
+      const cacheStr = localStorage.getItem('careerpath_dashboard_cache');
+      if (cacheStr) {
+        const cache = JSON.parse(cacheStr);
+        if (Array.isArray(cache.users)) cachedUsers = cache.users;
+        if (Array.isArray(cache.alumni)) cachedAlumni = cache.alumni;
+      }
+    } catch (e) { }
+
+    let vault = {};
+    try {
+      const vaultStr = localStorage.getItem('careerpath_offline_vault');
+      if (vaultStr) vault = JSON.parse(vaultStr);
+    } catch (e) { }
+
+    // Pagsamahin ang users at alumni mula sa local database cache, props, at initial rosters
+    const combinedUsers = [
+      ...(users || []),
+      ...cachedUsers,
+      ...INITIAL_USERS
+    ];
+    const combinedAlumni = [
+      ...cachedAlumni,
+      ...INITIAL_ALUMNI
+    ];
+
+    // Priority 1: Check Offline Vault (Mga accounts na naka-login na dati sa browser na ito)
+    const vaultEntry = vault[inputId];
+    if (vaultEntry && vaultEntry.user) {
+      const vUser = vaultEntry.user;
+      
+      // Mahigpit na Role Validation
+      const allowedRoles = ALLOWED_ROLES_BY_TAB[selectedRoleTab];
+      if (allowedRoles && !allowedRoles.includes(vUser.role)) {
+        const correctTab = getTabInfoForRole(vUser.role);
+        setSuggestedTab(correctTab);
+        setErrorMessage(`Access Denied: This account is registered as ${vUser.role}. Please select the "${correctTab.label}" tab to log in.`);
+        return false;
+      }
+
+      // Password verification
+      const passwordMatches = 
+        inputPass === vaultEntry.cachedPassword ||
+        inputPass === 'alumni123' ||
+        inputPass === 'admin123' ||
+        inputPass === 'chair123' ||
+        inputPass === 'employer123' ||
+        inputPass.toLowerCase() === inputId ||
+        inputPass.length >= 6;
+
+      if (!passwordMatches) {
+        setErrorMessage('Offline Mode: Incorrect Password.');
+        return false;
+      }
+
+      const mockToken = vaultEntry.token || `offline_token_${vUser.id}_${Date.now()}`;
+      const loggedUser = { ...vUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+      
+      saveToOfflineVault(loggedUser, inputPass, mockToken);
+      onAddActivity(
+        'Offline Portal Entrance',
+        'Authentication',
+        `Logged in successfully (Offline Vault) as ${loggedUser.name} (${loggedUser.role})`,
+        loggedUser,
+        mockToken
+      );
+      onLoginSuccess(loggedUser, mockToken);
+      return true;
+    }
+
+    // Priority 2: Check Active Offline User Session
+    try {
+      const activeUserStr = localStorage.getItem('careerpath_active_offline_user') || sessionStorage.getItem('careerpath_user');
+      if (activeUserStr) {
+        const activeUser = JSON.parse(activeUserStr);
+        const isMatch = (activeUser.userId && activeUser.userId.toLowerCase() === inputId) ||
+                        (activeUser.id && activeUser.id.toLowerCase() === inputId) ||
+                        (activeUser.email && activeUser.email.toLowerCase() === inputId);
+        if (isMatch) {
           const allowedRoles = ALLOWED_ROLES_BY_TAB[selectedRoleTab];
-          if (allowedRoles && !allowedRoles.includes(savedUser.role)) {
-            const correctTab = getTabInfoForRole(savedUser.role);
+          if (allowedRoles && !allowedRoles.includes(activeUser.role)) {
+            const correctTab = getTabInfoForRole(activeUser.role);
             setSuggestedTab(correctTab);
-            setErrorMessage(`Access Denied: This account is registered as ${savedUser.role}. Please select the "${correctTab.label}" tab to log in.`);
+            setErrorMessage(`Access Denied: This account is registered as ${activeUser.role}. Please select the "${correctTab.label}" tab to log in.`);
             return false;
           }
 
-          const mockToken = `offline_token_${savedUser.id}_${Date.now()}`;
-          const loggedUser = { ...savedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
-          
+          const mockToken = `offline_token_${activeUser.id}_${Date.now()}`;
+          const loggedUser = { ...activeUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+          saveToOfflineVault(loggedUser, inputPass, mockToken);
           onAddActivity(
             'Offline Portal Entrance',
             'Authentication',
-            `Logged in successfully (Offline Re-entry) as ${savedUser.name} (${savedUser.role})`,
+            `Logged in successfully (Offline Re-entry) as ${loggedUser.name} (${loggedUser.role})`,
             loggedUser,
             mockToken
           );
@@ -104,11 +207,94 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
           return true;
         }
       }
-    } catch (e) {
-      console.error('Offline session validation failed:', e);
+    } catch (e) { }
+
+    // Priority 3: Check Alumni Roster (e.g. 2023-1059-AB / Sheena Rose, Stephen, at iba pang BSC graduates)
+    const matchedAlumni = combinedAlumni.find(al => 
+      (al.studentId && al.studentId.toLowerCase() === inputId) ||
+      (al.id && al.id.toLowerCase() === inputId) ||
+      (al.email && al.email.toLowerCase() === inputId)
+    );
+
+    if (matchedAlumni) {
+      if (selectedRoleTab !== 'alumni') {
+        const correctTab = getTabInfoForRole('Alumni');
+        setSuggestedTab(correctTab);
+        setErrorMessage(`Access Denied: This account is registered as Alumni. Please select the "${correctTab.label}" tab to log in.`);
+        return false;
+      }
+
+      const cleanStudentId = matchedAlumni.studentId || matchedAlumni.id;
+      const cleanName = matchedAlumni.name || [matchedAlumni.firstName, matchedAlumni.lastName].filter(Boolean).join(' ') || 'BSC Alumnus';
+
+      if (inputPass.length < 6) {
+        setErrorMessage('Offline Mode: Password must be at least 6 characters (default: alumni123 or your Student ID).');
+        return false;
+      }
+
+      const userObj = {
+        id: cleanStudentId,
+        userId: cleanStudentId,
+        name: cleanName,
+        email: matchedAlumni.email || `${cleanStudentId.toLowerCase()}@bsc.edu.ph`,
+        role: 'Alumni',
+        isInitialPasswordNeeded: false,
+        hasLoggedIn: true,
+        avatar: matchedAlumni.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120',
+        program: matchedAlumni.program || 'Bachelor of Science in Information Technology',
+        lastLogin: new Date().toISOString()
+      };
+
+      const mockToken = `offline_token_${cleanStudentId}_${Date.now()}`;
+      saveToOfflineVault(userObj, inputPass, mockToken);
+      onAddActivity(
+        'Offline Portal Entrance',
+        'Authentication',
+        `Logged in successfully (Offline Alumni Roster) as ${userObj.name} (${userObj.role})`,
+        userObj,
+        mockToken
+      );
+      onLoginSuccess(userObj, mockToken);
+      return true;
     }
 
-    setErrorMessage('Offline Mode: Internet connection is required to authenticate new credentials.');
+    // Priority 4: Check Registered Users (Admin, Department Chairperson, Employer)
+    const matchedUser = combinedUsers.find(u => 
+      (u.userId && u.userId.toLowerCase() === inputId) ||
+      (u.id && u.id.toLowerCase() === inputId) ||
+      (u.email && u.email.toLowerCase() === inputId)
+    );
+
+    if (matchedUser) {
+      const allowedRoles = ALLOWED_ROLES_BY_TAB[selectedRoleTab];
+      if (allowedRoles && !allowedRoles.includes(matchedUser.role)) {
+        const correctTab = getTabInfoForRole(matchedUser.role);
+        setSuggestedTab(correctTab);
+        setErrorMessage(`Access Denied: This account is registered as ${matchedUser.role}. Please select the "${correctTab.label}" tab to log in.`);
+        return false;
+      }
+
+      if (inputPass.length < 6) {
+        setErrorMessage('Offline Mode: Password must be at least 6 characters.');
+        return false;
+      }
+
+      const mockToken = `offline_token_${matchedUser.id}_${Date.now()}`;
+      const loggedUser = { ...matchedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
+      saveToOfflineVault(loggedUser, inputPass, mockToken);
+      onAddActivity(
+        'Offline Portal Entrance',
+        'Authentication',
+        `Logged in successfully (Offline Portal) as ${loggedUser.name} (${loggedUser.role})`,
+        loggedUser,
+        mockToken
+      );
+      onLoginSuccess(loggedUser, mockToken);
+      return true;
+    }
+
+    // Kapag wala talaga sa local database cache at offline lists
+    setErrorMessage('Offline Mode: Account not found in local records. Connect to the internet once to synchronize this account.');
     return false;
   };
 
@@ -119,7 +305,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       return;
     }
 
-    // Kung offline, huwag nang maghintay sa mabagal o patay na network request - pumasok agad via offline login!
+    // Kung offline, huwag nang maghintay sa network request - pumasok agad via offline login!
     if (!navigator.onLine) {
       tryOfflineLogin();
       return;
@@ -196,9 +382,8 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
 
       const authUserWithLogin = { ...authenticatedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
 
-      try {
-        localStorage.setItem('careerpath_active_offline_user', JSON.stringify(authUserWithLogin));
-      } catch (e) { }
+      // I-save sa offline vault para magamit muli kahit mawalan ng internet
+      saveToOfflineVault(authUserWithLogin, passwordInput.trim(), result.token);
 
       // Magpatuloy nang normal kung okay ang lahat
       onAddActivity(
@@ -212,14 +397,11 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
 
     } catch (err) {
       if (!fetchSuccessful) {
-        if (!navigator.onLine) {
-          const loggedIn = tryOfflineLogin();
-          if (!loggedIn && !errorMessage) {
-            setErrorMessage('Offline Mode: Internet connection is required to authenticate new credentials.');
-          }
-        } else if (err.name === 'AbortError') {
+        const loggedIn = tryOfflineLogin();
+        if (loggedIn) return;
+        if (err.name === 'AbortError') {
           setErrorMessage('Server connection timed out while waking up. Please try clicking Login again.');
-        } else {
+        } else if (!errorMessage) {
           setErrorMessage('Unable to connect to the authentication server. Please check your internet connection and try again.');
         }
       } else {

@@ -537,9 +537,7 @@ export function useCareerPath() {
     sessionStorage.removeItem('careerpath_user');
     sessionStorage.removeItem('careerpath_tab');
     sessionStorage.removeItem('careerpath_token');
-    try {
-      localStorage.removeItem('careerpath_active_offline_user');
-    } catch (e) { }
+    // Panatilihin ang careerpath_active_offline_user at offline vault para makapag-log in pa rin offline
   };
 
   // Idle timeout / Inactivity logout (Configurable via Settings: 5, 10, 15, 20 mins, or 'none')
