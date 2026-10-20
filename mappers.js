@@ -263,7 +263,7 @@ export function mapJobPostingFromDB(row) {
     salaryGrade: row.salary_grade || '',
     education: row.education || '',
     training: row.training || '',
-    workExperience: row.work_experience || '',
+    workExperience: row.work_experience || row.experience_required || '',
     eligibility: row.eligibility || '',
     howToApply: row.how_to_apply || '',
     createdAt: row.created_at,
