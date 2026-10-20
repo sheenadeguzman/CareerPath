@@ -570,11 +570,14 @@ export async function initializeDatabase() {
       await pool.query("ALTER TABLE job_postings ADD COLUMN contact_address VARCHAR(255) DEFAULT NULL");
     } catch (e) { }
 
-    // MIGRATION: Convert legacy experience_required from INT to VARCHAR(255) and sync with work_experience
+    // MIGRATION: Drop obsolete / unused columns from job_postings table
     try {
-      await pool.query("ALTER TABLE job_postings MODIFY COLUMN experience_required VARCHAR(255) DEFAULT NULL");
-      await pool.query("UPDATE job_postings SET experience_required = work_experience WHERE work_experience IS NOT NULL");
-      console.log('Database Migration: Converted legacy experience_required from INT to VARCHAR(255).');
+      await pool.query("ALTER TABLE job_postings DROP COLUMN experience_required");
+      console.log('Database Migration: Dropped obsolete column experience_required from job_postings.');
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings DROP COLUMN preferred_skills");
+      console.log('Database Migration: Dropped obsolete column preferred_skills from job_postings.');
     } catch (e) { }
     console.log('Database Migration: Verified Qualification Standards (QS) columns on job_postings.');
 
