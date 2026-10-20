@@ -1,12 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Eye, EyeOff, Lock, RefreshCw, Key, Mail, Check, GraduationCap, Building, ShieldCheck, Award } from 'lucide-react';
 
+// Helper mapping para sa strict role validation laban sa piniling tab
+const ALLOWED_ROLES_BY_TAB = {
+  alumni: ['Alumni'],
+  admin: ['Administrator', 'Super Admin'],
+  chairperson: ['Department Chairperson'],
+  employer: ['Employer']
+};
+
+const getTabInfoForRole = (role) => {
+  if (role === 'Administrator' || role === 'Super Admin') return { tab: 'admin', label: 'Admin' };
+  if (role === 'Department Chairperson') return { tab: 'chairperson', label: 'Dept Chair' };
+  if (role === 'Employer') return { tab: 'employer', label: 'Employer' };
+  if (role === 'Alumni') return { tab: 'alumni', label: 'Alumni' };
+  return { tab: 'alumni', label: 'Alumni' };
+};
+
 export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
   const [selectedRoleTab, setSelectedRoleTab] = useState('alumni');
   const [userIdInput, setUserIdInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [suggestedTab, setSuggestedTab] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Workflow para sa pag-reset ng password sa unang pagkakataon na mag-login (first login reset workflow)
@@ -64,6 +81,15 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                             (savedUser.email && savedUser.email.toLowerCase() === inputId);
 
         if (matchesUser) {
+          // Mahigpit na Role Validation sa Offline Mode
+          const allowedRoles = ALLOWED_ROLES_BY_TAB[selectedRoleTab];
+          if (allowedRoles && !allowedRoles.includes(savedUser.role)) {
+            const correctTab = getTabInfoForRole(savedUser.role);
+            setSuggestedTab(correctTab);
+            setErrorMessage(`Access Denied: This account is registered as ${savedUser.role}. Please select the "${correctTab.label}" tab to log in.`);
+            return false;
+          }
+
           const mockToken = `offline_token_${savedUser.id}_${Date.now()}`;
           const loggedUser = { ...savedUser, hasLoggedIn: true, lastLogin: new Date().toISOString() };
           
@@ -101,16 +127,21 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
 
     setIsSubmitting(true);
     setErrorMessage('');
+    setSuggestedTab(null);
 
     let fetchSuccessful = false;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 35000);
 
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userIdInput.trim(), password: passwordInput.trim() }),
+        body: JSON.stringify({
+          userId: userIdInput.trim(),
+          password: passwordInput.trim(),
+          roleTab: selectedRoleTab
+        }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -118,11 +149,25 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         fetchSuccessful = true;
+        if (errData.suggestedTab) {
+          setSuggestedTab(errData.suggestedTab);
+        }
         throw new Error(errData.error || 'Login failed');
       }
 
       fetchSuccessful = true;
       const result = await response.json();
+
+      // Client-side verification bilang double security check
+      const checkUser = result.user;
+      const allowedRoles = ALLOWED_ROLES_BY_TAB[selectedRoleTab];
+      if (checkUser && checkUser.role && allowedRoles && !allowedRoles.includes(checkUser.role)) {
+        const correctTab = getTabInfoForRole(checkUser.role);
+        setSuggestedTab(correctTab);
+        setErrorMessage(`Access Denied: This account is registered as ${checkUser.role}. Please select the "${correctTab.label}" tab to log in.`);
+        setIsSubmitting(false);
+        return;
+      }
 
       // Kung kailangan ng Email OTP Two-Factor Authentication
       if (result.requireMfa) {
@@ -167,9 +212,15 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
 
     } catch (err) {
       if (!fetchSuccessful) {
-        const loggedIn = tryOfflineLogin();
-        if (!loggedIn) {
-          // tryOfflineLogin already sets setErrorMessage
+        if (!navigator.onLine) {
+          const loggedIn = tryOfflineLogin();
+          if (!loggedIn && !errorMessage) {
+            setErrorMessage('Offline Mode: Internet connection is required to authenticate new credentials.');
+          }
+        } else if (err.name === 'AbortError') {
+          setErrorMessage('Server connection timed out while waking up. Please try clicking Login again.');
+        } else {
+          setErrorMessage('Unable to connect to the authentication server. Please check your internet connection and try again.');
         }
       } else {
         setErrorMessage(err.message || 'Authentication rejected.');
@@ -797,6 +848,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   onClick={() => {
                     setSelectedRoleTab('alumni');
                     setErrorMessage('');
+                    setSuggestedTab(null);
                   }}
                   className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
                     selectedRoleTab === 'alumni'
@@ -813,6 +865,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   onClick={() => {
                     setSelectedRoleTab('admin');
                     setErrorMessage('');
+                    setSuggestedTab(null);
                   }}
                   className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
                     selectedRoleTab === 'admin'
@@ -829,6 +882,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   onClick={() => {
                     setSelectedRoleTab('chairperson');
                     setErrorMessage('');
+                    setSuggestedTab(null);
                   }}
                   className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
                     selectedRoleTab === 'chairperson'
@@ -845,6 +899,7 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
                   onClick={() => {
                     setSelectedRoleTab('employer');
                     setErrorMessage('');
+                    setSuggestedTab(null);
                   }}
                   className={`py-2 px-1 rounded-lg text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
                     selectedRoleTab === 'employer'
@@ -886,8 +941,26 @@ export default function LoginView({ onLoginSuccess, users, onAddActivity }) {
               </div>
 
               {errorMessage && (
-                <div role="alert" className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium">
-                  {errorMessage}
+                <div role="alert" className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-medium space-y-2 shadow-xs animate-shake">
+                  <div className="flex items-start gap-2">
+                    <Shield className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <span className="leading-relaxed font-semibold">{errorMessage}</span>
+                  </div>
+                  {suggestedTab && (
+                    <div className="pt-1 pl-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRoleTab(suggestedTab.tab);
+                          setErrorMessage('');
+                          setSuggestedTab(null);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#7c191e] hover:bg-[#5b1216] text-white rounded-lg text-[11px] font-bold tracking-wide transition shadow-sm cursor-pointer"
+                      >
+                        Switch to "{suggestedTab.label}" tab &rarr;
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

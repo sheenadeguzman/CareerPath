@@ -35,11 +35,27 @@ function maskEmail(email) {
   return `${maskedLocal}@${domain}`;
 }
 
+// Role tab mapping helper para sa strict role portal validation
+const ALLOWED_ROLES_BY_TAB = {
+  alumni: ['Alumni'],
+  admin: ['Administrator', 'Super Admin'],
+  chairperson: ['Department Chairperson'],
+  employer: ['Employer']
+};
+
+function getTabInfoForRole(role) {
+  if (role === 'Administrator' || role === 'Super Admin') return { tab: 'admin', label: 'Admin' };
+  if (role === 'Department Chairperson') return { tab: 'chairperson', label: 'Dept Chair' };
+  if (role === 'Employer') return { tab: 'employer', label: 'Employer' };
+  if (role === 'Alumni') return { tab: 'alumni', label: 'Alumni' };
+  return { tab: 'alumni', label: 'Alumni' };
+}
+
 //POST /api/login
 //Endpoint para sa pag-log in ng mga user (Admin, Chairperson, Alumni, o Employer).
 router.post('/login', async (req, res) => {
   try {
-    const { userId, password } = req.body;
+    const { userId, password, roleTab } = req.body;
 
     // Hanapin muna ang user sa database gamit ang case-insensitive match sa user_id (LOWER)
     const [rows] = await pool.query('SELECT * FROM users WHERE LOWER(user_id) = ?', [userId.trim().toLowerCase()]);
@@ -61,6 +77,38 @@ router.post('/login', async (req, res) => {
 
     // Kung match ang password (o kung match sa default plaintext para sa mga bagong gawang account)
     if (isMatch || password === dbPassword) {
+      // Mahigpit na Role Validation: Tiyaking tugma ang role ng account sa piniling portal tab sa login UI
+      if (roleTab && ALLOWED_ROLES_BY_TAB[roleTab]) {
+        const allowedRoles = ALLOWED_ROLES_BY_TAB[roleTab];
+        if (!allowedRoles.includes(user.role)) {
+          const correctTab = getTabInfoForRole(user.role);
+
+          // Audit log para sa na-block na access attempt
+          try {
+            const logId = `log-${Date.now()}`;
+            await pool.query(
+              'INSERT INTO activity_logs (id, timestamp, user_id, user_email, user_name, user_role, action, module, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [
+                logId,
+                new Date().toISOString().slice(0, 19).replace('T', ' '),
+                user.id,
+                user.email,
+                user.name,
+                user.role,
+                'Login Rejected (Role Mismatch)',
+                'Security / Authentication',
+                `Attempted login via '${roleTab}' portal tab with credentials for ${user.role} (${user.userId})`
+              ]
+            );
+          } catch (e) { }
+
+          return res.status(403).json({
+            error: `Access Denied: This account is registered as ${user.role}. Please select the "${correctTab.label}" tab to log in.`,
+            suggestedTab: correctTab
+          });
+        }
+      }
+
       // Kung kailangang magpalit ng initial password, idirekta agad sa initial password setup
       if (user.isInitialPasswordNeeded) {
         return res.json({
