@@ -258,6 +258,14 @@ export function mapJobPostingFromDB(row) {
     contactEmail: row.contact_email || '',
     contactPhone: row.contact_phone || '',
     contactWebsite: row.contact_website || '',
+    contactAddress: row.contact_address || '',
+    placeOfAssignment: row.place_of_assignment || '',
+    salaryGrade: row.salary_grade || '',
+    education: row.education || '',
+    training: row.training || '',
+    workExperience: row.work_experience || '',
+    eligibility: row.eligibility || '',
+    howToApply: row.how_to_apply || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };

@@ -41,13 +41,17 @@ router.post('/save-job', authenticateToken, async (req, res) => {
           job_title = ?, employer_name = ?, description = ?, requirements = ?, application_requirements = ?,
           employment_type = ?, salary_range = ?, location = ?, slots = ?, 
           deadline = ?, status = ?, contact_person = ?, contact_email = ?,
-          contact_phone = ?, contact_website = ?
+          contact_phone = ?, contact_website = ?, contact_address = ?,
+          place_of_assignment = ?, salary_grade = ?, education = ?, training = ?,
+          work_experience = ?, eligibility = ?, how_to_apply = ?
          WHERE id = ?`,
         [
           job.jobTitle, job.employerName, job.description, reqsStr, appReqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
           deadline, job.status, job.contactPerson || null, job.contactEmail || null,
-          job.contactPhone || null, job.contactWebsite || null, jobId
+          job.contactPhone || null, job.contactWebsite || null, job.contactAddress || null,
+          job.placeOfAssignment || null, job.salaryGrade || null, job.education || null, job.training || null,
+          job.workExperience || null, job.eligibility || null, job.howToApply || null, jobId
         ]
       );
     } else {
@@ -56,13 +60,17 @@ router.post('/save-job', authenticateToken, async (req, res) => {
         `INSERT INTO job_postings (
           id, job_title, employer_name, description, requirements, application_requirements,
           employment_type, salary_range, location, slots, deadline, status,
-          contact_person, contact_email, contact_phone, contact_website
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          contact_person, contact_email, contact_phone, contact_website, contact_address,
+          place_of_assignment, salary_grade, education, training,
+          work_experience, eligibility, how_to_apply
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           jobId, job.jobTitle, job.employerName, job.description, reqsStr, appReqsStr,
           job.employmentType, job.salaryRange, job.location, job.slots || 1,
           deadline, job.status || 'Open', job.contactPerson || null, job.contactEmail || null,
-          job.contactPhone || null, job.contactWebsite || null
+          job.contactPhone || null, job.contactWebsite || null, job.contactAddress || null,
+          job.placeOfAssignment || null, job.salaryGrade || null, job.education || null, job.training || null,
+          job.workExperience || null, job.eligibility || null, job.howToApply || null
         ]
       );
     }

@@ -544,6 +544,81 @@ export async function initializeDatabase() {
       console.log('Database Migration: Seeded default application_requirements for existing jobs.');
     } catch (e) { }
 
+    // MIGRATION: Add Qualification Standards & Hiring Notice fields to job_postings table
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN place_of_assignment VARCHAR(150) DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN salary_grade VARCHAR(50) DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN education VARCHAR(255) DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN training VARCHAR(255) DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN work_experience VARCHAR(255) DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN eligibility VARCHAR(255) DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN how_to_apply TEXT DEFAULT NULL");
+    } catch (e) { }
+    try {
+      await pool.query("ALTER TABLE job_postings ADD COLUMN contact_address VARCHAR(255) DEFAULT NULL");
+    } catch (e) { }
+    console.log('Database Migration: Verified Qualification Standards (QS) columns on job_postings.');
+
+    // Seed Construction and Maintenance Capataz if not exists
+    try {
+      const [capatazCheck] = await pool.query("SELECT id FROM job_postings WHERE job_title LIKE '%Capataz%'");
+      if (capatazCheck.length === 0) {
+        await pool.query(`
+          INSERT INTO job_postings (
+            id, job_title, employer_name, description, requirements, application_requirements,
+            employment_type, salary_range, location, slots, deadline, status,
+            contact_person, contact_email, contact_website, contact_address,
+            place_of_assignment, salary_grade, education, training,
+            work_experience, eligibility, how_to_apply
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          'job-capataz-1',
+          'Construction and Maintenance Capataz',
+          'Batanes Provincial Government',
+          'Oversee provincial infrastructure repairs, road maintenance operations, and public works capataz duties.',
+          JSON.stringify(['Physical Stamina', 'Basic Tool Handling', 'Road & Facilities Maintenance', 'Safety Protocols']),
+          JSON.stringify([
+            'Fully accomplished Personal Data Sheet (PDS) with Work Experience Sheet and recent passport-sized or unfiltered digital picture (CS Form No. 212, Revised 2025); digitally signed or electronically signed',
+            'Hard copy or electronic copy of Performance Rating in the last rating period (if applicable)',
+            'Hard copy or electronic copy of proof of eligibility / rating / license (if applicable)',
+            'Hard copy or electronic copy of Transcript of Records'
+          ]),
+          'Permanent',
+          '₱18,581.00',
+          'Basco, Batanes',
+          1,
+          '2026-10-30',
+          'Open',
+          'ANA MARIE A. ROSAS (PHRMO)',
+          'hrmo@batanes.gov.ph',
+          'www.batanes.gov.ph',
+          '2nd Floor, Capitol Complex, Basco, Batanes',
+          'Provincial Engineering Office',
+          '05',
+          'Elementary School Graduate',
+          'None Required',
+          'None Required',
+          'None Required (MC 10, s. 2013, Cat. III)',
+          'Interested and qualified applicants should signify their interest in writing through an application letter addressed to the Governor and hand them in or send them through courier or email to the HR Office through:'
+        ]);
+        console.log('Database Migration: Seeded Construction and Maintenance Capataz job bulletin.');
+      }
+    } catch (e) {
+      console.error('Failed to seed Capataz job:', e);
+    }
+
     // MIGRATION: Add languages to alumni_profiles table if missing
     try {
       await pool.query("ALTER TABLE alumni_profiles ADD COLUMN languages TEXT DEFAULT NULL");

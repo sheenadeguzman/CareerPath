@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { Briefcase, Calendar, MapPin, Tag, PlusCircle, Check, Users, ShieldAlert, X, Mail, Phone, Globe, User, Pencil, FileText } from 'lucide-react';
+import { 
+  Briefcase, Calendar, MapPin, Tag, PlusCircle, Check, Users, ShieldAlert, 
+  X, Mail, Phone, Globe, User, Pencil, FileText, Eye, GraduationCap, 
+  Award, Building, HardHat, FileCheck, Printer, Coins, AlertCircle 
+} from 'lucide-react';
 
 export default function JobPostingsView({ jobPostings = [], employers = [], activeUser, onSaveJob }) {
   const [isPosting, setIsPosting] = useState(false);
@@ -28,6 +32,14 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
     applicationRequirements: [],
     employmentType: 'Regular/Permanent',
     salaryRange: 'P 18,000 - P 25,000',
+    salaryGrade: '',
+    placeOfAssignment: '',
+    education: '',
+    training: '',
+    workExperience: '',
+    eligibility: '',
+    howToApply: '',
+    contactAddress: '',
     location: 'Basco, Batanes',
     slots: 1,
     deadline: '',
@@ -40,6 +52,7 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
 
   const [reqInput, setReqInput] = useState('');
   const [appReqInput, setAppReqInput] = useState('');
+  const [selectedNoticeJob, setSelectedNoticeJob] = useState(null);
 
   // Mga Coordinate ng Lokasyon (Ang BSC Main Campus sa Basco ang gitnang punto)
   const LOCATION_COORDINATES = {
@@ -107,7 +120,11 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       employerName: activeUser.role === 'Employer' ? loggedInEmpName : newJob.employerName,
       id: newJob.id || `job-${Date.now()}`,
       requirements: separatedReqs.length > 0 ? separatedReqs : ['None specified'],
-      applicationRequirements: separatedAppReqs.length > 0 ? separatedAppReqs : ['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter'],
+      applicationRequirements: separatedAppReqs.length > 0 ? separatedAppReqs : [
+        'Fully accomplished Personal Data Sheet (PDS) with Work Experience Sheet (CS Form No. 212, Revised 2025)',
+        'Hard copy or electronic copy of Transcript of Records (TOR)',
+        'Application Letter addressed to the Appointing Authority'
+      ],
       status: newJob.status || 'Open'
     };
 
@@ -127,6 +144,14 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       applicationRequirements: [],
       employmentType: 'Regular/Permanent',
       salaryRange: 'P 18,000 - P 25,000',
+      salaryGrade: '',
+      placeOfAssignment: '',
+      education: '',
+      training: '',
+      workExperience: '',
+      eligibility: '',
+      howToApply: '',
+      contactAddress: '',
       location: 'Basco, Batanes',
       slots: 1,
       deadline: '',
@@ -143,7 +168,11 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
   const handleEditClick = (job) => {
     const appReqs = (job.applicationRequirements && job.applicationRequirements.length > 0)
       ? job.applicationRequirements
-      : ['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter'];
+      : [
+          'Fully accomplished Personal Data Sheet (PDS) with Work Experience Sheet (CS Form No. 212, Revised 2025)',
+          'Hard copy or electronic copy of Transcript of Records (TOR)',
+          'Application Letter addressed to the Appointing Authority'
+        ];
 
     setNewJob({
       id: job.id,
@@ -154,6 +183,14 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       applicationRequirements: appReqs,
       employmentType: job.employmentType || 'Regular/Permanent',
       salaryRange: job.salaryRange || 'P 18,000 - P 25,000',
+      salaryGrade: job.salaryGrade || '',
+      placeOfAssignment: job.placeOfAssignment || '',
+      education: job.education || '',
+      training: job.training || '',
+      workExperience: job.workExperience || '',
+      eligibility: job.eligibility || '',
+      howToApply: job.howToApply || '',
+      contactAddress: job.contactAddress || '',
       location: job.location || 'Basco, Batanes',
       slots: job.slots || 1,
       deadline: job.deadline ? job.deadline : '',
@@ -172,6 +209,10 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
       job.jobTitle + ' ' + 
       job.employerName + ' ' + 
       job.location + ' ' + 
+      (job.placeOfAssignment || '') + ' ' +
+      (job.salaryGrade || '') + ' ' +
+      (job.education || '') + ' ' +
+      (job.eligibility || '') + ' ' +
       job.description + ' ' + 
       (job.applicationRequirements || []).join(' ')
     ).toLowerCase();
@@ -345,10 +386,18 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 {/* Detalye ng Header at Pamagat (Title details) */}
                 <div className="space-y-1 pr-14">
                   <h3 className="text-sm font-extrabold text-slate-800">{job.jobTitle}</h3>
-                  <span className="block font-bold text-[11px] text-[#7c191e] uppercase">{job.employerName}</span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-bold text-[11px] text-[#7c191e] uppercase">{job.employerName}</span>
+                    {job.placeOfAssignment && (
+                      <span className="text-[9.5px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                        <Building className="w-2.5 h-2.5 text-[#7c191e]" />
+                        {job.placeOfAssignment}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Strip para sa mga istatistika (Location, Type, Salary) */}
+                {/* Strip para sa mga istatistika (Location, Type, Salary, Salary Grade) */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 py-2.5 border-y border-slate-50 text-[10px] font-bold text-slate-500">
                   <div className="flex items-center gap-1 min-w-[80px]" title="Distance from BSC Campus">
                     <MapPin className="w-3.5 h-3.5 text-[#7c191e] shrink-0" />
@@ -363,6 +412,13 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                     <Tag className="w-3.5 h-3.5 text-[#cca43b] shrink-0" />
                     <span className="truncate">{job.employmentType}</span>
                   </div>
+                  {job.salaryGrade && (
+                    <div className="flex items-center gap-1 text-slate-700 font-bold">
+                      <span className="text-[9px] bg-amber-50 text-amber-800 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                        SG {job.salaryGrade}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1 text-emerald-750 font-black min-w-[95px]">
                     <span className="shrink-0 font-bold text-[#7c191e]">PHP</span>
                     <span className="truncate text-[#7c191e] font-extrabold">{job.salaryRange}</span>
@@ -374,62 +430,112 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                   <p className="line-clamp-2">{job.description}</p>
                 </div>
 
-                {/* Requirements tags and chips */}
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Basic Competency Requirements:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {job.requirements.map(req => (
-                      <span key={req} className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/50 rounded text-[9px] font-bold">
-                        {req}
-                      </span>
-                    ))}
+                {/* Qualification Standards (QS) Box - Civil Service Format */}
+                {(job.education || job.workExperience || job.eligibility || job.training) && (
+                  <div className="bg-slate-50/80 rounded-lg p-2.5 border border-slate-200/60 space-y-1.5">
+                    <span className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider block">
+                      Qualification Standards (QS):
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px]">
+                      {job.education && (
+                        <div className="flex items-start gap-1 text-slate-600">
+                          <GraduationCap className="w-3.5 h-3.5 text-[#7c191e] shrink-0 mt-0.5" />
+                          <span className="leading-tight"><strong className="text-slate-700">Educ:</strong> {job.education}</span>
+                        </div>
+                      )}
+                      {job.eligibility && (
+                        <div className="flex items-start gap-1 text-slate-600">
+                          <Award className="w-3.5 h-3.5 text-[#cca43b] shrink-0 mt-0.5" />
+                          <span className="leading-tight"><strong className="text-slate-700">Elig:</strong> {job.eligibility}</span>
+                        </div>
+                      )}
+                      {job.workExperience && (
+                        <div className="flex items-start gap-1 text-slate-600">
+                          <Briefcase className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                          <span className="leading-tight"><strong className="text-slate-700">Exp:</strong> {job.workExperience}</span>
+                        </div>
+                      )}
+                      {job.training && (
+                        <div className="flex items-start gap-1 text-slate-600">
+                          <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span className="leading-tight"><strong className="text-slate-700">Training:</strong> {job.training}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Application Requirements (mga kailangang dokumento para mag-apply) */}
+                {/* Requirements tags and chips */}
+                {job.requirements && job.requirements.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase block">Competencies / Skills:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {job.requirements.map(req => (
+                        <span key={req} className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/50 rounded text-[9px] font-bold">
+                          {req}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Application Requirements (Attach the following documents) */}
                 {(() => {
                   const appReqs = (job.applicationRequirements && job.applicationRequirements.length > 0)
                     ? job.applicationRequirements
-                    : ['Updated Resume / CV', 'Transcript of Records (TOR)', 'Cover Letter'];
+                    : [
+                        'Fully accomplished Personal Data Sheet (PDS) with Work Experience Sheet (CS Form No. 212, Revised 2025)',
+                        'Hard copy or electronic copy of Transcript of Records (TOR)',
+                        'Application Letter addressed to the Appointing Authority'
+                      ];
 
                   return (
-                    <div className="space-y-1.5 pt-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-[#7c191e] shrink-0" />
-                        <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">
-                          Application Requirements:
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {appReqs.map((appReq, idx) => (
-                          <span 
-                            key={idx} 
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#fdf2f2] text-[#7c191e] border border-[#f5c6cb]/70 rounded text-[9px] font-bold"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#7c191e] shrink-0" />
-                            {appReq}
+                    <div className="space-y-2 pt-1 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-[#7c191e] shrink-0" />
+                          <span className="text-[10px] text-slate-600 font-extrabold uppercase tracking-wider block">
+                            Attach the Following Documents:
                           </span>
+                        </div>
+                        <span className="text-[9px] text-[#7c191e] font-semibold">{appReqs.length} required</span>
+                      </div>
+                      <div className="space-y-1">
+                        {appReqs.map((appReq, idx) => (
+                          <div 
+                            key={idx} 
+                            className="flex items-start gap-2 p-1.5 rounded-lg bg-rose-50/60 border border-rose-100 text-[9.5px] text-slate-700 leading-snug"
+                          >
+                            <span className="w-4 h-4 rounded-full bg-[#7c191e] text-white flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5">
+                              {idx + 1}
+                            </span>
+                            <span className="font-medium text-slate-800">{appReq}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
                   );
                 })()}
 
-                {/* Employer Contact Details */}
+                {/* Employer Contact Details & How to Apply */}
                 {(() => {
                   const jobContactPerson = job.contactPerson || matchingEmployer?.contactPerson;
                   const jobContactEmail = job.contactEmail || matchingEmployer?.email;
                   const jobContactPhone = job.contactPhone || matchingEmployer?.phone;
                   const jobContactWebsite = job.contactWebsite || matchingEmployer?.website;
-                  const jobContactPosition = job.contactPerson ? '' : matchingEmployer?.position;
-
-                  if (!jobContactPerson && !jobContactEmail && !jobContactPhone && !jobContactWebsite) {
-                    return null;
-                  }
+                  const jobContactPosition = job.contactPosition || (job.contactPerson ? '' : matchingEmployer?.position);
+                  const jobContactAddress = job.contactAddress || matchingEmployer?.address;
 
                   return (
                     <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 bg-slate-50/50 rounded-lg p-2.5 border border-slate-150">
-                      <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider block">Employer Contact &amp; Application Info:</span>
+                      <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider block">How to Apply &amp; Contact:</span>
+                      
+                      {job.howToApply && (
+                        <p className="text-[9.5px] text-slate-600 italic leading-snug">
+                          {job.howToApply}
+                        </p>
+                      )}
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] font-semibold text-slate-600">
                         {jobContactPerson && (
                           <div className="flex items-center gap-1.5 truncate">
@@ -469,21 +575,37 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                             </a>
                           </div>
                         )}
+                        {jobContactAddress && (
+                          <div className="flex items-center gap-1.5 truncate col-span-1 sm:col-span-2 text-slate-500 text-[9px]">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate" title={jobContactAddress}>{jobContactAddress}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })()}
               </div>
 
-              {/* Row ng detalye sa Footer (Deadline at Slots) */}
-              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-[10px] text-slate-400 font-bold inline-flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" /> Deadline: {job.deadline}
-                </span>
-                {/* NOTE: Ginawa nating <= 1 para maging singular din ang 0 slots alinsunod sa bagong requirement ng user. */}
-                <span className="text-[10px] text-[#7c191e] font-extrabold uppercase">
-                  {job.slots} {job.slots <= 1 ? 'Slot' : 'Slots'} Vacant
-                </span>
+              {/* Row ng detalye sa Footer (Deadline, Slots, at Official Notice Button) */}
+              <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 font-bold inline-flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" /> Deadline: {job.deadline}
+                  </span>
+                  <span className="text-[10px] text-[#7c191e] font-extrabold uppercase">
+                    • {job.slots} {job.slots <= 1 ? 'Slot' : 'Slots'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedNoticeJob(job)}
+                  className="px-3 py-1.5 bg-[#7c191e] hover:bg-[#5c1317] text-white text-[10px] font-bold rounded-lg transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer uppercase tracking-wider"
+                  title="View Official Hiring Notice Flyer"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Official Notice
+                </button>
               </div>
 
             </div>
@@ -620,15 +742,93 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
+                    <label className="block text-slate-500 mb-1">Place of Assignment / Division</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Provincial Engineering Office"
+                      value={newJob.placeOfAssignment}
+                      onChange={(e) => setNewJob({ ...newJob, placeOfAssignment: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 mb-1">Salary Grade (SG)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., 05 or 11"
+                      value={newJob.salaryGrade}
+                      onChange={(e) => setNewJob({ ...newJob, salaryGrade: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                    />
+                  </div>
+                </div>
+
+                {/* Qualification Standards Grid in Form */}
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 space-y-3">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 block">
+                    Qualification Standards (Civil Service / Hiring Criteria)
+                  </span>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-500 text-[10px] mb-1">Education</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Elementary School Graduate or BSIT"
+                        value={newJob.education}
+                        onChange={(e) => setNewJob({ ...newJob, education: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-md p-2 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-500 text-[10px] mb-1">Eligibility</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., None Required or CS Sub-Professional"
+                        value={newJob.eligibility}
+                        onChange={(e) => setNewJob({ ...newJob, eligibility: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-md p-2 text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-500 text-[10px] mb-1">Training</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., None Required or 8 hours training"
+                        value={newJob.training}
+                        onChange={(e) => setNewJob({ ...newJob, training: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-md p-2 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-500 text-[10px] mb-1">Work Experience</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., None Required or 1 year experience"
+                        value={newJob.workExperience}
+                        onChange={(e) => setNewJob({ ...newJob, workExperience: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-md p-2 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
                     <label className="block text-slate-500 mb-1">Employment Type</label>
                     <select
                       value={newJob.employmentType}
                       onChange={(e) => setNewJob({ ...newJob, employmentType: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-md p-2"
                     >
+                      <option value="Regular/Permanent">Permanent / Regular</option>
+                      <option value="Contractual">Contractual</option>
+                      <option value="Project-Based">Project-Based</option>
                       <option value="Full-time">Full-time</option>
                       <option value="Part-time">Part-time</option>
-                      <option value="Contract">Contract</option>
                       <option value="Intern">Intern</option>
                     </select>
                   </div>
@@ -740,6 +940,28 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <label className="block text-slate-500 mb-1">Physical Office / Submission Address</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., 2nd Floor, Capitol Complex, Basco, Batanes"
+                      value={newJob.contactAddress}
+                      onChange={(e) => setNewJob({ ...newJob, contactAddress: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-500 mb-1">How To Apply Instructions (Optional)</label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g., Interested and qualified applicants should signify their interest in writing through an application letter addressed to..."
+                      value={newJob.howToApply}
+                      onChange={(e) => setNewJob({ ...newJob, howToApply: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 focus:ring-1 focus:ring-[#1e4620]"
+                    />
+                  </div>
                 </div>
               </div>
             </form>
@@ -762,6 +984,356 @@ export default function JobPostingsView({ jobPostings = [], employers = [], acti
                 className="px-4 py-2 bg-[#1e4620] hover:bg-emerald-950 text-white font-bold rounded-lg transition"
               >
                 {isEditing ? 'Update Vacancy Bullet' : 'Deploy Vacancy Bullet'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA SA OFFICIAL HIRING NOTICE (BATANES / PROVINCIAL HIRING FLYER FORMAT) */}
+      {selectedNoticeJob && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto animate-fade-in font-sans">
+          <div className="bg-[#fbfbf9] text-slate-800 w-full max-w-2xl max-h-[94vh] shadow-2xl rounded-2xl overflow-y-auto border-2 border-amber-900/20 relative flex flex-col">
+            
+            {/* Top Action Bar (Close & Print) */}
+            <div className="sticky top-0 bg-[#fbfbf9]/95 backdrop-blur-xs border-b border-amber-900/10 px-4 py-2.5 flex items-center justify-between z-20">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#7c191e] animate-pulse" />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7c191e]">
+                  Official Vacancy Announcement • Batanes Province
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[10px] font-bold flex items-center gap-1 transition cursor-pointer"
+                  title="Print Notice"
+                >
+                  <Printer className="w-3.5 h-3.5" /> Print
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedNoticeJob(null)}
+                  className="p-1 hover:bg-slate-200 text-slate-600 rounded-md transition cursor-pointer"
+                  title="Close Notice"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Flyer Body */}
+            <div className="p-4 sm:p-6 space-y-4">
+
+              {/* 1. Header with Seals & Office Labels */}
+              <div className="flex items-center justify-between border-b border-amber-900/15 pb-3">
+                <div className="flex items-center gap-3">
+                  {/* Batanes Seal Emulation */}
+                  <div className="w-14 h-14 rounded-full bg-linear-to-tr from-[#7c191e] via-[#941c22] to-[#cca43b] p-0.5 shadow-md shrink-0 flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-white flex flex-col items-center justify-center p-1 text-center border border-amber-200">
+                      <span className="text-[6.5px] font-black uppercase text-[#7c191e] tracking-tighter leading-none">Lalawigan</span>
+                      <span className="text-[7.5px] font-black uppercase text-[#cca43b] tracking-tighter leading-none">Batanes</span>
+                      <span className="text-[6px] font-extrabold text-slate-500 uppercase leading-none">1783</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-extrabold text-[#7c191e] uppercase tracking-wider block">
+                      Provincial Government of
+                    </span>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight leading-none">
+                      {selectedNoticeJob.employerName || 'BATANES'}
+                    </h2>
+                    <p className="text-[10px] font-bold text-slate-600 mt-0.5">
+                      Human Resources Management &amp; Development Office
+                    </p>
+                    <p className="text-[8.5px] font-semibold text-slate-400 tracking-wider">
+                      People • Capability • Service
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right hidden sm:block">
+                  <span className="italic font-serif text-sm text-[#7c191e] font-bold block leading-tight">
+                    Serve Batanes,
+                  </span>
+                  <span className="italic font-serif text-sm text-slate-700 font-bold block leading-tight">
+                    Build Lives
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Hiring Headline Banner */}
+              <div className="text-center py-2 bg-linear-to-r from-amber-50 via-rose-50 to-amber-50 rounded-xl border border-amber-200/50">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#7c191e] uppercase tracking-tight leading-none drop-shadow-2xs">
+                  WE ARE HIRING!
+                </h1>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                  <span className="bg-[#cca43b] text-slate-950 font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
+                    JOIN OUR TEAM
+                  </span>
+                  <span className="text-[10px] text-slate-600 font-semibold italic">
+                    Be part of a service-driven team for a progressive Batanes!
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Position Title & Vacancy Banner */}
+              <div className="bg-[#7c191e] text-white rounded-xl p-3 sm:p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center shrink-0 border border-white/20">
+                    <HardHat className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black uppercase tracking-wide leading-tight text-white">
+                      {selectedNoticeJob.jobTitle}
+                    </h3>
+                    <p className="text-[10px] text-amber-200/90 font-medium">
+                      {selectedNoticeJob.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1 shrink-0 border-t sm:border-t-0 border-white/10 pt-2 sm:pt-0">
+                  <span className="bg-[#cca43b] text-slate-950 font-extrabold text-[10px] uppercase px-2.5 py-0.5 rounded-md shadow-xs">
+                    {selectedNoticeJob.slots || 1} {selectedNoticeJob.slots <= 1 ? 'VACANCY' : 'VACANCIES'}
+                  </span>
+                  {selectedNoticeJob.placeOfAssignment && (
+                    <span className="text-[9.5px] text-white/90 font-semibold flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-amber-300 shrink-0" />
+                      {selectedNoticeJob.placeOfAssignment}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 4. Qualification Standards Grid (QS) */}
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-2">
+                  Qualification Standards &amp; Position Overview:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  
+                  {/* Place of Assignment */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Place of Assignment</span>
+                      <span className="text-[11px] font-bold text-slate-800 truncate block" title={selectedNoticeJob.placeOfAssignment || selectedNoticeJob.location}>
+                        {selectedNoticeJob.placeOfAssignment || selectedNoticeJob.location}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Salary Grade */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <Coins className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Salary Grade</span>
+                      <span className="text-[11px] font-bold text-slate-800 block">
+                        {selectedNoticeJob.salaryGrade ? (selectedNoticeJob.salaryGrade.startsWith('SG') ? selectedNoticeJob.salaryGrade : `Grade ${selectedNoticeJob.salaryGrade}`) : '05'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Monthly Salary */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <span className="font-extrabold text-xs">₱</span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Monthly Salary</span>
+                      <span className="text-[11px] font-black text-[#7c191e] block truncate">
+                        {selectedNoticeJob.salaryRange}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Eligibility */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <Award className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Eligibility</span>
+                      <span className="text-[10.5px] font-bold text-slate-800 leading-tight block">
+                        {selectedNoticeJob.eligibility || 'None Required (MC 10, s. 2013, Cat. III)'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Education */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <GraduationCap className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Education</span>
+                      <span className="text-[10.5px] font-bold text-slate-800 leading-tight block">
+                        {selectedNoticeJob.education || 'Elementary School Graduate'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Training */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <FileCheck className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Training</span>
+                      <span className="text-[10.5px] font-bold text-slate-800 leading-tight block">
+                        {selectedNoticeJob.training || 'None Required'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Work Experience */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 sm:col-span-2 md:col-span-3">
+                    <div className="w-8 h-8 rounded-lg bg-teal-900 text-white flex items-center justify-center shrink-0">
+                      <Briefcase className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase text-slate-400 block">Work Experience</span>
+                      <span className="text-[10.5px] font-bold text-slate-800 leading-tight block">
+                        {selectedNoticeJob.workExperience || 'None Required'}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* 5. Two Columns: HOW TO APPLY and ATTACH THE FOLLOWING DOCUMENTS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Column 1: HOW TO APPLY */}
+                <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
+                  <div>
+                    <div className="bg-[#7c191e] text-white px-3 py-2 flex items-center gap-1.5 font-extrabold text-xs uppercase tracking-wider">
+                      <FileText className="w-4 h-4" />
+                      HOW TO APPLY
+                    </div>
+                    <div className="p-3.5 space-y-3 text-[11px] text-slate-700 leading-relaxed font-medium">
+                      <p>
+                        {selectedNoticeJob.howToApply || 'Interested and qualified applicants should signify their interest in writing through an application letter addressed to the Governor and hand them in or send them through courier or email to the HR Office through:'}
+                      </p>
+                      
+                      <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 space-y-1.5 text-[10.5px]">
+                        <div className="flex items-start gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-[#7c191e] shrink-0 mt-0.5" />
+                          <div>
+                            <strong className="text-slate-900 block font-bold">
+                              {selectedNoticeJob.contactPerson || 'ANA MARIE A. ROSAS'}
+                            </strong>
+                            <span className="text-slate-500 text-[10px] block font-semibold">
+                              {selectedNoticeJob.contactPosition || 'PHRMO'}
+                            </span>
+                            <span className="text-slate-600 block text-[10px]">
+                              {selectedNoticeJob.contactAddress || '2nd Floor, Capitol Complex Basco, Batanes'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {selectedNoticeJob.contactEmail && (
+                          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-200/60">
+                            <Mail className="w-3.5 h-3.5 text-[#7c191e] shrink-0" />
+                            <span className="font-semibold text-slate-700">e-mail:</span>
+                            <a href={`mailto:${selectedNoticeJob.contactEmail}`} className="text-[#7c191e] font-bold hover:underline">
+                              {selectedNoticeJob.contactEmail}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deadline Box */}
+                  <div className="bg-[#7c191e] text-white p-3 m-3 rounded-lg flex items-center justify-between shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-amber-300" />
+                      <div>
+                        <span className="text-[8.5px] uppercase font-bold text-white/80 block">Deadline of Application</span>
+                        <span className="text-xs font-black uppercase text-amber-200">
+                          {selectedNoticeJob.deadline}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 2: ATTACH THE FOLLOWING DOCUMENTS */}
+                <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
+                  <div>
+                    <div className="bg-teal-950 text-white px-3 py-2 flex items-center gap-1.5 font-extrabold text-xs uppercase tracking-wider">
+                      <FileCheck className="w-4 h-4 text-emerald-400" />
+                      ATTACH THE FOLLOWING DOCUMENTS:
+                    </div>
+                    <div className="p-3.5 space-y-2 text-[10.5px]">
+                      {(() => {
+                        const appReqs = (selectedNoticeJob.applicationRequirements && selectedNoticeJob.applicationRequirements.length > 0)
+                          ? selectedNoticeJob.applicationRequirements
+                          : [
+                              'Fully accomplished Personal Data Sheet (PDS) with Work Experience Sheet and recent passport-sized or unfiltered digital picture (CS Form No. 212, Revised 2025); digitally signed or electronically signed;',
+                              'Hard copy or electronic copy of Performance Rating in the last rating period (if applicable);',
+                              'Hard copy or electronic copy of proof of eligibility / rating / license (if applicable);',
+                              'Hard copy or electronic copy of Transcript of Records.'
+                            ];
+
+                        return (
+                          <ol className="space-y-2">
+                            {appReqs.map((req, i) => (
+                              <li key={i} className="flex items-start gap-2 text-slate-700 leading-snug">
+                                <span className="w-5 h-5 rounded-full bg-teal-900 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                                  {i + 1}
+                                </span>
+                                <span className="font-medium">{req}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Warning Notice Banner */}
+                  <div className="p-3 bg-rose-50 border-t border-rose-200 flex items-center gap-2.5 text-rose-900">
+                    <div className="w-8 h-8 rounded-full bg-[#7c191e] text-white flex items-center justify-center font-black text-base shrink-0">
+                      !
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-tight text-[#7c191e] leading-tight">
+                      APPLICATIONS WITH INCOMPLETE DOCUMENTS SHALL NOT BE ENTERTAINED.
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 6. EQUAL OPPORTUNITY PRINCIPLE (EOP) Banner */}
+              <div className="bg-white rounded-xl p-3 border border-slate-200 text-center space-y-1 shadow-2xs">
+                <span className="inline-block bg-emerald-800 text-white font-extrabold text-[9px] uppercase px-3 py-0.5 rounded-full tracking-wider">
+                  EQUAL OPPORTUNITY PRINCIPLE (EOP)
+                </span>
+                <p className="text-[9.5px] text-slate-500 leading-relaxed font-medium max-w-xl mx-auto">
+                  This Office does not discriminate in the selection of employees based on sexual orientation and gender identity or expression, religion, civil status, and political affiliation. Persons with disabilities and members of indigenous communities are also encouraged to apply.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-[#fbfbf9] border-t border-amber-900/10 px-4 py-3 flex items-center justify-end z-20">
+              <button
+                type="button"
+                onClick={() => setSelectedNoticeJob(null)}
+                className="px-4 py-1.5 bg-[#7c191e] hover:bg-[#5c1317] text-white font-bold text-xs rounded-lg transition cursor-pointer"
+              >
+                Close Notice
               </button>
             </div>
 
