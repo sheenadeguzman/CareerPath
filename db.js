@@ -204,8 +204,7 @@ export async function initializeDatabase() {
               professional_exam_passed = 'None',
               is_board_passer = 'N/A',
               licensure_exam_date = NULL,
-              license_no = NULL,
-              alumni_association_status = 'Non-Member'
+              license_no = NULL
           WHERE student_id NOT LIKE '%2023-1153%' 
             AND student_id NOT LIKE '%2023-1859%' 
             AND student_id NOT LIKE '%2023-1059%'
@@ -361,8 +360,8 @@ export async function initializeDatabase() {
       console.log('Database Migration: Added year_enrolled column to alumni_profiles.');
     } catch (e) { }
     try {
-      await pool.query("ALTER TABLE alumni_profiles ADD COLUMN alumni_association_status ENUM('Active Member', 'Inactive Member', 'Officer', 'Non-Member') DEFAULT 'Non-Member'");
-      console.log('Database Migration: Added alumni_association_status column to alumni_profiles.');
+      await pool.query("ALTER TABLE alumni_profiles DROP COLUMN alumni_association_status");
+      console.log('Database Migration: Cleaned alumni_association_status column from alumni_profiles.');
     } catch (e) { }
     try {
       await pool.query("ALTER TABLE alumni_profiles ADD COLUMN is_board_passer ENUM('Yes', 'No', 'N/A') DEFAULT 'N/A'");

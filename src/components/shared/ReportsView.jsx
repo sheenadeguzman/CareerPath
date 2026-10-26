@@ -142,7 +142,7 @@ export default function ReportsView({ alumniList, activeUser }) {
     }
 
     // Direct CHED GTS columns matching typical Commission on Higher Education guidelines
-    let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Alumni_Association_Status,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
+    let csvHeader = 'No.,Student_ID,Last_Name,First_Name,Middle_Name,Suffix,Email_Address,Contact_Number,Address,Age,Location_Region,Degree_Completed,Year_Enrolled,Year_Graduated,License_Passed,Is_Board_Passer,Licensure_Date,License_No,Employment_Status,Employment_Type,Job_Title,Employer_Name,Sector,Monthly_Income,Job_Industry,Is_Job_Related_To_Course,Is_First_Job_Related_To_Course,Time_To_First_Job,Skills\n';
 
     let csvContent = exportList.map((a, idx) => {
       const first = a.firstName || a.name?.split(' ')[0] || '';
@@ -152,7 +152,7 @@ export default function ReportsView({ alumniList, activeUser }) {
       const ageVal = calculateAge(a.dateOfBirth) || 'N/A';
       const skillsStr = (a.skills || []).join('; ');
 
-      return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.alumniAssociationStatus || 'Non-Member'}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
+      return `${idx + 1},"${a.studentId}","${last}","${first}","${middle}","${suffix}","${a.email || ''}","${a.phone || ''}","${a.address || 'Basco, Batanes'}",${ageVal},"${a.locationRegion || 'Local (Batanes)'}","${a.program || ''}",${a.yearEnrolled || ''},${a.yearGraduated || 2026},"${a.professionalExamPassed || 'None'}","${a.isBoardPasser || 'N/A'}","${a.licensureExamDate || ''}","${a.licenseNo || ''}","${a.employmentStatus || 'No Response'}","${a.employmentType || 'None'}","${a.jobTitle || ''}","${a.employerName || ''}","${a.sector || 'N/A'}","${a.monthlyIncome || ''}","${a.jobIndustry || ''}","${a.jobRelatedToCourse || 'No'}","${a.firstJobRelatedToCourse || 'No'}","${a.timeToFirstJob || ''}","${skillsStr}"`;
     }).join('\n');
 
     const blob = new Blob([csvHeader + csvContent], { type: 'text/csv;charset=utf-8;' });

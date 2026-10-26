@@ -145,7 +145,6 @@ export function mapAlumniFromDB(row) {
     isBoardPasser: isInitialPending ? 'N/A' : (row.is_board_passer || 'N/A'),
     licensureExamDate: isInitialPending ? '' : (row.licensure_exam_date || ''),
     licenseNo: isInitialPending ? '' : (row.license_no || ''),
-    alumniAssociationStatus: isInitialPending ? 'Non-Member' : (row.alumni_association_status || 'Non-Member'),
     employmentStatus: employmentStatus,
     jobTitle: isInitialPending ? '' : (row.job_title || ''),
     jobDescription: isInitialPending ? '' : (row.job_description || ''),
